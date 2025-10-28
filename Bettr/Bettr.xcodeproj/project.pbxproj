@@ -10,6 +10,7 @@
 		129A71882EB0B038001CE8EB /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71872EB0B038001CE8EB /* FirebaseAI */; };
 		129A718A2EB0B038001CE8EB /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71892EB0B038001CE8EB /* FirebaseAppCheck */; };
 		129A718C2EB0B038001CE8EB /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 129A718B2EB0B038001CE8EB /* FirebaseCore */; };
+		129A71B32EB0EEA8001CE8EB /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71B22EB0EEA8001CE8EB /* GRDB */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 				129A718A2EB0B038001CE8EB /* FirebaseAppCheck in Frameworks */,
 				129A718C2EB0B038001CE8EB /* FirebaseCore in Frameworks */,
 				129A71882EB0B038001CE8EB /* FirebaseAI in Frameworks */,
+				129A71B32EB0EEA8001CE8EB /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -77,6 +79,7 @@
 				129A71872EB0B038001CE8EB /* FirebaseAI */,
 				129A71892EB0B038001CE8EB /* FirebaseAppCheck */,
 				129A718B2EB0B038001CE8EB /* FirebaseCore */,
+				129A71B22EB0EEA8001CE8EB /* GRDB */,
 			);
 			productName = Bettr;
 			productReference = 129A71762EB0AD3D001CE8EB /* Bettr.app */;
@@ -108,6 +111,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				129A71862EB0B038001CE8EB /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				129A71B12EB0EEA8001CE8EB /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 129A71772EB0AD3D001CE8EB /* Products */;
@@ -355,6 +359,14 @@
 				minimumVersion = 12.4.0;
 			};
 		};
+		129A71B12EB0EEA8001CE8EB /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -372,6 +384,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 129A71862EB0B038001CE8EB /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
+		};
+		129A71B22EB0EEA8001CE8EB /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 129A71B12EB0EEA8001CE8EB /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
