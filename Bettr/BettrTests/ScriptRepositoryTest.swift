@@ -47,7 +47,6 @@ final class ScriptRepositoryTests: XCTestCase {
                 t.column("koreanText", .text).notNull()
             }
 
-            // PracticeSession 테이블 생성
             try db.create(table: "practice_session") { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("scriptId", .integer).notNull().references("script", onDelete: .cascade)
@@ -56,7 +55,6 @@ final class ScriptRepositoryTests: XCTestCase {
                 t.column("createdAt", .datetime).notNull()
             }
 
-            // FeedbackSummary 테이블 생성
             try db.create(table: "feedback_summary") { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("practiceSessionId", .integer).notNull().references("practice_session", onDelete: .cascade).unique()
@@ -67,7 +65,6 @@ final class ScriptRepositoryTests: XCTestCase {
                 t.column("analyzedAt", .datetime).notNull()
             }
 
-            // FeedbackDetail 테이블 생성
             try db.create(table: "feedback_detail") { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("feedbackSummaryId", .integer).notNull().references("feedback_summary", onDelete: .cascade)
@@ -80,10 +77,9 @@ final class ScriptRepositoryTests: XCTestCase {
         }
     }
     
-    // MARK: - Create Tests
-    
+    // MARK: - Script Create Tests
     func test_createScript_whenValidScriptDataProvided_thenScriptIsCreatedSuccessfully() throws {
-        // Given: 유효한 ScriptData가 주어졌을 때
+        // Given: 유효한 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Test Script",
             sentences: [
@@ -99,7 +95,7 @@ final class ScriptRepositoryTests: XCTestCase {
             ]
         )
         
-        // When: createScript를 호출하면
+        // When: createScript를 호출했을 때
         let createdScript = try sut.createScript(scriptData: scriptData)
         
         // Then: Script가 성공적으로 생성되어야 함
@@ -110,7 +106,7 @@ final class ScriptRepositoryTests: XCTestCase {
     }
     
     func test_createScript_whenScriptCreated_thenScriptExistsInDatabase() throws {
-        // Given: ScriptData가 주어졌을 때
+        // Given: ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Database Test Script",
             sentences: [
@@ -123,7 +119,7 @@ final class ScriptRepositoryTests: XCTestCase {
             ]
         )
         
-        // When: Script를 생성하면
+        // When: Script를 생성했을 때
         let createdScript = try sut.createScript(scriptData: scriptData)
         
         // Then: 데이터베이스에 Script가 존재해야 함
@@ -136,7 +132,7 @@ final class ScriptRepositoryTests: XCTestCase {
     }
     
     func test_createScript_whenSentencesProvided_thenSentencesAreCreatedWithCorrectOrder() throws {
-        // Given: 여러 문장을 포함한 ScriptData가 주어졌을 때
+        // Given: 여러 문장을 포함한 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Multi Sentence Script",
             sentences: [
@@ -155,7 +151,7 @@ final class ScriptRepositoryTests: XCTestCase {
             ]
         )
         
-        // When: Script를 생성하면
+        // When: Script를 생성했을 때
         let createdScript = try sut.createScript(scriptData: scriptData)
         
         // Then: Sentence들이 올바른 순서로 생성되어야 함
@@ -174,7 +170,7 @@ final class ScriptRepositoryTests: XCTestCase {
     }
     
     func test_createScript_whenChunksProvided_thenChunksAreCreatedWithCorrectOrder() throws {
-        // Given: Chunk를 포함한 Sentence가 있는 ScriptData가 주어졌을 때
+        // Given: Chunk를 포함한 Sentence가 존재할 때
         let scriptData = ScriptData(
             title: "Chunked Script",
             sentences: [
@@ -191,7 +187,7 @@ final class ScriptRepositoryTests: XCTestCase {
             ]
         )
         
-        // When: Script를 생성하면
+        // When: Script를 생성했을 때
         let createdScript = try sut.createScript(scriptData: scriptData)
         
         // Then: Chunk들이 올바른 순서로 생성되어야 함
@@ -218,7 +214,7 @@ final class ScriptRepositoryTests: XCTestCase {
     }
     
     func test_createScript_whenComplexDataProvided_thenAllRelationshipsAreCreatedCorrectly() throws {
-        // Given: 복잡한 구조의 ScriptData가 주어졌을 때
+        // Given: 복잡한 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Complex Script",
             sentences: [
@@ -243,7 +239,7 @@ final class ScriptRepositoryTests: XCTestCase {
             ]
         )
         
-        // When: Script를 생성하면
+        // When: Script를 생성했을 때
         let createdScript = try sut.createScript(scriptData: scriptData)
         
         // Then: 모든 관계가 올바르게 생성되어야 함
@@ -263,13 +259,13 @@ final class ScriptRepositoryTests: XCTestCase {
     }
     
     func test_createScript_whenEmptySentences_thenOnlyScriptIsCreated() throws {
-        // Given: 문장이 없는 ScriptData가 주어졌을 때
+        // Given: 문장이 없는 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Empty Script",
             sentences: []
         )
         
-        // When & Then: Script를 생성하려고 하면 오류가 발생해야 함
+        // When-Then: Script 생성 시 오류가 발생해야 함
         XCTAssertThrowsError(try sut.createScript(scriptData: scriptData)) {
             error in
             XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.").errorDescription)
@@ -277,7 +273,7 @@ final class ScriptRepositoryTests: XCTestCase {
     }
     
     func test_createScript_whenEmptyChunks_thenThrowsError() throws {
-        // Given: ScriptData with a sentence that has an empty chunks array
+        // Given: Chunk가 없는 Sentence가 포함된 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Script with Empty Chunks",
             sentences: [
@@ -290,7 +286,7 @@ final class ScriptRepositoryTests: XCTestCase {
             ]
         )
         
-        // When & Then: Attempting to create the script should throw a validation error
+        // When-Then: Script 생성 시 검증 오류가 발생해야 함
         XCTAssertThrowsError(try sut.createScript(scriptData: scriptData)) {
             error in
             XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "A Sentence must contain at least one chunk.").errorDescription)
@@ -300,7 +296,7 @@ final class ScriptRepositoryTests: XCTestCase {
     // MARK: - Read Tests
     
     func test_fetchScript_whenScriptExists_thenReturnsScript() throws {
-        // Given: A script is created
+        // Given: Script가 존재할 때
         let scriptData = ScriptData(
             title: "Fetchable Script",
             sentences: [
@@ -309,28 +305,28 @@ final class ScriptRepositoryTests: XCTestCase {
         )
         let createdScript = try sut.createScript(scriptData: scriptData)
         
-        // When: Fetching the script by its ID
+        // When: 해당 Script ID로 조회했을 때
         let fetchedScript = try sut.fetchScript(id: createdScript.id!)
         
-        // Then: The correct script should be returned
+        // Then: 올바른 Script가 반환되어야 함
         XCTAssertNotNil(fetchedScript)
         XCTAssertEqual(fetchedScript?.title, "Fetchable Script")
         XCTAssertEqual(fetchedScript?.id, createdScript.id)
     }
     
     func test_fetchScript_whenScriptDoesNotExist_thenReturnsNil() throws {
-        // Given: A non-existent script ID
+        // Given: 존재하지 않는 Script ID가 있을 때
         let nonExistentId: Int64 = 9999
         
-        // When: Fetching a script with the non-existent ID
+        // When: 해당 ID로 Script를 조회했을 때
         let fetchedScript = try sut.fetchScript(id: nonExistentId)
         
-        // Then: Nil should be returned
+        // Then: nil이 반환되어야 함
         XCTAssertNil(fetchedScript)
     }
     
     func test_fetchAllScripts_whenScriptsExist_thenReturnsAllScripts() throws {
-        // Given: Multiple scripts are created
+        // Given: 여러 Script가 존재할 때
         let scriptData1 = ScriptData(
             title: "Script One",
             sentences: [
@@ -346,29 +342,29 @@ final class ScriptRepositoryTests: XCTestCase {
         _ = try sut.createScript(scriptData: scriptData1)
         _ = try sut.createScript(scriptData: scriptData2)
         
-        // When: Fetching all scripts
+        // When: 모든 Script를 조회했을 때
         let allScripts = try sut.fetchAllScripts()
         
-        // Then: All created scripts should be returned
+        // Then: 모든 Script가 반환되어야 함
         XCTAssertEqual(allScripts.count, 2)
         XCTAssertTrue(allScripts.contains(where: { $0.title == "Script One" }))
         XCTAssertTrue(allScripts.contains(where: { $0.title == "Script Two" }))
     }
     
     func test_fetchAllScripts_whenNoScriptsExist_thenReturnsEmptyArray() throws {
-        // Given: No scripts exist in the database (default setup)
+        // Given: 데이터베이스에 Script가 없을 때
         
-        // When: Fetching all scripts
+        // When: 모든 Script를 조회했을 때
         let allScripts = try sut.fetchAllScripts()
         
-        // Then: An empty array should be returned
+        // Then: 빈 배열이 반환되어야 함
         XCTAssertTrue(allScripts.isEmpty)
     }
 
-    // MARK: - Update Tests
+    // MARK: - Script Update Tests
 
     func test_updateLastViewedAt_whenScriptExists_thenUpdatesTimestamp() throws {
-        // Given: A script is created
+        // Given: Script가 존재할 때
         let scriptData = ScriptData(
             title: "Script to Update",
             sentences: [
@@ -378,13 +374,11 @@ final class ScriptRepositoryTests: XCTestCase {
         let createdScript = try sut.createScript(scriptData: scriptData)
         let initialLastViewedAt = createdScript.lastViewedAt
 
-        // Simulate a small delay to ensure timestamp changes
+        // When: lastViewedAt을 갱신했을 때
         Thread.sleep(forTimeInterval: 0.01)
-
-        // When: Updating lastViewedAt
         try sut.updateLastViewedAt(forScriptId: createdScript.id!)
 
-        // Then: The script's lastViewedAt should be updated
+        // Then: 타임스탬프가 업데이트되어야 함
         let updatedScript = try sut.fetchScript(id: createdScript.id!)
         XCTAssertNotNil(updatedScript)
         XCTAssertNotEqual(updatedScript?.lastViewedAt, initialLastViewedAt)
@@ -392,20 +386,20 @@ final class ScriptRepositoryTests: XCTestCase {
     }
 
     func test_updateLastViewedAt_whenScriptDoesNotExist_thenThrowsError() throws {
-        // Given: A non-existent script ID
+        // Given: 존재하지 않는 Script ID가 있을 때
         let nonExistentId: Int64 = 9999
 
-        // When & Then: Attempting to update lastViewedAt for a non-existent script should throw an error
+        // When-Then: 업데이트 시 notFound 오류가 발생해야 함
         XCTAssertThrowsError(try sut.updateLastViewedAt(forScriptId: nonExistentId)) {
             error in
             XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription)
         }
     }
 
-    // MARK: - PracticeSession Tests
+    // MARK: - PracticeSession Create Tests
 
     func test_createPracticeSession_whenValidDataProvided_thenCreatesSuccessfully() throws {
-        // Given: A script exists and valid practice session data is provided
+        // Given: Script가 존재하고 유효한 PracticeSession 데이터가 있을 때
         let scriptData = ScriptData(
             title: "Test Script for Practice Session",
             sentences: [
@@ -417,14 +411,14 @@ final class ScriptRepositoryTests: XCTestCase {
         let recordingPath = "path/to/recording.m4a"
         let totalPresentationTime: Double = 120.5
         
-        // When: Creating a practice session
+        // When: PracticeSession을 생성했을 때
         let createdSession = try sut.createPracticeSession(
             scriptId: createdScript.id!,
             recordingPath: recordingPath,
             totalPresentationTime: totalPresentationTime
         )
         
-        // Then: The practice session should be created successfully
+        // Then: PracticeSession이 성공적으로 생성되어야 함
         XCTAssertNotNil(createdSession.id)
         XCTAssertEqual(createdSession.scriptId, createdScript.id)
         XCTAssertEqual(createdSession.recordingPath, recordingPath)
@@ -433,12 +427,12 @@ final class ScriptRepositoryTests: XCTestCase {
     }
     
     func test_createPracticeSession_whenScriptDoesNotExist_thenThrowsError() throws {
-        // Given: A non-existent script ID
+        // Given: 존재하지 않는 Script ID가 있을 때
         let nonExistentScriptId: Int64 = 9999
         let recordingPath = "path/to/recording.m4a"
         let totalPresentationTime: Double = 120.5
         
-        // When & Then: Attempting to create a practice session for a non-existent script should throw an error
+        // When-Then: PracticeSession 생성 시 notFound 오류가 발생해야 함
         XCTAssertThrowsError(try sut.createPracticeSession(
             scriptId: nonExistentScriptId,
             recordingPath: recordingPath,
@@ -450,7 +444,7 @@ final class ScriptRepositoryTests: XCTestCase {
     }
     
     func test_createPracticeSession_whenPracticeSessionCreated_thenExistsInDatabase() throws {
-        // Given: A script exists and valid practice session data is provided
+        // Given: 스크립트가 존재하고 유효한 연습 세션 데이터가 제공된 경우
         let scriptData = ScriptData(
             title: "Test Script for DB Check",
             sentences: [
@@ -462,14 +456,14 @@ final class ScriptRepositoryTests: XCTestCase {
         let recordingPath = "path/to/recording.m4a"
         let totalPresentationTime: Double = 120.5
         
-        // When: Creating a practice session
+        // When: 연습 세션을 생성할 때
         let createdSession = try sut.createPracticeSession(
             scriptId: createdScript.id!,
             recordingPath: recordingPath,
             totalPresentationTime: totalPresentationTime
         )
         
-        // Then: The practice session should exist in the database
+        // Then: 생성된 연습 세션이 데이터베이스에 존재해야 함
         let fetchedSession = try dbQueue.read { db in
             try PracticeSession.fetchOne(db, key: createdSession.id)
         }
