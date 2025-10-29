@@ -33,8 +33,8 @@
 
 
 ## 📆 프로젝트 기간
-- 전체 기간: `YYYY.MM.DD - YYYY.MM.DD`
-- 개발 기간: `YYYY.MM.DD - YYYY.MM.DD`
+- 전체 기간: `2025.09.01 - 진행중`
+- 개발 기간: `2025.10.28 - 진행중`
 
 
 ## 🛠 기술 스택
@@ -79,8 +79,12 @@
 
 | 이름 | 역할 | GitHub |
 |------|------|--------|
-| 홍길동 | iOS Developer | [@hong](https://github.com/hong) |
-| 김개발 | PM | [@devkim](https://github.com/devkim) |
+| 듀이 | PM | [@Dewy](https://github.com/doyeonyyy) |
+| 올리버 | Tech | [@Oliver](https://github.com/cherry-go-round) |
+| 세린 | Tech | [@OCerin](https://github.com/CerinSeo) |
+| 로드 | Tech | [@Rohd](https://github.com/JeongsuGil) |
+| 이사 | Tech | [@Isa](https://github.com/ChocopieA) |
+| 엑설런티 | Design | [@Excellenty](https://github.com/Excellenty-ada25) |
 
 [🔗 팀 블로그 / 미디엄 링크](https://medium.com/example)
 
