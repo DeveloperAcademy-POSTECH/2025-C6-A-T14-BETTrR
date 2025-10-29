@@ -94,62 +94,24 @@ class ScriptRepository {
         feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]
     ) throws -> FeedbackSummary {
         return try dbQueue.write { db in
-            // 1. practiceSessionId 존재 여부 유효성 검사
-            guard let _ = try PracticeSession.fetchOne(db, key: practiceSessionId) else {
-                throw ScriptRepositoryError.notFound(message: "PracticeSession with ID \(practiceSessionId) not found.")
-            }
+            try validatePracticeSessionExists(db: db, practiceSessionId: practiceSessionId)
+            try validateFeedbackSummaryUniqueness(db: db, practiceSessionId: practiceSessionId)
+            try validateFeedbackDetailsData(feedbackDetailsData)
 
-            // 2. FeedbackSummary 고유성 검사 (1:1 관계)
-            if let _ = try FeedbackSummary.filter(Column("practiceSessionId") == practiceSessionId).fetchOne(db) {
-                throw ScriptRepositoryError.validationError(message: "FeedbackSummary already exists for PracticeSession ID \(practiceSessionId).")
-            }
-
-            // 3. feedbackDetailsData 비어 있지 않음 유효성 검사
-            if feedbackDetailsData.isEmpty {
-                throw ScriptRepositoryError.validationError(message: "FeedbackSummary must contain at least one FeedbackDetail.")
-            }
-
-            // 4. errorType 유효성 검사
-            let allowedErrorTypes: Set<String> = ["누락된 단어", "추가된 단어", "대체된 단어"]
-            for detailData in feedbackDetailsData {
-                if !allowedErrorTypes.contains(detailData.errorType) {
-                    throw ScriptRepositoryError.validationError(message: "Invalid errorType: \(detailData.errorType). Allowed types are: \(allowedErrorTypes.joined(separator: ", ")).")
-                }
-            }
-
-            // 5. FeedbackSummary 생성 및 저장
-            var summary = FeedbackSummary(
+            let summary = try createAndSaveFeedbackSummary(
+                db: db,
                 practiceSessionId: practiceSessionId,
                 totalScore: totalScore,
                 missingWordCount: missingWordCount,
                 addedWordCount: addedWordCount,
-                replacedWordCount: replacedWordCount,
-                analyzedAt: Date()
+                replacedWordCount: replacedWordCount
             )
-            do {
-                try summary.save(db)
-            } catch {
-                throw ScriptRepositoryError.databaseError(message: "Failed to save FeedbackSummary: \(error.localizedDescription)")
-            }
             guard let summaryId = summary.id else {
                 throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created FeedbackSummary")
             }
 
-            // 6. FeedbackDetail 생성 및 저장
             for detailData in feedbackDetailsData {
-                var detail = FeedbackDetail(
-                    feedbackSummaryId: summaryId,
-                    errorType: detailData.errorType,
-                    originalText: detailData.originalText,
-                    spokenText: detailData.spokenText,
-                    startTime: detailData.startTime,
-                    endTime: detailData.endTime
-                )
-                do {
-                    try detail.save(db)
-                } catch {
-                    throw ScriptRepositoryError.databaseError(message: "Failed to save FeedbackDetail: \(error.localizedDescription)")
-                }
+                _ = try createAndSaveFeedbackDetail(db: db, feedbackSummaryId: summaryId, detailData: detailData)
             }
             return summary
         }
@@ -210,5 +172,64 @@ class ScriptRepository {
             throw ScriptRepositoryError.databaseError(message: "Failed to save Chunk: \(error.localizedDescription)")
         }
         return chunk
+    }
+
+    private func validatePracticeSessionExists(db: Database, practiceSessionId: Int64) throws {
+        guard let _ = try PracticeSession.fetchOne(db, key: practiceSessionId) else {
+            throw ScriptRepositoryError.notFound(message: "PracticeSession with ID \(practiceSessionId) not found.")
+        }
+    }
+
+    private func validateFeedbackSummaryUniqueness(db: Database, practiceSessionId: Int64) throws {
+        if let _ = try FeedbackSummary.filter(Column("practiceSessionId") == practiceSessionId).fetchOne(db) {
+            throw ScriptRepositoryError.validationError(message: "FeedbackSummary already exists for PracticeSession ID \(practiceSessionId).")
+        }
+    }
+
+    private func validateFeedbackDetailsData(_ feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]) throws {
+        if feedbackDetailsData.isEmpty {
+            throw ScriptRepositoryError.validationError(message: "FeedbackSummary must contain at least one FeedbackDetail.")
+        }
+
+        let allowedErrorTypes: Set<String> = ["누락된 단어", "추가된 단어", "대체된 단어"]
+        for detailData in feedbackDetailsData {
+            if !allowedErrorTypes.contains(detailData.errorType) {
+                throw ScriptRepositoryError.validationError(message: "Invalid errorType: \(detailData.errorType). Allowed types are: \(allowedErrorTypes.joined(separator: ", ")).")
+            }
+        }
+    }
+
+    private func createAndSaveFeedbackSummary(db: Database, practiceSessionId: Int64, totalScore: Double, missingWordCount: Int, addedWordCount: Int, replacedWordCount: Int) throws -> FeedbackSummary {
+        var summary = FeedbackSummary(
+            practiceSessionId: practiceSessionId,
+            totalScore: totalScore,
+            missingWordCount: missingWordCount,
+            addedWordCount: addedWordCount,
+            replacedWordCount: replacedWordCount,
+            analyzedAt: Date()
+        )
+        do {
+            try summary.save(db)
+        } catch {
+            throw ScriptRepositoryError.databaseError(message: "Failed to save FeedbackSummary: \(error.localizedDescription)")
+        }
+        return summary
+    }
+
+    private func createAndSaveFeedbackDetail(db: Database, feedbackSummaryId: Int64, detailData: (errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)) throws -> FeedbackDetail {
+        var detail = FeedbackDetail(
+            feedbackSummaryId: feedbackSummaryId,
+            errorType: detailData.errorType,
+            originalText: detailData.originalText,
+            spokenText: detailData.spokenText,
+            startTime: detailData.startTime,
+            endTime: detailData.endTime
+        )
+        do {
+            try detail.save(db)
+        } catch {
+            throw ScriptRepositoryError.databaseError(message: "Failed to save FeedbackDetail: \(error.localizedDescription)")
+        }
+        return detail
     }
 }
