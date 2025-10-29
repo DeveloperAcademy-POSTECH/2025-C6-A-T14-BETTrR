@@ -46,6 +46,37 @@ final class ScriptRepositoryTests: XCTestCase {
                 t.column("englishText", .text).notNull()
                 t.column("koreanText", .text).notNull()
             }
+
+            // PracticeSession 테이블 생성
+            try db.create(table: "practice_session") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("scriptId", .integer).notNull().references("script", onDelete: .cascade)
+                t.column("recordingPath", .text).notNull()
+                t.column("totalPresentationTime", .double).notNull()
+                t.column("createdAt", .datetime).notNull()
+            }
+
+            // FeedbackSummary 테이블 생성
+            try db.create(table: "feedback_summary") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("practiceSessionId", .integer).notNull().references("practice_session", onDelete: .cascade).unique()
+                t.column("totalScore", .double).notNull()
+                t.column("missingWordCount", .integer).notNull()
+                t.column("addedWordCount", .integer).notNull()
+                t.column("replacedWordCount", .integer).notNull()
+                t.column("analyzedAt", .datetime).notNull()
+            }
+
+            // FeedbackDetail 테이블 생성
+            try db.create(table: "feedback_detail") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("feedbackSummaryId", .integer).notNull().references("feedback_summary", onDelete: .cascade)
+                t.column("errorType", .text).notNull()
+                t.column("originalText", .text)
+                t.column("spokenText", .text)
+                t.column("startTime", .double).notNull()
+                t.column("endTime", .double).notNull()
+            }
         }
     }
     
@@ -369,5 +400,81 @@ final class ScriptRepositoryTests: XCTestCase {
             error in
             XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription)
         }
+    }
+
+    // MARK: - PracticeSession Tests
+
+    func test_createPracticeSession_whenValidDataProvided_thenCreatesSuccessfully() throws {
+        // Given: A script exists and valid practice session data is provided
+        let scriptData = ScriptData(
+            title: "Test Script for Practice Session",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Hello.", koreanText: "안녕.", chunks: [ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+        
+        let recordingPath = "path/to/recording.m4a"
+        let totalPresentationTime: Double = 120.5
+        
+        // When: Creating a practice session
+        let createdSession = try sut.createPracticeSession(
+            scriptId: createdScript.id!,
+            recordingPath: recordingPath,
+            totalPresentationTime: totalPresentationTime
+        )
+        
+        // Then: The practice session should be created successfully
+        XCTAssertNotNil(createdSession.id)
+        XCTAssertEqual(createdSession.scriptId, createdScript.id)
+        XCTAssertEqual(createdSession.recordingPath, recordingPath)
+        XCTAssertEqual(createdSession.totalPresentationTime, totalPresentationTime)
+        XCTAssertNotNil(createdSession.createdAt)
+    }
+    
+    func test_createPracticeSession_whenScriptDoesNotExist_thenThrowsError() throws {
+        // Given: A non-existent script ID
+        let nonExistentScriptId: Int64 = 9999
+        let recordingPath = "path/to/recording.m4a"
+        let totalPresentationTime: Double = 120.5
+        
+        // When & Then: Attempting to create a practice session for a non-existent script should throw an error
+        XCTAssertThrowsError(try sut.createPracticeSession(
+            scriptId: nonExistentScriptId,
+            recordingPath: recordingPath,
+            totalPresentationTime: totalPresentationTime
+        )) {
+            error in
+            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentScriptId) not found.").errorDescription)
+        }
+    }
+    
+    func test_createPracticeSession_whenPracticeSessionCreated_thenExistsInDatabase() throws {
+        // Given: A script exists and valid practice session data is provided
+        let scriptData = ScriptData(
+            title: "Test Script for DB Check",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Hello.", koreanText: "안녕.", chunks: [ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+        
+        let recordingPath = "path/to/recording.m4a"
+        let totalPresentationTime: Double = 120.5
+        
+        // When: Creating a practice session
+        let createdSession = try sut.createPracticeSession(
+            scriptId: createdScript.id!,
+            recordingPath: recordingPath,
+            totalPresentationTime: totalPresentationTime
+        )
+        
+        // Then: The practice session should exist in the database
+        let fetchedSession = try dbQueue.read { db in
+            try PracticeSession.fetchOne(db, key: createdSession.id)
+        }
+        XCTAssertNotNil(fetchedSession)
+        XCTAssertEqual(fetchedSession?.id, createdSession.id)
+        XCTAssertEqual(fetchedSession?.scriptId, createdScript.id)
     }
 }

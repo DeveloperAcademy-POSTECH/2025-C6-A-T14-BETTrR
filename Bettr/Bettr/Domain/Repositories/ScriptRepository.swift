@@ -87,6 +87,31 @@ class ScriptRepository {
         return chunk
     }
 
+    // MARK: - PracticeSession Creation
+
+    func createPracticeSession(scriptId: Int64, recordingPath: String, totalPresentationTime: Double) throws -> PracticeSession {
+        return try dbQueue.write { db in
+            // 1. Validate scriptId exists
+            guard let _ = try Script.fetchOne(db, key: scriptId) else {
+                throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
+            }
+
+            // 2. Create and save PracticeSession
+            var session = PracticeSession(
+                scriptId: scriptId,
+                recordingPath: recordingPath,
+                totalPresentationTime: totalPresentationTime,
+                createdAt: Date()
+            )
+            do {
+                try session.save(db)
+            } catch {
+                throw ScriptRepositoryError.databaseError(message: "Failed to save PracticeSession: \(error.localizedDescription)")
+            }
+            return session
+        }
+    }
+
     func fetchScript(id: Int64) throws -> Script? {
         return try dbQueue.read { db in
             try Script.fetchOne(db, key: id)
