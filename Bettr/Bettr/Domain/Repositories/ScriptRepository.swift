@@ -9,67 +9,82 @@ class ScriptRepository {
     }
 
     func createScript(scriptData: ScriptData) throws -> Script {
-        guard !scriptData.sentences.isEmpty else {
-            throw ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.")
-        }
+        try validateScriptData(scriptData)
 
         return try dbQueue.write { db in
-
-            var script = Script(
-                title: scriptData.title,
-                createdAt: Date(),
-                lastViewedAt: Date()
-            )
-            do {
-                try script.save(db)
-            } catch {
-                throw ScriptRepositoryError.databaseError(message: "Failed to save Script: \(error.localizedDescription)")
-            }
-
-            // Ensure script.id is available after saving
+            let script = try createAndSaveScript(scriptData, in: db)
             guard let scriptId = script.id else {
                 throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Script")
             }
 
             for (sentenceOrderIndex, sentenceData) in scriptData.sentences.enumerated() {
-                // Validation: A Sentence must contain at least one Chunk
-                guard !sentenceData.chunks.isEmpty else {
-                    throw ScriptRepositoryError.validationError(message: "A Sentence must contain at least one chunk.")
-                }
-
-                var sentence = Sentence(
-                    scriptId: scriptId,
-                    orderIndex: sentenceOrderIndex,
-                    englishText: sentenceData.englishText,
-                    koreanText: sentenceData.koreanText
-                )
-                do {
-                    try sentence.save(db)
-                } catch {
-                    throw ScriptRepositoryError.databaseError(message: "Failed to save Sentence: \(error.localizedDescription)")
-                }
-
-                // Ensure sentence.id is available after saving
+                let sentence = try createAndSaveSentence(sentenceData, forScriptId: scriptId, orderIndex: sentenceOrderIndex, in: db)
                 guard let sentenceId = sentence.id else {
                     throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Sentence")
                 }
 
                 for (chunkOrderIndex, chunkData) in sentenceData.chunks.enumerated() {
-                    var chunk = Chunk(
-                        sentenceId: sentenceId,
-                        orderIndex: chunkOrderIndex,
-                        englishText: chunkData.englishText,
-                        koreanText: chunkData.koreanText
-                    )
-                    do {
-                        try chunk.save(db)
-                    } catch {
-                        throw ScriptRepositoryError.databaseError(message: "Failed to save Chunk: \(error.localizedDescription)")
-                    }
+                    _ = try createAndSaveChunk(chunkData, forSentenceId: sentenceId, orderIndex: chunkOrderIndex, in: db)
                 }
             }
             return script
         }
+    }
+
+    private func validateScriptData(_ scriptData: ScriptData) throws {
+        if scriptData.sentences.isEmpty {
+            throw ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.")
+        }
+
+        for sentenceData in scriptData.sentences {
+            if sentenceData.chunks.isEmpty {
+                throw ScriptRepositoryError.validationError(message: "A Sentence must contain at least one chunk.")
+            }
+        }
+    }
+
+    private func createAndSaveScript(_ scriptData: ScriptData, in db: Database) throws -> Script {
+        var script = Script(
+            title: scriptData.title,
+            createdAt: Date(),
+            lastViewedAt: Date()
+        )
+        do {
+            try script.save(db)
+        } catch {
+            throw ScriptRepositoryError.databaseError(message: "Failed to save Script: \(error.localizedDescription)")
+        }
+        return script
+    }
+
+    private func createAndSaveSentence(_ sentenceData: SentenceData, forScriptId scriptId: Int64, orderIndex: Int, in db: Database) throws -> Sentence {
+        var sentence = Sentence(
+            scriptId: scriptId,
+            orderIndex: orderIndex,
+            englishText: sentenceData.englishText,
+            koreanText: sentenceData.koreanText
+        )
+        do {
+            try sentence.save(db)
+        } catch {
+            throw ScriptRepositoryError.databaseError(message: "Failed to save Sentence: \(error.localizedDescription)")
+        }
+        return sentence
+    }
+
+    private func createAndSaveChunk(_ chunkData: ChunkData, forSentenceId sentenceId: Int64, orderIndex: Int, in db: Database) throws -> Chunk {
+        var chunk = Chunk(
+            sentenceId: sentenceId,
+            orderIndex: orderIndex,
+            englishText: chunkData.englishText,
+            koreanText: chunkData.koreanText
+        )
+        do {
+            try chunk.save(db)
+        } catch {
+            throw ScriptRepositoryError.databaseError(message: "Failed to save Chunk: \(error.localizedDescription)")
+        }
+        return chunk
     }
 
     func fetchScript(id: Int64) throws -> Script? {
