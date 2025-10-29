@@ -10,6 +10,7 @@ import FirebaseAI
 
 import Foundation
 
+// MARK: - 올리버의 dto
 struct ChunkData: Codable, Hashable {
     var orderIndex: Int
     var englishText: String
@@ -28,6 +29,7 @@ struct ScriptData: Codable, Hashable {
     var sentences: [SentenceData]
 }
 
+// MARK: - 화면 UI
 struct ScriptInputView: View {
     @State private var scriptText: String = ""       // 사용자가 입력한 스크립트 저장용 변수
     @State private var isLoading: Bool = false              // FirebaseAI 호출 중 로딩 상태
@@ -277,8 +279,11 @@ Full natural translation:
     }
 }
 
+// MARK: - 파싱 함수(1. 제미나이에서 받아온 response를 문장 단위로 파싱, 2. "/"가 있는 문장을 "/"로 파싱)
 func parseGeminiOutputToScriptData(_ text: String, title: String) -> ScriptData {
+    // 1. 문장 파싱
     let sections = text.components(separatedBy: "Sentence ")
+        .dropFirst() // 맨 앞의 빈 요소 제거!
         .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     
     var sentences: [SentenceData] = []
@@ -288,7 +293,8 @@ func parseGeminiOutputToScriptData(_ text: String, title: String) -> ScriptData 
         var koreanText = ""
         var englishChunks: [String] = []
         var koreanChunks: [String] = []
-
+        
+        // 2. 청크 파싱
         let cleanedSection = section.replacingOccurrences(of: "\r", with: "")
         let lines = cleanedSection.split(separator: "\n").map {
             String($0).trimmingCharacters(in: .whitespacesAndNewlines)
