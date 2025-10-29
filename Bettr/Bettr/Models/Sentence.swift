@@ -9,6 +9,9 @@ struct Sentence: Identifiable, Codable, FetchableRecord, MutablePersistableRecor
     var englishText: String
     var koreanText: String
 
+    static let script = belongsTo(Script.self)
+    static let chunks = hasMany(Chunk.self)
+
     static var databaseTableName: String = "sentence"
 
     mutating func didInsert(_ inserted: InsertionSuccess) {

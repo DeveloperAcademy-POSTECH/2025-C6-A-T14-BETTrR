@@ -9,6 +9,8 @@ struct Chunk: Identifiable, Codable, FetchableRecord, MutablePersistableRecord {
     var englishText: String
     var koreanText: String
 
+    static let sentence = belongsTo(Sentence.self)
+
     static var databaseTableName: String = "chunk"
 
     mutating func didInsert(_ inserted: InsertionSuccess) {

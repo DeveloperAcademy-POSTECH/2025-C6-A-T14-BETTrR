@@ -11,6 +11,9 @@ struct FeedbackSummary: Identifiable, Codable, FetchableRecord, MutablePersistab
     var replacedWordCount: Int
     var analyzedAt: Date
 
+    static let practiceSession = belongsTo(PracticeSession.self)
+    static let feedbackDetails = hasMany(FeedbackDetail.self)
+
     static var databaseTableName: String = "feedback_summary"
 
     mutating func didInsert(_ inserted: InsertionSuccess) {

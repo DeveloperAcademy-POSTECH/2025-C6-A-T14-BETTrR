@@ -10,6 +10,9 @@ struct Script: Identifiable, Codable, FetchableRecord, MutablePersistableRecord 
     var createdAt: Date
     var lastPracticedAt: Date
 
+    static let sentences = hasMany(Sentence.self)
+    static let practiceSessions = hasMany(PracticeSession.self)
+
     static var databaseTableName: String = "script"
 
     mutating func didInsert(_ inserted: InsertionSuccess) {

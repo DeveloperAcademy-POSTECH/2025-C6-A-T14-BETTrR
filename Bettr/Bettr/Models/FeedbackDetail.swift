@@ -11,6 +11,8 @@ struct FeedbackDetail: Identifiable, Codable, FetchableRecord, MutablePersistabl
     var startTime: Double
     var endTime: Double
 
+    static let feedbackSummary = belongsTo(FeedbackSummary.self)
+
     static var databaseTableName: String = "feedback_detail"
 
     mutating func didInsert(_ inserted: InsertionSuccess) {
