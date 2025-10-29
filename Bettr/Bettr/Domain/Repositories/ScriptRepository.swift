@@ -63,12 +63,11 @@ class ScriptRepository {
     // MARK: - PracticeSession Create
     func createPracticeSession(scriptId: Int64, recordingPath: String, totalPresentationTime: Double) throws -> PracticeSession {
         return try dbQueue.write { db in
-            // 1. scriptId 존재 여부 유효성 검사
+            
             guard let _ = try Script.fetchOne(db, key: scriptId) else {
                 throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
             }
 
-            // 2. 연습 세션 생성 및 저장
             var session = PracticeSession(
                 scriptId: scriptId,
                 recordingPath: recordingPath,
