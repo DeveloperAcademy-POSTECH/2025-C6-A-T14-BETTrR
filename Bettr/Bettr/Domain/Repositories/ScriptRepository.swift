@@ -8,6 +8,7 @@ class ScriptRepository {
         self.dbQueue = dbQueue
     }
 
+    // MARK: - Script Create
     func createScript(scriptData: ScriptData) throws -> Script {
         try validateScriptData(scriptData)
 
@@ -30,7 +31,60 @@ class ScriptRepository {
             return script
         }
     }
+    
+    // MARK: - Script Read
+    func fetchScript(id: Int64) throws -> Script? {
+        return try dbQueue.read { db in
+            try Script.fetchOne(db, key: id)
+        }
+    }
 
+    func fetchAllScripts() throws -> [Script] {
+        return try dbQueue.read { db in
+            try Script.fetchAll(db)
+        }
+    }
+    
+    // MARK: - Script Update
+    func updateLastViewedAt(forScriptId scriptId: Int64) throws {
+        try dbQueue.write { db in
+            guard var script = try Script.fetchOne(db, key: scriptId) else {
+                throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
+            }
+            script.lastViewedAt = Date()
+            do {
+                try script.update(db)
+            } catch {
+                throw ScriptRepositoryError.databaseError(message: "Failed to update Script \(scriptId): \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    // MARK: - PracticeSession Create
+    func createPracticeSession(scriptId: Int64, recordingPath: String, totalPresentationTime: Double) throws -> PracticeSession {
+        return try dbQueue.write { db in
+            // 1. Validate scriptId exists
+            guard let _ = try Script.fetchOne(db, key: scriptId) else {
+                throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
+            }
+
+            // 2. Create and save PracticeSession
+            var session = PracticeSession(
+                scriptId: scriptId,
+                recordingPath: recordingPath,
+                totalPresentationTime: totalPresentationTime,
+                createdAt: Date()
+            )
+            do {
+                try session.save(db)
+            } catch {
+                throw ScriptRepositoryError.databaseError(message: "Failed to save PracticeSession: \(error.localizedDescription)")
+            }
+            return session
+        }
+    }
+
+    // MARK: - Private methods
     private func validateScriptData(_ scriptData: ScriptData) throws {
         if scriptData.sentences.isEmpty {
             throw ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.")
@@ -85,56 +139,5 @@ class ScriptRepository {
             throw ScriptRepositoryError.databaseError(message: "Failed to save Chunk: \(error.localizedDescription)")
         }
         return chunk
-    }
-
-    // MARK: - PracticeSession Creation
-
-    func createPracticeSession(scriptId: Int64, recordingPath: String, totalPresentationTime: Double) throws -> PracticeSession {
-        return try dbQueue.write { db in
-            // 1. Validate scriptId exists
-            guard let _ = try Script.fetchOne(db, key: scriptId) else {
-                throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
-            }
-
-            // 2. Create and save PracticeSession
-            var session = PracticeSession(
-                scriptId: scriptId,
-                recordingPath: recordingPath,
-                totalPresentationTime: totalPresentationTime,
-                createdAt: Date()
-            )
-            do {
-                try session.save(db)
-            } catch {
-                throw ScriptRepositoryError.databaseError(message: "Failed to save PracticeSession: \(error.localizedDescription)")
-            }
-            return session
-        }
-    }
-
-    func fetchScript(id: Int64) throws -> Script? {
-        return try dbQueue.read { db in
-            try Script.fetchOne(db, key: id)
-        }
-    }
-
-    func fetchAllScripts() throws -> [Script] {
-        return try dbQueue.read { db in
-            try Script.fetchAll(db)
-        }
-    }
-
-    func updateLastViewedAt(forScriptId scriptId: Int64) throws {
-        try dbQueue.write { db in
-            guard var script = try Script.fetchOne(db, key: scriptId) else {
-                throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
-            }
-            script.lastViewedAt = Date()
-            do {
-                try script.update(db)
-            } catch {
-                throw ScriptRepositoryError.databaseError(message: "Failed to update Script \(scriptId): \(error.localizedDescription)")
-            }
-        }
     }
 }
