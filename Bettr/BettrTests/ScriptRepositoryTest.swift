@@ -471,4 +471,192 @@ final class ScriptRepositoryTests: XCTestCase {
         XCTAssertEqual(fetchedSession?.id, createdSession.id)
         XCTAssertEqual(fetchedSession?.scriptId, createdScript.id)
     }
+
+    // MARK: - FeedbackSummary Create Tests
+
+    func test_createFeedbackSummary_whenValidDataProvided_thenCreatesSuccessfully() throws {
+        // Given: Script와 PracticeSession이 존재하고 유효한 FeedbackSummary 데이터가 있을 때
+        let scriptData = ScriptData(
+            title: "Test Script for Feedback Summary",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Hello.", koreanText: "안녕.", chunks: [ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+
+        let createdSession = try sut.createPracticeSession(
+            scriptId: createdScript.id!,
+            recordingPath: "path/to/recording.m4a",
+            totalPresentationTime: 120.5
+        )
+
+        let feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+            (errorType: "누락된 단어", originalText: "original1", spokenText: nil, startTime: 1.0, endTime: 2.0),
+            (errorType: "추가된 단어", originalText: nil, spokenText: "spoken1", startTime: 3.0, endTime: 4.0),
+            (errorType: "대체된 단어", originalText: "original2", spokenText: "spoken2", startTime: 5.0, endTime: 6.0)
+        ]
+
+        // When: FeedbackSummary를 생성하면
+        let createdSummary = try sut.createFeedbackSummary(
+            practiceSessionId: createdSession.id!,
+            totalScore: 95.5,
+            missingWordCount: 1,
+            addedWordCount: 1,
+            replacedWordCount: 1,
+            feedbackDetailsData: feedbackDetailsData
+        )
+
+        // Then: 성공적으로 생성되어야 함
+        XCTAssertNotNil(createdSummary.id)
+        XCTAssertEqual(createdSummary.practiceSessionId, createdSession.id)
+        XCTAssertEqual(createdSummary.totalScore, 95.5)
+        XCTAssertEqual(createdSummary.missingWordCount, 1)
+        XCTAssertEqual(createdSummary.addedWordCount, 1)
+        XCTAssertEqual(createdSummary.replacedWordCount, 1)
+        XCTAssertNotNil(createdSummary.analyzedAt)
+
+        // 그리고 관련 FeedbackDetail도 생성되어야 함
+        let fetchedDetails = try dbQueue.read { db in
+            try FeedbackDetail.filter(Column("feedbackSummaryId") == createdSummary.id!).fetchAll(db)
+        }
+        XCTAssertEqual(fetchedDetails.count, 3)
+        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == "누락된 단어" && $0.originalText == "original1" }))
+        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == "추가된 단어" && $0.spokenText == "spoken1" }))
+        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == "대체된 단어" && $0.originalText == "original2" && $0.spokenText == "spoken2" }))
+    }
+
+    func test_createFeedbackSummary_whenPracticeSessionDoesNotExist_thenThrowsError() throws {
+        // Given: 존재하지 않는 PracticeSession ID가 있을 때
+        let nonExistentPracticeSessionId: Int64 = 9999
+
+        let feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+            (errorType: "누락된 단어", originalText: "original1", spokenText: nil, startTime: 1.0, endTime: 2.0)
+        ]
+
+        // When-Then: FeedbackSummary 생성 시 notFound 오류가 발생해야 함
+        XCTAssertThrowsError(try sut.createFeedbackSummary(
+            practiceSessionId: nonExistentPracticeSessionId,
+            totalScore: 90.0,
+            missingWordCount: 0,
+            addedWordCount: 0,
+            replacedWordCount: 0,
+            feedbackDetailsData: feedbackDetailsData
+        )) {
+            error in
+            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "PracticeSession with ID \(nonExistentPracticeSessionId) not found.").errorDescription)
+        }
+    }
+
+    func test_createFeedbackSummary_whenFeedbackSummaryAlreadyExists_thenThrowsError() throws {
+        // Given: 이미 FeedbackSummary가 존재하는 PracticeSession이 있을 때
+        let scriptData = ScriptData(
+            title: "Script for existing summary",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Test.", koreanText: "테스트.", chunks: [ChunkData(orderIndex: 0, englishText: "Test", koreanText: "테스트")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+
+        let createdSession = try sut.createPracticeSession(
+            scriptId: createdScript.id!,
+            recordingPath: "path/to/recording.m4a",
+            totalPresentationTime: 60.0
+        )
+
+        let feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+            (errorType: "누락된 단어", originalText: "original", spokenText: nil, startTime: 1.0, endTime: 2.0)
+        ]
+
+        // 첫 번째 FeedbackSummary 생성
+        _ = try sut.createFeedbackSummary(
+            practiceSessionId: createdSession.id!,
+            totalScore: 80.0,
+            missingWordCount: 1,
+            addedWordCount: 0,
+            replacedWordCount: 0,
+            feedbackDetailsData: feedbackDetailsData
+        )
+
+        // When-Then: 동일한 PracticeSession ID로 두 번째 FeedbackSummary 생성 시 validationError 오류가 발생해야 함
+        XCTAssertThrowsError(try sut.createFeedbackSummary(
+            practiceSessionId: createdSession.id!,
+            totalScore: 70.0,
+            missingWordCount: 0,
+            addedWordCount: 1,
+            replacedWordCount: 0,
+            feedbackDetailsData: feedbackDetailsData
+        )) {
+            error in
+            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "FeedbackSummary already exists for PracticeSession ID \(createdSession.id!).").errorDescription)
+        }
+    }
+
+    func test_createFeedbackSummary_whenFeedbackDetailsDataIsEmpty_thenThrowsError() throws {
+        // Given: Script와 PracticeSession이 존재하지만 feedbackDetailsData가 비어있을 때
+        let scriptData = ScriptData(
+            title: "Script for empty details",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Empty.", koreanText: "비어있음.", chunks: [ChunkData(orderIndex: 0, englishText: "Empty", koreanText: "비어있음")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+
+        let createdSession = try sut.createPracticeSession(
+            scriptId: createdScript.id!,
+            recordingPath: "path/to/recording.m4a",
+            totalPresentationTime: 30.0
+        )
+
+        let emptyFeedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = []
+
+        // When-Then: FeedbackSummary 생성 시 validationError 오류가 발생해야 함
+        XCTAssertThrowsError(try sut.createFeedbackSummary(
+            practiceSessionId: createdSession.id!,
+            totalScore: 100.0,
+            missingWordCount: 0,
+            addedWordCount: 0,
+            replacedWordCount: 0,
+            feedbackDetailsData: emptyFeedbackDetailsData
+        )) {
+            error in
+            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "FeedbackSummary must contain at least one FeedbackDetail.").errorDescription)
+        }
+    }
+
+    func test_createFeedbackSummary_whenInvalidErrorTypeInFeedbackDetailsData_thenThrowsError() throws {
+        // Given: Script와 PracticeSession이 존재하고 feedbackDetailsData에 유효하지 않은 errorType이 있을 때
+        let scriptData = ScriptData(
+            title: "Script for invalid error type",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Invalid.", koreanText: "유효하지 않음.", chunks: [ChunkData(orderIndex: 0, englishText: "Invalid", koreanText: "유효하지 않음")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+
+        let createdSession = try sut.createPracticeSession(
+            scriptId: createdScript.id!,
+            recordingPath: "path/to/recording.m4a",
+            totalPresentationTime: 45.0
+        )
+
+        let invalidFeedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+            (errorType: "잘못된 유형", originalText: "original", spokenText: nil, startTime: 1.0, endTime: 2.0)
+        ]
+
+        // When-Then: FeedbackSummary 생성 시 validationError 오류가 발생해야 함
+        XCTAssertThrowsError(try sut.createFeedbackSummary(
+            practiceSessionId: createdSession.id!,
+            totalScore: 75.0,
+            missingWordCount: 0,
+            addedWordCount: 0,
+            replacedWordCount: 0,
+            feedbackDetailsData: invalidFeedbackDetailsData
+        )) {
+            error in
+            XCTAssertTrue(
+                (error as? ScriptRepositoryError)?.errorDescription?.contains("Invalid errorType: 잘못된 유형.") ?? false,
+                "Expected validation error for invalid errorType"
+            )
+        }
+    }
 }

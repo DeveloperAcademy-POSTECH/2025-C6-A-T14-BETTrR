@@ -63,12 +63,12 @@ class ScriptRepository {
     // MARK: - PracticeSession Create
     func createPracticeSession(scriptId: Int64, recordingPath: String, totalPresentationTime: Double) throws -> PracticeSession {
         return try dbQueue.write { db in
-            // 1. Validate scriptId exists
+            // 1. scriptId 존재 여부 유효성 검사
             guard let _ = try Script.fetchOne(db, key: scriptId) else {
                 throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
             }
 
-            // 2. Create and save PracticeSession
+            // 2. 연습 세션 생성 및 저장
             var session = PracticeSession(
                 scriptId: scriptId,
                 recordingPath: recordingPath,
@@ -84,7 +84,78 @@ class ScriptRepository {
         }
     }
 
-    // MARK: - Private methods
+    // MARK: - FeedbackSummary Create
+    func createFeedbackSummary(
+        practiceSessionId: Int64,
+        totalScore: Double,
+        missingWordCount: Int,
+        addedWordCount: Int,
+        replacedWordCount: Int,
+        feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]
+    ) throws -> FeedbackSummary {
+        return try dbQueue.write { db in
+            // 1. practiceSessionId 존재 여부 유효성 검사
+            guard let _ = try PracticeSession.fetchOne(db, key: practiceSessionId) else {
+                throw ScriptRepositoryError.notFound(message: "PracticeSession with ID \(practiceSessionId) not found.")
+            }
+
+            // 2. FeedbackSummary 고유성 검사 (1:1 관계)
+            if let _ = try FeedbackSummary.filter(Column("practiceSessionId") == practiceSessionId).fetchOne(db) {
+                throw ScriptRepositoryError.validationError(message: "FeedbackSummary already exists for PracticeSession ID \(practiceSessionId).")
+            }
+
+            // 3. feedbackDetailsData 비어 있지 않음 유효성 검사
+            if feedbackDetailsData.isEmpty {
+                throw ScriptRepositoryError.validationError(message: "FeedbackSummary must contain at least one FeedbackDetail.")
+            }
+
+            // 4. errorType 유효성 검사
+            let allowedErrorTypes: Set<String> = ["누락된 단어", "추가된 단어", "대체된 단어"]
+            for detailData in feedbackDetailsData {
+                if !allowedErrorTypes.contains(detailData.errorType) {
+                    throw ScriptRepositoryError.validationError(message: "Invalid errorType: \(detailData.errorType). Allowed types are: \(allowedErrorTypes.joined(separator: ", ")).")
+                }
+            }
+
+            // 5. FeedbackSummary 생성 및 저장
+            var summary = FeedbackSummary(
+                practiceSessionId: practiceSessionId,
+                totalScore: totalScore,
+                missingWordCount: missingWordCount,
+                addedWordCount: addedWordCount,
+                replacedWordCount: replacedWordCount,
+                analyzedAt: Date()
+            )
+            do {
+                try summary.save(db)
+            } catch {
+                throw ScriptRepositoryError.databaseError(message: "Failed to save FeedbackSummary: \(error.localizedDescription)")
+            }
+            guard let summaryId = summary.id else {
+                throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created FeedbackSummary")
+            }
+
+            // 6. FeedbackDetail 생성 및 저장
+            for detailData in feedbackDetailsData {
+                var detail = FeedbackDetail(
+                    feedbackSummaryId: summaryId,
+                    errorType: detailData.errorType,
+                    originalText: detailData.originalText,
+                    spokenText: detailData.spokenText,
+                    startTime: detailData.startTime,
+                    endTime: detailData.endTime
+                )
+                do {
+                    try detail.save(db)
+                } catch {
+                    throw ScriptRepositoryError.databaseError(message: "Failed to save FeedbackDetail: \(error.localizedDescription)")
+                }
+            }
+            return summary
+        }
+    }
+    
+    // MARK: - Private Methods
     private func validateScriptData(_ scriptData: ScriptData) throws {
         if scriptData.sentences.isEmpty {
             throw ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.")
