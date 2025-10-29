@@ -32,6 +32,11 @@ class ScriptRepository {
             }
 
             for (sentenceOrderIndex, sentenceData) in scriptData.sentences.enumerated() {
+                // Validation: A Sentence must contain at least one Chunk
+                guard !sentenceData.chunks.isEmpty else {
+                    throw ScriptRepositoryError.validationError(message: "A Sentence must contain at least one chunk.")
+                }
+
                 var sentence = Sentence(
                     scriptId: scriptId,
                     orderIndex: sentenceOrderIndex,

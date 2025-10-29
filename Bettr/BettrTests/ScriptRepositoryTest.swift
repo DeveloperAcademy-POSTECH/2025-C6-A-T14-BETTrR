@@ -49,7 +49,7 @@ final class ScriptRepositoryTests: XCTestCase {
         }
     }
     
-    // MARK: - Tests
+    // MARK: - Create Tests
     
     func test_createScript_whenValidScriptDataProvided_thenScriptIsCreatedSuccessfully() throws {
         // Given: 유효한 ScriptData가 주어졌을 때
@@ -87,7 +87,7 @@ final class ScriptRepositoryTests: XCTestCase {
                     orderIndex: 0,
                     englishText: "A single sentence.",
                     koreanText: "하나의 문장.",
-                    chunks: []
+                    chunks: [ChunkData(orderIndex: 0, englishText: "Dummy", koreanText: "더미")]
                 )
             ]
         )
@@ -113,13 +113,13 @@ final class ScriptRepositoryTests: XCTestCase {
                     orderIndex: 0,
                     englishText: "First sentence",
                     koreanText: "첫 번째 문장",
-                    chunks: []
+                    chunks: [ChunkData(orderIndex: 0, englishText: "Dummy1", koreanText: "더미1")]
                 ),
                 SentenceData(
                     orderIndex: 1,
                     englishText: "Second sentence",
                     koreanText: "두 번째 문장",
-                    chunks: []
+                    chunks: [ChunkData(orderIndex: 0, englishText: "Dummy2", koreanText: "더미2")]
                 )
             ]
         )
@@ -245,6 +245,27 @@ final class ScriptRepositoryTests: XCTestCase {
         }
     }
     
+    func test_createScript_whenEmptyChunks_thenThrowsError() throws {
+        // Given: ScriptData with a sentence that has an empty chunks array
+        let scriptData = ScriptData(
+            title: "Script with Empty Chunks",
+            sentences: [
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "Sentence with no chunks.",
+                    koreanText: "청크 없는 문장.",
+                    chunks: []
+                )
+            ]
+        )
+        
+        // When & Then: Attempting to create the script should throw a validation error
+        XCTAssertThrowsError(try sut.createScript(scriptData: scriptData)) {
+            error in
+            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "A Sentence must contain at least one chunk.").errorDescription)
+        }
+    }
+    
     // MARK: - Read Tests
     
     func test_fetchScript_whenScriptExists_thenReturnsScript() throws {
@@ -252,7 +273,7 @@ final class ScriptRepositoryTests: XCTestCase {
         let scriptData = ScriptData(
             title: "Fetchable Script",
             sentences: [
-                SentenceData(orderIndex: 0, englishText: "A sentence.", koreanText: "문장.", chunks: [])
+                SentenceData(orderIndex: 0, englishText: "A sentence.", koreanText: "문장.", chunks: [ChunkData(orderIndex: 0, englishText: "Dummy", koreanText: "더미")])
             ]
         )
         let createdScript = try sut.createScript(scriptData: scriptData)
@@ -282,13 +303,13 @@ final class ScriptRepositoryTests: XCTestCase {
         let scriptData1 = ScriptData(
             title: "Script One",
             sentences: [
-                SentenceData(orderIndex: 0, englishText: "S1.", koreanText: "S1.", chunks: [])
+                SentenceData(orderIndex: 0, englishText: "S1.", koreanText: "S1.", chunks: [ChunkData(orderIndex: 0, englishText: "Dummy1", koreanText: "더미1")])
             ]
         )
         let scriptData2 = ScriptData(
             title: "Script Two",
             sentences: [
-                SentenceData(orderIndex: 0, englishText: "S2.", koreanText: "S2.", chunks: [])
+                SentenceData(orderIndex: 0, englishText: "S2.", koreanText: "S2.", chunks: [ChunkData(orderIndex: 0, englishText: "Dummy2", koreanText: "더미2")])
             ]
         )
         _ = try sut.createScript(scriptData: scriptData1)
