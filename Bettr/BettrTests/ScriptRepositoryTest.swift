@@ -82,7 +82,14 @@ final class ScriptRepositoryTests: XCTestCase {
         // Given: ScriptData가 주어졌을 때
         let scriptData = ScriptData(
             title: "Database Test Script",
-            sentences: []
+            sentences: [
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "A single sentence.",
+                    koreanText: "하나의 문장.",
+                    chunks: []
+                )
+            ]
         )
         
         // When: Script를 생성하면
@@ -231,15 +238,10 @@ final class ScriptRepositoryTests: XCTestCase {
             sentences: []
         )
         
-        // When: Script를 생성하면
-        let createdScript = try sut.createScript(scriptData: scriptData)
-        
-        // Then: Script만 생성되고 Sentence는 없어야 함
-        let sentenceCount = try dbQueue.read { db in
-            try Sentence.filter(Column("scriptId") == createdScript.id!).fetchCount(db)
+        // When & Then: Script를 생성하려고 하면 오류가 발생해야 함
+        XCTAssertThrowsError(try sut.createScript(scriptData: scriptData)) {
+            error in
+            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.").errorDescription)
         }
-        
-        XCTAssertNotNil(createdScript.id)
-        XCTAssertEqual(sentenceCount, 0)
     }
 }

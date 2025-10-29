@@ -9,16 +9,26 @@ class ScriptRepository {
     }
 
     func createScript(scriptData: ScriptData) throws -> Script {
+        guard !scriptData.sentences.isEmpty else {
+            throw ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.")
+        }
+
         return try dbQueue.write { db in
+
             var script = Script(
                 title: scriptData.title,
                 createdAt: Date(),
                 lastViewedAt: Date()
             )
-            try script.save(db)
+            do {
+                try script.save(db)
+            } catch {
+                throw ScriptRepositoryError.databaseError(message: "Failed to save Script: \(error.localizedDescription)")
+            }
 
+            // Ensure script.id is available after saving
             guard let scriptId = script.id else {
-                throw DatabaseError(message: "Failed to get ID for created Script")
+                throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Script")
             }
 
             for (sentenceOrderIndex, sentenceData) in scriptData.sentences.enumerated() {
@@ -28,10 +38,15 @@ class ScriptRepository {
                     englishText: sentenceData.englishText,
                     koreanText: sentenceData.koreanText
                 )
-                try sentence.save(db)
+                do {
+                    try sentence.save(db)
+                } catch {
+                    throw ScriptRepositoryError.databaseError(message: "Failed to save Sentence: \(error.localizedDescription)")
+                }
 
+                // Ensure sentence.id is available after saving
                 guard let sentenceId = sentence.id else {
-                    throw DatabaseError(message: "Failed to get ID for created Sentence")
+                    throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Sentence")
                 }
 
                 for (chunkOrderIndex, chunkData) in sentenceData.chunks.enumerated() {
@@ -41,7 +56,11 @@ class ScriptRepository {
                         englishText: chunkData.englishText,
                         koreanText: chunkData.koreanText
                     )
-                    try chunk.save(db)
+                    do {
+                        try chunk.save(db)
+                    } catch {
+                        throw ScriptRepositoryError.databaseError(message: "Failed to save Chunk: \(error.localizedDescription)")
+                    }
                 }
             }
             return script
