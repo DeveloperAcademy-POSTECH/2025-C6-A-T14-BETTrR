@@ -13,14 +13,30 @@
 		129A71B32EB0EEA8001CE8EB /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71B22EB0EEA8001CE8EB /* GRDB */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A7CF260A2EB2440300CEA916 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 129A716E2EB0AD3D001CE8EB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 129A71752EB0AD3D001CE8EB;
+			remoteInfo = Bettr;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		129A71762EB0AD3D001CE8EB /* Bettr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bettr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A7CF26062EB2440300CEA916 /* BettrTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		129A71782EB0AD3D001CE8EB /* Bettr */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Bettr;
+			sourceTree = "<group>";
+		};
+		A7CF26072EB2440300CEA916 /* BettrTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BettrTests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -37,6 +53,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A7CF26032EB2440300CEA916 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -44,6 +67,7 @@
 			isa = PBXGroup;
 			children = (
 				129A71782EB0AD3D001CE8EB /* Bettr */,
+				A7CF26072EB2440300CEA916 /* BettrTests */,
 				129A71772EB0AD3D001CE8EB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -52,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				129A71762EB0AD3D001CE8EB /* Bettr.app */,
+				A7CF26062EB2440300CEA916 /* BettrTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -85,6 +110,29 @@
 			productReference = 129A71762EB0AD3D001CE8EB /* Bettr.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A7CF26052EB2440300CEA916 /* BettrTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A7CF260C2EB2440300CEA916 /* Build configuration list for PBXNativeTarget "BettrTests" */;
+			buildPhases = (
+				A7CF26022EB2440300CEA916 /* Sources */,
+				A7CF26032EB2440300CEA916 /* Frameworks */,
+				A7CF26042EB2440300CEA916 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A7CF260B2EB2440300CEA916 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A7CF26072EB2440300CEA916 /* BettrTests */,
+			);
+			name = BettrTests;
+			packageProductDependencies = (
+			);
+			productName = BettrTests;
+			productReference = A7CF26062EB2440300CEA916 /* BettrTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -97,6 +145,10 @@
 				TargetAttributes = {
 					129A71752EB0AD3D001CE8EB = {
 						CreatedOnToolsVersion = 26.0.1;
+					};
+					A7CF26052EB2440300CEA916 = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 129A71752EB0AD3D001CE8EB;
 					};
 				};
 			};
@@ -119,12 +171,20 @@
 			projectRoot = "";
 			targets = (
 				129A71752EB0AD3D001CE8EB /* Bettr */,
+				A7CF26052EB2440300CEA916 /* BettrTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		129A71742EB0AD3D001CE8EB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A7CF26042EB2440300CEA916 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -141,7 +201,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A7CF26022EB2440300CEA916 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A7CF260B2EB2440300CEA916 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 129A71752EB0AD3D001CE8EB /* Bettr */;
+			targetProxy = A7CF260A2EB2440300CEA916 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		129A717F2EB0AD3F001CE8EB /* Debug */ = {
@@ -327,6 +402,58 @@
 			};
 			name = Release;
 		};
+		A7CF260D2EB2440300CEA916 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JMAUFK6U82;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = oliver.BettrTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bettr.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Bettr";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		A7CF260E2EB2440300CEA916 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JMAUFK6U82;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = oliver.BettrTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bettr.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Bettr";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -344,6 +471,15 @@
 			buildConfigurations = (
 				129A71822EB0AD3F001CE8EB /* Debug */,
 				129A71832EB0AD3F001CE8EB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A7CF260C2EB2440300CEA916 /* Build configuration list for PBXNativeTarget "BettrTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A7CF260D2EB2440300CEA916 /* Debug */,
+				A7CF260E2EB2440300CEA916 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
