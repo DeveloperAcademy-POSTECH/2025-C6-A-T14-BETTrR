@@ -333,4 +333,41 @@ final class ScriptRepositoryTests: XCTestCase {
         // Then: An empty array should be returned
         XCTAssertTrue(allScripts.isEmpty)
     }
+
+    // MARK: - Update Tests
+
+    func test_updateLastViewedAt_whenScriptExists_thenUpdatesTimestamp() throws {
+        // Given: A script is created
+        let scriptData = ScriptData(
+            title: "Script to Update",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Sentence.", koreanText: "문장.", chunks: [ChunkData(orderIndex: 0, englishText: "Chunk", koreanText: "청크")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+        let initialLastViewedAt = createdScript.lastViewedAt
+
+        // Simulate a small delay to ensure timestamp changes
+        Thread.sleep(forTimeInterval: 0.01)
+
+        // When: Updating lastViewedAt
+        try sut.updateLastViewedAt(forScriptId: createdScript.id!)
+
+        // Then: The script's lastViewedAt should be updated
+        let updatedScript = try sut.fetchScript(id: createdScript.id!)
+        XCTAssertNotNil(updatedScript)
+        XCTAssertNotEqual(updatedScript?.lastViewedAt, initialLastViewedAt)
+        XCTAssertTrue(updatedScript!.lastViewedAt > initialLastViewedAt)
+    }
+
+    func test_updateLastViewedAt_whenScriptDoesNotExist_thenThrowsError() throws {
+        // Given: A non-existent script ID
+        let nonExistentId: Int64 = 9999
+
+        // When & Then: Attempting to update lastViewedAt for a non-existent script should throw an error
+        XCTAssertThrowsError(try sut.updateLastViewedAt(forScriptId: nonExistentId)) {
+            error in
+            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription)
+        }
+    }
 }

@@ -98,4 +98,18 @@ class ScriptRepository {
             try Script.fetchAll(db)
         }
     }
+
+    func updateLastViewedAt(forScriptId scriptId: Int64) throws {
+        try dbQueue.write { db in
+            guard var script = try Script.fetchOne(db, key: scriptId) else {
+                throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
+            }
+            script.lastViewedAt = Date()
+            do {
+                try script.update(db)
+            } catch {
+                throw ScriptRepositoryError.databaseError(message: "Failed to update Script \(scriptId): \(error.localizedDescription)")
+            }
+        }
+    }
 }
