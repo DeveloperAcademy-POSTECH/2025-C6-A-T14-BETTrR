@@ -50,13 +50,13 @@ struct MemorizationToolbar: ViewModifier {
                             functionMode = .hide
                         }) {
                             Image(systemName: "bandage")
-                                .foregroundStyle(functionMode == .hide ? .primary : .secondary)
+                                .foregroundStyle(functionMode == .hide ? .primary : .quinary)
                         }
                         Button(action: {
                             functionMode = .read
                         }) {
                             Image(systemName: "speaker.wave.2")
-                                .foregroundStyle(functionMode == .read ? .primary : .secondary)
+                                .foregroundStyle(functionMode == .read ? .primary : .quinary)
                         }
                 }
                 
@@ -67,13 +67,13 @@ struct MemorizationToolbar: ViewModifier {
                             languageMode = .engKor
                         }) {
                             Image(systemName: "translate")
-                                .foregroundStyle(languageMode == .engKor ? .primary : .secondary)
+                                .foregroundStyle(languageMode == .engKor ? .primary : .quinary)
                         }
                         Button(action: {
                             languageMode = .engOnly
                         }) {
                             Image(systemName: "character")
-                                .foregroundStyle(languageMode == .engOnly ? .primary : .secondary)
+                                .foregroundStyle(languageMode == .engOnly ? .primary : .quinary)
                         }
                     }
                 
