@@ -33,7 +33,7 @@ struct ScriptInputView: View {
                 )
                 .padding(.horizontal)
             
-            // 🚀 Gemini 호출 버튼
+            // Gemini 호출 버튼
             Button(action: {
                 Task {
                     await callGemini()
@@ -55,7 +55,7 @@ struct ScriptInputView: View {
             .disabled(scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
             .padding(.horizontal)
             
-            // 🔍 결과 표시
+            // 결과 표시 (추후에 없앨 수 있음. 확인용)
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     ForEach(0..<originalSentences.count, id: \.self) { i in
@@ -79,6 +79,7 @@ struct ScriptInputView: View {
                     }
                 }
             }
+            
         }
         .padding()
     }
@@ -92,7 +93,7 @@ struct ScriptInputView: View {
             let ai = FirebaseAI.firebaseAI(backend: .googleAI())
             let model = ai.generativeModel(modelName: "gemini-2.5-flash")
             
-            // 🔹 프롬프트 ("/" 기준으로 나누는 형식만 요청)
+            //프롬프트 ("/" 기준으로 나누는 형식만 요청)
             let prompt = """
 당신은 이제부터 20년 경력의 영어-한국어 언어코치입니다.
 
@@ -154,9 +155,9 @@ Full natural translation:
                 return
             }
 
-            print("✅ Gemini 응답:\n\(text)")
+            print("Gemini 응답:\n\(text)")
             
-            // 🔹 각 섹션별로 단순 분류 (파싱 아님)
+            // 각 섹션별로 단순 분류 (파싱 아님)
             let sections = text.components(separatedBy: "Sentence ")
                 .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
@@ -166,24 +167,44 @@ Full natural translation:
                 var korean = ""
                 var full = ""
 
-                for line in section.components(separatedBy: .newlines) {
-                    let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if trimmed.starts(with: "Original sentence:") {
-                        original = trimmed.replacingOccurrences(of: "Original sentence:", with: "").trimmingCharacters(in: .whitespaces)
-                    } else if trimmed.starts(with: "English (meaning-based chunks):") {
-                        english = trimmed.replacingOccurrences(of: "English (meaning-based chunks):", with: "").trimmingCharacters(in: .whitespaces)
-                    } else if trimmed.starts(with: "Korean (aligned chunks):") {
-                        korean = trimmed.replacingOccurrences(of: "Korean (aligned chunks):", with: "").trimmingCharacters(in: .whitespaces)
-                    } else if trimmed.starts(with: "Full natural translation:") {
-                        full = trimmed.replacingOccurrences(of: "Full natural translation:", with: "").trimmingCharacters(in: .whitespaces)
+                // \r 제거 및 라인 배열 생성
+                let cleanedSection = section.replacingOccurrences(of: "\r", with: "")
+                let lines = cleanedSection.split(separator: "\n").map {
+                    String($0).trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+
+                // 줄바꿈 구조 대응
+                for (index, line) in lines.enumerated() {
+                    if line.contains("Original sentence:") {
+                        // ➕ 다음 줄에 실제 문장이 있을 가능성 있음
+                        if index + 1 < lines.count {
+                            original = lines[index + 1]
+                        }
+                    } else if line.contains("English (meaning-based chunks):") {
+                        if index + 1 < lines.count {
+                            english = lines[index + 1]
+                        }
+                    } else if line.contains("Korean (aligned chunks):") {
+                        if index + 1 < lines.count {
+                            korean = lines[index + 1]
+                        }
+                    } else if line.contains("Full natural translation:") {
+                        if index + 1 < lines.count {
+                            full = lines[index + 1]
+                        }
                     }
                 }
 
-                if !original.isEmpty { originalSentences.append(original) }
-                if !english.isEmpty { englishChunks.append(english) }
-                if !korean.isEmpty { koreanChunks.append(korean) }
-                if !full.isEmpty { fullTranslations.append(full) }
+                // UI 업데이트는 MainActor에서 진행
+                await MainActor.run {
+                    if !original.isEmpty { originalSentences.append(original) }
+                    if !english.isEmpty { englishChunks.append(english) }
+                    if !korean.isEmpty { koreanChunks.append(korean) }
+                    if !full.isEmpty { fullTranslations.append(full) }
+                }
             }
+            // 콘솔에 배열 크기 출력
+            print("배열 크기 — originalSentences: \(originalSentences.count), englishChunks: \(englishChunks.count), koreanChunks: \(koreanChunks.count), fullTranslations: \(fullTranslations.count)")
 
         } catch {
             print("🔥 FirebaseAI 오류:", error.localizedDescription)
