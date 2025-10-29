@@ -5,8 +5,6 @@ import GRDB
 struct Script: Identifiable, Codable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
     var title: String
-    var originalEnglishText: String
-    var originalKoreanText: String
     var createdAt: Date
     var lastPracticedAt: Date
 
