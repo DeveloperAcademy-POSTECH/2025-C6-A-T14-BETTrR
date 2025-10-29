@@ -244,4 +244,72 @@ final class ScriptRepositoryTests: XCTestCase {
             XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.").errorDescription)
         }
     }
+    
+    // MARK: - Read Tests
+    
+    func test_fetchScript_whenScriptExists_thenReturnsScript() throws {
+        // Given: A script is created
+        let scriptData = ScriptData(
+            title: "Fetchable Script",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "A sentence.", koreanText: "문장.", chunks: [])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+        
+        // When: Fetching the script by its ID
+        let fetchedScript = try sut.fetchScript(id: createdScript.id!)
+        
+        // Then: The correct script should be returned
+        XCTAssertNotNil(fetchedScript)
+        XCTAssertEqual(fetchedScript?.title, "Fetchable Script")
+        XCTAssertEqual(fetchedScript?.id, createdScript.id)
+    }
+    
+    func test_fetchScript_whenScriptDoesNotExist_thenReturnsNil() throws {
+        // Given: A non-existent script ID
+        let nonExistentId: Int64 = 9999
+        
+        // When: Fetching a script with the non-existent ID
+        let fetchedScript = try sut.fetchScript(id: nonExistentId)
+        
+        // Then: Nil should be returned
+        XCTAssertNil(fetchedScript)
+    }
+    
+    func test_fetchAllScripts_whenScriptsExist_thenReturnsAllScripts() throws {
+        // Given: Multiple scripts are created
+        let scriptData1 = ScriptData(
+            title: "Script One",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "S1.", koreanText: "S1.", chunks: [])
+            ]
+        )
+        let scriptData2 = ScriptData(
+            title: "Script Two",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "S2.", koreanText: "S2.", chunks: [])
+            ]
+        )
+        _ = try sut.createScript(scriptData: scriptData1)
+        _ = try sut.createScript(scriptData: scriptData2)
+        
+        // When: Fetching all scripts
+        let allScripts = try sut.fetchAllScripts()
+        
+        // Then: All created scripts should be returned
+        XCTAssertEqual(allScripts.count, 2)
+        XCTAssertTrue(allScripts.contains(where: { $0.title == "Script One" }))
+        XCTAssertTrue(allScripts.contains(where: { $0.title == "Script Two" }))
+    }
+    
+    func test_fetchAllScripts_whenNoScriptsExist_thenReturnsEmptyArray() throws {
+        // Given: No scripts exist in the database (default setup)
+        
+        // When: Fetching all scripts
+        let allScripts = try sut.fetchAllScripts()
+        
+        // Then: An empty array should be returned
+        XCTAssertTrue(allScripts.isEmpty)
+    }
 }

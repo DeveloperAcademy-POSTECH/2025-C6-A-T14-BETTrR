@@ -66,4 +66,16 @@ class ScriptRepository {
             return script
         }
     }
+
+    func fetchScript(id: Int64) throws -> Script? {
+        return try dbQueue.read { db in
+            try Script.fetchOne(db, key: id)
+        }
+    }
+
+    func fetchAllScripts() throws -> [Script] {
+        return try dbQueue.read { db in
+            try Script.fetchAll(db)
+        }
+    }
 }
