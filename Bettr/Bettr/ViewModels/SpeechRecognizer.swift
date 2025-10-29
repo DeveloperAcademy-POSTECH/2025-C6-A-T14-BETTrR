@@ -1,0 +1,201 @@
+//
+//  SpeechRecognizer.swift
+//  Bettr
+//
+//  Created by 길정수 on 10/30/25.
+//
+
+import SwiftUI
+import Speech
+import AVFoundation
+import Combine
+
+// MARK: - 음성 인식기
+@MainActor
+class SpeechRecognizer: ObservableObject {
+    @Published var transcript = ""
+    @Published var isRecording = false
+    @Published var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
+    @Published var feedbackResult: FeedbackResultModel? = nil
+    
+    // 실시간 경과 시간
+    @Published var elapsedTime: TimeInterval = 0.0
+    
+    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en"))
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
+    private let audioEngine = AVAudioEngine()
+    
+    // 타이머 및 시작 시간 변수
+    private var timer: Timer?
+    private var recordingStartTime: Date?
+    
+    /// 전체 스크립트 문장들
+    var sentences: [String] = []
+    /// 합쳐진 전체 스크립트
+    var fullScript: String {
+        sentences.joined(separator: " ")
+    }
+    
+    init(sentences: [String]) {
+        self.sentences = sentences
+        DispatchQueue.main.async { [weak self] in
+            self?.checkAuthorization()
+        }
+    }
+    
+    // MARK: - 권한 확인
+    func checkAuthorization() {
+        SFSpeechRecognizer.requestAuthorization { [weak self] status in
+            Task { @MainActor in
+                self?.authorizationStatus = status
+            }
+        }
+    }
+    
+    // MARK: - 녹음 시작
+    func startRecording() {
+        if audioEngine.isRunning {
+            stopRecording()
+            return
+        }
+        
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("오디오 세션 설정 실패: \(error)")
+            return
+        }
+        
+        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        guard let recognitionRequest = recognitionRequest else { return }
+        recognitionRequest.shouldReportPartialResults = true
+        
+        let inputNode = audioEngine.inputNode
+        
+        recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
+            guard let self = self else { return }
+            
+            if let result = result {
+                Task { @MainActor in
+                    self.transcript = result.bestTranscription.formattedString
+                }
+            }
+            
+            if error != nil || (result?.isFinal ?? false) {
+                // 녹음 종료 시 타이머 중지
+                self.timer?.invalidate()
+                self.timer = nil
+                
+                // 최종 녹음 시간 계산
+                let endTime = Date()
+                let totalTime = self.recordingStartTime.map { endTime.timeIntervalSince($0) } ?? 0.0
+                
+                self.audioEngine.stop()
+                inputNode.removeTap(onBus: 0)
+                self.recognitionRequest = nil
+                self.recognitionTask = nil
+                
+                Task { @MainActor in
+                    self.isRecording = false
+                    if let result = result {
+                        self.analyzeFullScript(with: result.bestTranscription, totalTime: totalTime)
+                    }
+                }
+            }
+        }
+        
+        let format = inputNode.outputFormat(forBus: 0)
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+            recognitionRequest.append(buffer)
+        }
+        
+        audioEngine.prepare()
+        do {
+            self.transcript = ""
+            self.feedbackResult = nil
+            try audioEngine.start()
+            
+            // 녹음 시작 시간 기록 및 타이머 시작
+            self.recordingStartTime = Date()
+            self.elapsedTime = 0.0
+            self.timer?.invalidate() // 혹시 모를 타이머 정리
+            self.timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self = self, let startTime = self.recordingStartTime else { return }
+                    self.elapsedTime = Date().timeIntervalSince(startTime)
+                }
+            }
+            
+            isRecording = true
+            
+        } catch {
+            print("오디오 엔진 시작 실패: \(error)")
+        }
+    }
+    
+    // MARK: - 녹음 종료
+    func stopRecording() {
+        // 타이머 중지
+        timer?.invalidate()
+        timer = nil
+        
+        audioEngine.stop()
+        recognitionRequest?.endAudio()
+        audioEngine.inputNode.removeTap(onBus: 0)
+    }
+    
+    // MARK: - 녹음 취소 (분석 실행 X)
+    func cancelRecording() {
+        // 타이머 중지
+        timer?.invalidate()
+        timer = nil
+        
+        audioEngine.stop()
+        recognitionTask?.cancel()
+        recognitionTask = nil
+        recognitionRequest = nil
+        audioEngine.inputNode.removeTap(onBus: 0)
+        
+        // 상태를 수동으로 리셋
+        isRecording = false
+        transcript = ""
+        feedbackResult = nil
+    }
+    
+    // MARK: - 분석 초기화
+    func clearTranscript() {
+        transcript = ""
+        feedbackResult = nil
+    }
+    
+    // MARK: - 전체 스크립트 분석
+    func analyzeFullScript(with transcription: SFTranscription, totalTime: TimeInterval) {
+        let analyzer = SpeechAnalyzer()
+        // 10. feedback을 var로 변경
+        var feedback = analyzer.analyze(reference: fullScript, transcription: transcription)
+        
+        // 11. FeedbackSummary에 최종 시간 주입
+        feedback.totalRecordingTime = totalTime
+        
+        feedbackResult = feedback
+    }
+}
+
+// MARK: - 시간 포매터
+extension TimeInterval {
+    /// MM:SS:ms (분:초:밀리초) 형식의 문자열로 변환합니다.
+    func toMMSSms() -> String {
+        let totalSeconds = self
+        let minutes = Int(totalSeconds / 60)
+        let seconds = Int(totalSeconds.truncatingRemainder(dividingBy: 60))
+        let milliseconds = Int((totalSeconds.truncatingRemainder(dividingBy: 1)) * 100) // 3자리
+        
+        return String(format: "%02d:%02d.%02d", minutes, seconds, milliseconds)
+    }
+}
