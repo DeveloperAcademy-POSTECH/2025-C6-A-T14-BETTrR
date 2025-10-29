@@ -34,12 +34,6 @@ struct ScriptInputView: View {
     @State private var scriptText: String = ""       // 사용자가 입력한 스크립트 저장용 변수
     @State private var isLoading: Bool = false              // FirebaseAI 호출 중 로딩 상태
     @State private var parsedScript: ScriptData?     // Gemini 분석 후 결과 저장(추가)
-    
-//    //상태 변수들
-//    @State private var originalSentences: [String] = []     // 문장 단위 영어 원문
-//    @State private var fullTranslations: [String] = []      // 각 문장의 전체 번역
-//    @State private var englishChunks: [String] = []         // 각 문장의 청크(영문)
-//    @State private var koreanChunks: [String] = []          // 각 문장의 청크(번역)
 
     var body: some View {
         VStack(spacing: 20) {
@@ -77,31 +71,6 @@ struct ScriptInputView: View {
             }
             .disabled(scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
             .padding(.horizontal)
-            
-//            // 결과 표시 (추후에 없앨 수 있음. 확인용)
-//            ScrollView {
-//                VStack(alignment: .leading, spacing: 16) {
-//                    ForEach(0..<originalSentences.count, id: \.self) { i in
-//                        VStack(alignment: .leading, spacing: 8) {
-//                            Text("🗣️ Sentence \(i + 1)")
-//                                .font(.headline)
-//                            GroupBox(label: Text("영어 원문")) {
-//                                Text(originalSentences[i])
-//                            }
-//                            GroupBox(label: Text("영어 청크")) {
-//                                Text(englishChunks[safe: i] ?? "")
-//                            }
-//                            GroupBox(label: Text("한국어 청크")) {
-//                                Text(koreanChunks[safe: i] ?? "")
-//                            }
-//                            GroupBox(label: Text("자연스러운 번역")) {
-//                                Text(fullTranslations[safe: i] ?? "")
-//                            }
-//                        }
-//                        .padding(.horizontal)
-//                    }
-//                }
-//            }
             
             // 결과 표시 (파싱 버전 삽입용)
             if let script = parsedScript {
@@ -214,55 +183,6 @@ Full natural translation:
             }
 
             print("Gemini 응답:\n\(text)")
-            
-//            // 각 섹션별로 단순 분류 (파싱 아님)
-//            let sections = text.components(separatedBy: "Sentence ")
-//                .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-//
-//            for section in sections {
-//                var original = ""
-//                var english = ""
-//                var korean = ""
-//                var full = ""
-//
-//                // \r 제거 및 라인 배열 생성
-//                let cleanedSection = section.replacingOccurrences(of: "\r", with: "")
-//                let lines = cleanedSection.split(separator: "\n").map {
-//                    String($0).trimmingCharacters(in: .whitespacesAndNewlines)
-//                }
-//
-//                // 줄바꿈 구조 대응
-//                for (index, line) in lines.enumerated() {
-//                    if line.contains("Original sentence:") {
-//                        // ➕ 다음 줄에 실제 문장이 있을 가능성 있음
-//                        if index + 1 < lines.count {
-//                            original = lines[index + 1]
-//                        }
-//                    } else if line.contains("English (meaning-based chunks):") {
-//                        if index + 1 < lines.count {
-//                            english = lines[index + 1]
-//                        }
-//                    } else if line.contains("Korean (aligned chunks):") {
-//                        if index + 1 < lines.count {
-//                            korean = lines[index + 1]
-//                        }
-//                    } else if line.contains("Full natural translation:") {
-//                        if index + 1 < lines.count {
-//                            full = lines[index + 1]
-//                        }
-//                    }
-//                }
-//
-//                // UI 업데이트는 MainActor에서 진행
-//                await MainActor.run {
-//                    if !original.isEmpty { originalSentences.append(original) }
-//                    if !english.isEmpty { englishChunks.append(english) }
-//                    if !korean.isEmpty { koreanChunks.append(korean) }
-//                    if !full.isEmpty { fullTranslations.append(full) }
-//                }
-//            }
-//            // 콘솔에 배열 크기 출력
-//            print("배열 크기 — originalSentences: \(originalSentences.count), englishChunks: \(englishChunks.count), koreanChunks: \(koreanChunks.count), fullTranslations: \(fullTranslations.count)")
             
             // ✅ 파싱
             let parsed = parseGeminiOutputToScriptData(text, title: "사용자 입력 스크립트")
