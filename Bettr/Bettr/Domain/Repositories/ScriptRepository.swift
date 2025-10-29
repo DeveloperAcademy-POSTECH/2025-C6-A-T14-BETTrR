@@ -91,7 +91,7 @@ class ScriptRepository {
         missingWordCount: Int,
         addedWordCount: Int,
         replacedWordCount: Int,
-        feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]
+        feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]
     ) throws -> FeedbackSummary {
         return try dbQueue.write { db in
             try validatePracticeSessionExists(db: db, practiceSessionId: practiceSessionId)
@@ -186,16 +186,9 @@ class ScriptRepository {
         }
     }
 
-    private func validateFeedbackDetailsData(_ feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]) throws {
+    private func validateFeedbackDetailsData(_ feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]) throws {
         if feedbackDetailsData.isEmpty {
             throw ScriptRepositoryError.validationError(message: "FeedbackSummary must contain at least one FeedbackDetail.")
-        }
-
-        let allowedErrorTypes: Set<String> = ["누락된 단어", "추가된 단어", "대체된 단어"]
-        for detailData in feedbackDetailsData {
-            if !allowedErrorTypes.contains(detailData.errorType) {
-                throw ScriptRepositoryError.validationError(message: "Invalid errorType: \(detailData.errorType). Allowed types are: \(allowedErrorTypes.joined(separator: ", ")).")
-            }
         }
     }
 
@@ -216,7 +209,7 @@ class ScriptRepository {
         return summary
     }
 
-    private func createAndSaveFeedbackDetail(db: Database, feedbackSummaryId: Int64, detailData: (errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)) throws -> FeedbackDetail {
+    private func createAndSaveFeedbackDetail(db: Database, feedbackSummaryId: Int64, detailData: (errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)) throws -> FeedbackDetail {
         var detail = FeedbackDetail(
             feedbackSummaryId: feedbackSummaryId,
             errorType: detailData.errorType,

@@ -5,7 +5,7 @@ import GRDB
 struct FeedbackDetail: Identifiable, Codable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
     var feedbackSummaryId: Int64
-    var errorType: String
+    var errorType: FeedbackErrorType
     var originalText: String?
     var spokenText: String?
     var startTime: Double

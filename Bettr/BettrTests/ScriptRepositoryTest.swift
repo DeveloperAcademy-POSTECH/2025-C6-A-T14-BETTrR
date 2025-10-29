@@ -490,10 +490,10 @@ final class ScriptRepositoryTests: XCTestCase {
             totalPresentationTime: 120.5
         )
 
-        let feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
-            (errorType: "누락된 단어", originalText: "original1", spokenText: nil, startTime: 1.0, endTime: 2.0),
-            (errorType: "추가된 단어", originalText: nil, spokenText: "spoken1", startTime: 3.0, endTime: 4.0),
-            (errorType: "대체된 단어", originalText: "original2", spokenText: "spoken2", startTime: 5.0, endTime: 6.0)
+        let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+            (errorType: .missingWord, originalText: "original1", spokenText: nil, startTime: 1.0, endTime: 2.0),
+            (errorType: .addedWord, originalText: nil, spokenText: "spoken1", startTime: 3.0, endTime: 4.0),
+            (errorType: .replacedWord, originalText: "original2", spokenText: "spoken2", startTime: 5.0, endTime: 6.0)
         ]
 
         // When: FeedbackSummary를 생성하면
@@ -520,17 +520,17 @@ final class ScriptRepositoryTests: XCTestCase {
             try FeedbackDetail.filter(Column("feedbackSummaryId") == createdSummary.id!).fetchAll(db)
         }
         XCTAssertEqual(fetchedDetails.count, 3)
-        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == "누락된 단어" && $0.originalText == "original1" }))
-        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == "추가된 단어" && $0.spokenText == "spoken1" }))
-        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == "대체된 단어" && $0.originalText == "original2" && $0.spokenText == "spoken2" }))
+        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == .missingWord && $0.originalText == "original1" }))
+        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == .addedWord && $0.spokenText == "spoken1" }))
+        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == .replacedWord && $0.originalText == "original2" && $0.spokenText == "spoken2" }))
     }
 
     func test_createFeedbackSummary_whenPracticeSessionDoesNotExist_thenThrowsError() throws {
         // Given: 존재하지 않는 PracticeSession ID가 있을 때
         let nonExistentPracticeSessionId: Int64 = 9999
 
-        let feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
-            (errorType: "누락된 단어", originalText: "original1", spokenText: nil, startTime: 1.0, endTime: 2.0)
+        let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+            (errorType: .missingWord, originalText: "original1", spokenText: nil, startTime: 1.0, endTime: 2.0)
         ]
 
         // When-Then: FeedbackSummary 생성 시 notFound 오류가 발생해야 함
@@ -563,8 +563,8 @@ final class ScriptRepositoryTests: XCTestCase {
             totalPresentationTime: 60.0
         )
 
-        let feedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
-            (errorType: "누락된 단어", originalText: "original", spokenText: nil, startTime: 1.0, endTime: 2.0)
+        let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+            (errorType: .missingWord, originalText: "original", spokenText: nil, startTime: 1.0, endTime: 2.0)
         ]
 
         // 첫 번째 FeedbackSummary 생성
@@ -607,7 +607,7 @@ final class ScriptRepositoryTests: XCTestCase {
             totalPresentationTime: 30.0
         )
 
-        let emptyFeedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = []
+        let emptyFeedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = []
 
         // When-Then: FeedbackSummary 생성 시 validationError 오류가 발생해야 함
         XCTAssertThrowsError(try sut.createFeedbackSummary(
@@ -623,40 +623,4 @@ final class ScriptRepositoryTests: XCTestCase {
         }
     }
 
-    func test_createFeedbackSummary_whenInvalidErrorTypeInFeedbackDetailsData_thenThrowsError() throws {
-        // Given: Script와 PracticeSession이 존재하고 feedbackDetailsData에 유효하지 않은 errorType이 있을 때
-        let scriptData = ScriptData(
-            title: "Script for invalid error type",
-            sentences: [
-                SentenceData(orderIndex: 0, englishText: "Invalid.", koreanText: "유효하지 않음.", chunks: [ChunkData(orderIndex: 0, englishText: "Invalid", koreanText: "유효하지 않음")])
-            ]
-        )
-        let createdScript = try sut.createScript(scriptData: scriptData)
-
-        let createdSession = try sut.createPracticeSession(
-            scriptId: createdScript.id!,
-            recordingPath: "path/to/recording.m4a",
-            totalPresentationTime: 45.0
-        )
-
-        let invalidFeedbackDetailsData: [(errorType: String, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
-            (errorType: "잘못된 유형", originalText: "original", spokenText: nil, startTime: 1.0, endTime: 2.0)
-        ]
-
-        // When-Then: FeedbackSummary 생성 시 validationError 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.createFeedbackSummary(
-            practiceSessionId: createdSession.id!,
-            totalScore: 75.0,
-            missingWordCount: 0,
-            addedWordCount: 0,
-            replacedWordCount: 0,
-            feedbackDetailsData: invalidFeedbackDetailsData
-        )) {
-            error in
-            XCTAssertTrue(
-                (error as? ScriptRepositoryError)?.errorDescription?.contains("Invalid errorType: 잘못된 유형.") ?? false,
-                "Expected validation error for invalid errorType"
-            )
-        }
-    }
 }
