@@ -74,11 +74,7 @@ class ScriptRepository {
                 totalPresentationTime: totalPresentationTime,
                 createdAt: Date()
             )
-            do {
-                try session.save(db)
-            } catch {
-                throw ScriptRepositoryError.databaseError(message: "Failed to save PracticeSession: \(error.localizedDescription)")
-            }
+            try saveModel(&session, in: db)
             return session
         }
     }
@@ -135,11 +131,7 @@ class ScriptRepository {
             createdAt: Date(),
             lastViewedAt: Date()
         )
-        do {
-            try script.save(db)
-        } catch {
-            throw ScriptRepositoryError.databaseError(message: "Failed to save Script: \(error.localizedDescription)")
-        }
+        try saveModel(&script, in: db)
         return script
     }
 
@@ -150,11 +142,7 @@ class ScriptRepository {
             englishText: sentenceData.englishText,
             koreanText: sentenceData.koreanText
         )
-        do {
-            try sentence.save(db)
-        } catch {
-            throw ScriptRepositoryError.databaseError(message: "Failed to save Sentence: \(error.localizedDescription)")
-        }
+        try saveModel(&sentence, in: db)
         return sentence
     }
 
@@ -165,12 +153,16 @@ class ScriptRepository {
             englishText: chunkData.englishText,
             koreanText: chunkData.koreanText
         )
-        do {
-            try chunk.save(db)
-        } catch {
-            throw ScriptRepositoryError.databaseError(message: "Failed to save Chunk: \(error.localizedDescription)")
-        }
+        try saveModel(&chunk, in: db)
         return chunk
+    }
+
+    private func saveModel<T: MutablePersistableRecord & Encodable>(_ model: inout T, in db: Database) throws {
+        do {
+            try model.save(db)
+        } catch {
+            throw ScriptRepositoryError.databaseError(message: "Failed to save \(T.self): \(error.localizedDescription)")
+        }
     }
 
     private func validatePracticeSessionExists(db: Database, practiceSessionId: Int64) throws {
@@ -200,11 +192,7 @@ class ScriptRepository {
             replacedWordCount: replacedWordCount,
             analyzedAt: Date()
         )
-        do {
-            try summary.save(db)
-        } catch {
-            throw ScriptRepositoryError.databaseError(message: "Failed to save FeedbackSummary: \(error.localizedDescription)")
-        }
+        try saveModel(&summary, in: db)
         return summary
     }
 
@@ -217,11 +205,7 @@ class ScriptRepository {
             startTime: detailData.startTime,
             endTime: detailData.endTime
         )
-        do {
-            try detail.save(db)
-        } catch {
-            throw ScriptRepositoryError.databaseError(message: "Failed to save FeedbackDetail: \(error.localizedDescription)")
-        }
+        try saveModel(&detail, in: db)
         return detail
     }
 }
