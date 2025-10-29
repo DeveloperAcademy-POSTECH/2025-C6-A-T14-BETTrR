@@ -24,7 +24,8 @@ struct BettrApp: App {
     var body: some Scene {
         WindowGroup {
 //            ContentView()
-            ScriptInputView()
+//            ScriptInputView()
+            MemorizationView()
         }
     }
 }
