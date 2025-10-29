@@ -8,40 +8,55 @@
 import SwiftUI
 
 struct ScriptInputView: View {
-    @State private var originalEnglishText: String = ""   // 입력된 스크립트를 저장할 변수
+    @State private var scriptText: String = ""       // 사용자가 입력한 스크립트 저장용 변수
+    @State private var savedScript: String = ""      // 임시 저장된 스크립트
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("🎬 영어 스크립트 입력")
-                .font(.title2)
-                .bold()
+        VStack(spacing: 20) {
+            Text("영어 스크립트를 입력하세요")
+                .font(.headline)
 
-            TextEditor(text: $originalEnglishText)
+            // 텍스트 입력창
+            TextEditor(text: $scriptText)
+                .frame(height: 300)
                 .padding()
-                .frame(height: 200)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.gray.opacity(0.5))
                 )
-                .cornerRadius(12)
-                .background(Color(UIColor.systemBackground))
+                .padding(.horizontal)
 
+            // 저장 버튼
             Button(action: {
-                print("입력된 스크립트: \(originalEnglishText)")
+                savedScript = scriptText.trimmingCharacters(in: .whitespacesAndNewlines)
             }) {
-                Text("저장하기 (임시)")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
+                Text("저장")
+                    .font(.title3)
                     .padding()
-                    .background(originalEnglishText.isEmpty ? Color.gray : Color.blue)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(10)
             }
-            .disabled(originalEnglishText.isEmpty) // 입력 없을 때 비활성화
+            .padding(.horizontal)
+
+            // 저장된 스크립트 미리보기
+            if !savedScript.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("저장된 스크립트:")
+                        .font(.headline)
+                    Text(savedScript)
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(8)
+                }
+                .padding(.horizontal)
+            }
 
             Spacer()
         }
-        .padding()
+        .padding(.top)
     }
 }
 
