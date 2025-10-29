@@ -6,7 +6,7 @@ struct Script: Identifiable, Codable, FetchableRecord, MutablePersistableRecord 
     var id: Int64?
     var title: String
     var createdAt: Date
-    var lastPracticedAt: Date
+    var lastViewedAt: Date
 
     static let sentences = hasMany(Sentence.self)
     static let practiceSessions = hasMany(PracticeSession.self)
