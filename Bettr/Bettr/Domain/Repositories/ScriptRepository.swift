@@ -40,8 +40,18 @@ class ScriptRepository {
     }
 
     func fetchAllScripts() throws -> [Script] {
-        return try dbQueue.read { db in
-            try Script.fetchAll(db)
+        return try dbQueue.read {
+            try Script.fetchAll($0)
+        }
+    }
+
+    // MARK: - Script Delete
+    func deleteScript(id: Int64) throws {
+        try dbQueue.write { db in
+            guard let script = try Script.fetchOne(db, key: id) else {
+                throw ScriptRepositoryError.notFound(message: "Script with ID \(id) not found.")
+            }
+            _ = try script.delete(db)
         }
     }
     

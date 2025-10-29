@@ -623,4 +623,87 @@ final class ScriptRepositoryTests: XCTestCase {
         }
     }
 
+    // MARK: - Script Delete Tests
+
+    func test_deleteScript_whenScriptExists_thenDeletesScriptAndAllRelatedEntities() throws {
+        // Given: Script와 연관된 모든 엔티티들이 존재할 때
+        let scriptData = ScriptData(
+            title: "Script to be deleted",
+            sentences: [
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "Sentence 1",
+                    koreanText: "문장 1",
+                    chunks: [
+                        ChunkData(orderIndex: 0, englishText: "Chunk 1", koreanText: "청크 1")
+                    ]
+                )
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+        let scriptId = createdScript.id!
+
+        let createdSession = try sut.createPracticeSession(
+            scriptId: scriptId,
+            recordingPath: "path/to/recording.m4a",
+            totalPresentationTime: 100.0
+        )
+        let sessionId = createdSession.id!
+
+        let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+            (errorType: .missingWord, originalText: "original", spokenText: nil, startTime: 1.0, endTime: 2.0)
+        ]
+        let createdSummary = try sut.createFeedbackSummary(
+            practiceSessionId: sessionId,
+            totalScore: 90.0,
+            missingWordCount: 1,
+            addedWordCount: 0,
+            replacedWordCount: 0,
+            feedbackDetailsData: feedbackDetailsData
+        )
+        let summaryId = createdSummary.id!
+
+        // When: Script를 삭제했을 때
+        try sut.deleteScript(id: scriptId)
+
+        // Then: Script와 모든 연관 엔티티들이 삭제되어야 함
+        let fetchedScript = try sut.fetchScript(id: scriptId)
+        XCTAssertNil(fetchedScript)
+
+        let sentenceCount = try dbQueue.read { db in
+            try Sentence.filter(Column("scriptId") == scriptId).fetchCount(db)
+        }
+        XCTAssertEqual(sentenceCount, 0)
+
+        let chunkCount = try dbQueue.read { db in
+            try Chunk.fetchCount(db)
+        }
+        XCTAssertEqual(chunkCount, 0)
+
+        let practiceSessionCount = try dbQueue.read { db in
+            try PracticeSession.filter(Column("scriptId") == scriptId).fetchCount(db)
+        }
+        XCTAssertEqual(practiceSessionCount, 0)
+
+        let feedbackSummaryCount = try dbQueue.read { db in
+            try FeedbackSummary.filter(Column("practiceSessionId") == sessionId).fetchCount(db)
+        }
+        XCTAssertEqual(feedbackSummaryCount, 0)
+
+        let feedbackDetailCount = try dbQueue.read { db in
+            try FeedbackDetail.filter(Column("feedbackSummaryId") == summaryId).fetchCount(db)
+        }
+        XCTAssertEqual(feedbackDetailCount, 0)
+    }
+
+    func test_deleteScript_whenScriptDoesNotExist_thenThrowsError() throws {
+        // Given: 존재하지 않는 Script ID가 있을 때
+        let nonExistentId: Int64 = 9999
+
+        // When-Then: 삭제 시 notFound 오류가 발생해야 함
+        XCTAssertThrowsError(try sut.deleteScript(id: nonExistentId)) {
+            error in
+            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription)
+        }
+    }
 }
