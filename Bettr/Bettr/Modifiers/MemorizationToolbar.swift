@@ -32,9 +32,12 @@ struct MemorizationToolbar: ViewModifier {
     func body(content: Content) -> some View {
         content
             .toolbar {
+                // 타이틀
                 ToolbarItem(placement: .principal) {
                     Text(title)
                 }
+                
+                // 상단 오른쪽 툴 바
                 ToolbarItem {
                     Button(action: {
                         isChunkMode.toggle()
@@ -88,6 +91,7 @@ struct MemorizationToolbar: ViewModifier {
                     }
                 }
                 
+                // 하단 툴 바
                 ToolbarItemGroup(placement: .bottomBar) {
                     // 왼쪽 버튼
                     if isPlaying {
@@ -118,7 +122,8 @@ struct MemorizationToolbar: ViewModifier {
                     Button(action: {
                         isFeedbackModalOpen.toggle()
                     }) {
-                        Image(systemName: "list.bullet.clipboard") // 이미지와 유사한 아이콘
+                        Image(systemName: "append.page")
+                            .foregroundStyle(Color.blue)
                     }
                 }
             }
