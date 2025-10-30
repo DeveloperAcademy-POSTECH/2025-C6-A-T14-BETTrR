@@ -104,6 +104,11 @@ struct ScriptsSectionView: View {
 }
 
 struct FeedbackHistorySectionView: View {
+    @EnvironmentObject var container: DatabaseContainer
+    @State private var feedbackSummaries: [FeedbackSummary] = []
+    @State private var showingError = false
+    @State private var errorMessage = ""
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -126,13 +131,46 @@ struct FeedbackHistorySectionView: View {
             }
             .padding(.horizontal, 20)
             
-            // Placeholder for feedback history
             VStack(spacing: 12) {
-                ForEach(0..<3) { index in
-                    FeedbackHistoryPlaceholder()
+                ForEach(feedbackSummaries.prefix(3)) { summary in
+                    FeedbackItemView(feedbackSummary: summary)
                 }
             }
             .padding(.horizontal, 20)
+        }
+        .onAppear {
+            loadFeedbackSummaries()
+        }
+        .alert("오류", isPresented: $showingError) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
+        }
+    }
+
+    private func loadFeedbackSummaries() {
+        do {
+            // Fetch all scripts to get their IDs, then fetch practice sessions for each script
+            let allScripts = try container.scriptManagementService.fetchAllScripts()
+            var allFeedbackSummaries: [FeedbackSummary] = []
+
+            for script in allScripts {
+                if let scriptId = script.id {
+                    let practiceSessions = try container.practiceSessionService.fetchPracticeSessions(forScriptId: scriptId)
+                    for session in practiceSessions {
+                        if let sessionId = session.id {
+                            if let summary = try container.practiceSessionService.fetchFeedbackSummary(forPracticeSessionId: sessionId) {
+                                allFeedbackSummaries.append(summary)
+                            }
+                        }
+                    }
+                }
+            }
+            // Sort by analyzedAt in descending order to show recent feedback
+            feedbackSummaries = allFeedbackSummaries.sorted { $0.analyzedAt > $1.analyzedAt }
+        } catch {
+            errorMessage = "피드백 요약을 불러오는데 실패했습니다: \(error.localizedDescription)"
+            showingError = true
         }
     }
 }
@@ -156,50 +194,162 @@ struct ScriptCard: View {
     }
 }
 
-// MARK: - Feedback History Placeholder
-
-struct FeedbackHistoryPlaceholder: View {
-    var body: some View {
-        HStack(spacing: 16) {
-            ForEach(0..<2) { index in
-                FeedbackItemView()
-            }
-        }
-    }
-}
-
 struct FeedbackItemView: View {
+    @EnvironmentObject var container: DatabaseContainer
+    let feedbackSummary: FeedbackSummary
+    @State private var scriptTitle: String = ""
+    @State private var practiceSessionDuration: Double = 0.0
+    @State private var showingError = false
+    @State private var errorMessage = ""
+
     var body: some View {
         HStack(spacing: 12) {
             Circle()
                 .fill(Color.gray)
                 .frame(width: 80, height: 80)
                 .overlay(
-                    Text("68%")
+                    Text("\(Int(feedbackSummary.totalScore))%")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(.white)
                 )
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("스크립트 1.pdf")
+                Text(scriptTitle)
                     .font(.system(size: 16, weight: .semibold))
-                Text("dd:dd'dd")
+                Text(formatDuration(practiceSessionDuration))
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
-                Text("추가된 단어 1 | 누락된 단어 2 | 대체된 단어 3")
+                Text("추가된 단어 \(feedbackSummary.addedWordCount) | 누락된 단어 \(feedbackSummary.missingWordCount) | 대체된 단어 \(feedbackSummary.replacedWordCount)")
                     .font(.system(size: 12))
                     .foregroundColor(.gray)
             }
             
             Spacer()
             
-            Text("2021/13/12")
+            Text(formatDate(feedbackSummary.analyzedAt))
                 .font(.system(size: 14))
                 .foregroundColor(.gray)
         }
         .padding()
         .background(Color.gray.opacity(0.1))
         .cornerRadius(12)
+        .onAppear {
+            loadRelatedData()
+        }
+        .alert("오류", isPresented: $showingError) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
+        }
+    }
+
+    private func loadRelatedData() {
+        do {
+            if let practiceSession = try container.practiceSessionService.fetchPracticeSession(id: feedbackSummary.practiceSessionId) {
+                practiceSessionDuration = practiceSession.totalPresentationTime
+                if let script = try container.scriptManagementService.fetchScript(id: practiceSession.scriptId) {
+                    scriptTitle = script.title
+                }
+            }
+        } catch {
+            errorMessage = "관련 데이터를 불러오는데 실패했습니다: \(error.localizedDescription)"
+            showingError = true
+        }
+    }
+
+    private func formatDuration(_ duration: Double) -> String {
+        let minutes = Int(duration / 60)
+        let seconds = Int(duration.truncatingRemainder(dividingBy: 60))
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd"
+        return formatter.string(from: date)
+    }
+}
+
+extension HomeView {
+    static func setupPreviewData(database: AppDatabase) {
+        let scriptRepository = ScriptRepository()
+        let scriptManagementService = ScriptManagementService(dbQueue: database.dbQueue, scriptRepository: scriptRepository)
+        let practiceSessionService = PracticeSessionService(dbQueue: database.dbQueue, scriptRepository: scriptRepository)
+
+        let demoScriptData: [ScriptData] = [
+            ScriptData(
+                title: "Sample Script 1",
+                sentences: [
+                    SentenceData(
+                        orderIndex: 0,
+                        englishText: "Hello world",
+                        koreanText: "안녕 세상",
+                        chunks: [
+                            ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕")
+                        ]
+                    )
+                ]
+            ),
+            ScriptData(
+                title: "Another Script Example",
+                sentences: [
+                    SentenceData(
+                        orderIndex: 0,
+                        englishText: "This is another example for the preview.",
+                        koreanText: "이것은 미리보기를 위한 또 다른 예시입니다.",
+                        chunks: [
+                            ChunkData(orderIndex: 0, englishText: "This is another example", koreanText: "이것은 또 다른 예시입니다"),
+                            ChunkData(orderIndex: 1, englishText: "for the preview.", koreanText: "미리보기를 위한.")
+                        ]
+                    )
+                ]
+            ),
+            ScriptData(
+                title: "Third Script for Testing",
+                sentences: [
+                    SentenceData(
+                        orderIndex: 0,
+                        englishText: "A third script to ensure proper display.",
+                        koreanText: "적절한 표시를 위한 세 번째 스크립트입니다.",
+                        chunks: [
+                            ChunkData(orderIndex: 0, englishText: "A third script", koreanText: "세 번째 스크립트"),
+                            ChunkData(orderIndex: 1, englishText: "to ensure proper display.", koreanText: "적절한 표시를 보장하기 위한.")
+                        ]
+                    )
+                ]
+            )
+        ]
+        
+        for (index, scriptData) in demoScriptData.enumerated() {
+            do {
+                let script = try scriptManagementService.createScript(scriptData: scriptData)
+                guard let scriptId = script.id else { continue }
+
+                let practiceSession = try practiceSessionService.createPracticeSession(
+                    scriptId: scriptId,
+                    recordingPath: "/path/to/preview_recording_\(scriptId).m4a",
+                    totalPresentationTime: 30.0 + Double(index * 10),
+                )
+
+                guard let practiceSessionId = practiceSession.id else { continue }
+
+                let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+                    (errorType: .missingWord, originalText: "preview", spokenText: nil, startTime: 1.0, endTime: 1.5),
+                    (errorType: .addedWord, originalText: nil, spokenText: "extra", startTime: 2.0, endTime: 2.5)
+                ]
+
+                _ = try practiceSessionService.createFeedbackSummary(
+                    practiceSessionId: practiceSessionId,
+                    totalScore: 60.0 + Double(index * 10),
+                    missingWordCount: 1,
+                    addedWordCount: 1,
+                    replacedWordCount: 0,
+                    feedbackDetailsData: feedbackDetailsData
+                )
+            } catch {
+                print("Error creating preview data: \(error.localizedDescription)")
+            }
+        }
     }
 }
 
@@ -207,25 +357,9 @@ struct FeedbackItemView: View {
 
 #Preview(traits: .landscapeLeft) {
     let database = try! AppDatabase.makeInMemory()
-    let container = DatabaseContainer(database: database)
     
-    // Add sample data
-    let scriptData = ScriptData(
-        title: "Sample Script 1",
-        sentences: [
-            SentenceData(
-                orderIndex: 0,
-                englishText: "Hello world",
-                koreanText: "안녕 세상",
-                chunks: [
-                    ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕")
-                ]
-            )
-        ]
-    )
-    
-    _ = try? container.scriptManagementService.createScript(scriptData: scriptData)
+    HomeView.setupPreviewData(database: database)
     
     return HomeView()
-        .environmentObject(container)
+        .environmentObject(DatabaseContainer(database: database))
 }
