@@ -11,9 +11,7 @@ import FirebaseAI
 // MARK: - 화면 UI
 struct ScriptInputView: View {
     @EnvironmentObject var databaseContainer: DatabaseContainer
-    @State private var isLoading: Bool = false              // FirebaseAI 호출 중 로딩 상태
-    @State private var parsedScript: ScriptData?     // Gemini 분석 후 결과 저장(추가)
-    @State private var isEditing: Bool = false
+    
     @State private var scriptText: String = """
     Hello everyone, my name is Dewy.
     Today, I want to talk about the power of challenge.
@@ -26,6 +24,13 @@ struct ScriptInputView: View {
     Now I know every challenge helps me grow.
     Thank you for listening.
     """
+    @State private var isLoading: Bool = false              // FirebaseAI 호출 중 로딩 상태
+    @State private var isEditing: Bool = false
+    @FocusState private var editorFocused: Bool
+
+    @State private var parsedScript: ScriptData?     // Gemini 분석 후 결과 저장(추가)
+    
+    
     
     var body: some View {
         VStack(spacing: 20) {
@@ -36,6 +41,8 @@ struct ScriptInputView: View {
                     // 편집 모드 토글
                     withAnimation {
                         isEditing.toggle()
+                        // 편집 모드 전환 시 포커스 제어
+                        editorFocused = isEditing
                     }
                 }) {
                     Text(isEditing ? "편집 완료" : "편집")
@@ -56,8 +63,10 @@ struct ScriptInputView: View {
             }
             
             
-            // 텍스트 입력창
+            // 텍스트 입력창 (편집 비허용 상태에서는 disabled)
             TextEditor(text: $scriptText)
+                .focused($editorFocused)
+                .disabled(!isEditing)
                 .frame(height: 300)
                 .padding()
                 .overlay(
@@ -65,8 +74,10 @@ struct ScriptInputView: View {
                         .stroke(Color.gray.opacity(0.5))
                 )
             // 시각적 힌트: 편집 모드일 때 배경을 연하게 표시
-                .background(isEditing ? Color.yellow.opacity(0.04) : Color.clear)
-                .padding(.horizontal)
+                .background(
+                    isEditing ? Color.yellow.opacity(0.08) : Color.white
+                )                .padding(.horizontal)
+                .opacity(isEditing ? 1.0 : 0.95)
             
             // Gemini 호출 버튼
             Button(action: {
