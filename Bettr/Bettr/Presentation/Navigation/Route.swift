@@ -8,8 +8,9 @@
 import SwiftUI
 
 enum Route: Hashable {
-    case memorization(scriptData: ScriptData)
+    case memorization(scriptId: Int64)
     case scriptInput
+    case home
 }
 
 enum ModalRoute: Hashable {
