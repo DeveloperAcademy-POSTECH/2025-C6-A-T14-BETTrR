@@ -10,6 +10,7 @@ import FirebaseAI
 
 // MARK: - 화면 UI
 struct ScriptInputView: View {
+    @EnvironmentObject var databaseContainer: DatabaseContainer
     @State private var scriptText: String = ""       // 사용자가 입력한 스크립트 저장용 변수
     @State private var isLoading: Bool = false              // FirebaseAI 호출 중 로딩 상태
     @State private var parsedScript: ScriptData?     // Gemini 분석 후 결과 저장(추가)
@@ -171,6 +172,14 @@ Full natural translation:
             }
 
             print("✅ 총 문장 수: \(parsed.sentences.count)")
+
+            // ✅ 스크립트 저장
+            do {
+                _ = try databaseContainer.scriptManagementService.createScript(scriptData: parsed)
+                print("✅ 스크립트가 성공적으로 저장되었습니다.")
+            } catch {
+                print("🔥 스크립트 저장 오류:", error.localizedDescription)
+            }
 
         } catch {
             print("🔥 FirebaseAI 오류:", error.localizedDescription)
