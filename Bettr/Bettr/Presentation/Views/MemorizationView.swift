@@ -19,9 +19,15 @@ struct MemorizationView: View {
     @State private var isPlaying: Bool = false
     @State private var showFeedbackModal: Bool = false
     
-    /// 숨김 상태 추적용 @State 변수
-    @State private var hiddenEngChunks: Set<Int> = []
-    @State private var hiddenKorChunks: Set<Int> = []
+    // 청크 고유 식별자
+    private struct ChunkIdentifier: Hashable {
+        let sentenceIndex: Int
+        let chunkIndex: Int
+    }
+    
+    // 숨김 상태 추적용 @State 변수
+    @State private var hiddenEngChunks: Set<ChunkIdentifier> = []
+    @State private var hiddenKorChunks: Set<ChunkIdentifier> = []
     @State private var hiddenEngSentences: Set<Int> = []
     @State private var hiddenKorSentences: Set<Int> = []
     
@@ -49,8 +55,14 @@ struct MemorizationView: View {
                                 CustomFlowLayout(spacing: 0) { // 청크 간 간격은 Text로 조절
                                     ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                                         
-                                        // 현재 숨김 상태인지 확인하는 변수
-                                        let isEngChunkHidden = hiddenEngChunks.contains(chunk.orderIndex)
+                                        // 고유 ID 생성
+                                        let chunkID = ChunkIdentifier(
+                                            sentenceIndex: sentence.orderIndex,
+                                            chunkIndex: chunk.orderIndex
+                                        )
+                                        
+                                        // 고유 ID로 숨김 상태 확인
+                                        let isEngChunkHidden = hiddenEngChunks.contains(chunkID)
                                         
                                         Text(chunk.englishText)
                                             .font(.system(size: 36))
@@ -66,9 +78,9 @@ struct MemorizationView: View {
                                                 if funcMode == .hide  {
                                                     withAnimation(.easeInOut(duration: 0.02)) {
                                                         if isEngChunkHidden {
-                                                            hiddenEngChunks.remove(chunk.orderIndex)
+                                                            hiddenEngChunks.remove(chunkID)
                                                         } else {
-                                                            hiddenEngChunks.insert(chunk.orderIndex)
+                                                            hiddenEngChunks.insert(chunkID)
                                                         }
                                                     }
                                                 } else { // 재생모드
@@ -88,8 +100,15 @@ struct MemorizationView: View {
                                 // 3. 한국어 청크 라인
                                 CustomFlowLayout(spacing: 0) {
                                     ForEach(sentence.chunks, id: \.orderIndex) { chunk in
-                                        // 현재 숨김 상태인지 확인하는 변수
-                                        let isKorChunkHidden = hiddenKorChunks.contains(chunk.orderIndex)
+                                        
+                                        // 고유 ID 생성
+                                        let chunkID = ChunkIdentifier(
+                                            sentenceIndex: sentence.orderIndex,
+                                            chunkIndex: chunk.orderIndex
+                                        )
+                                        
+                                        // 고유 ID로 숨김 상태 확인
+                                        let isKorChunkHidden = hiddenKorChunks.contains(chunkID)
                                         
                                         Text(chunk.koreanText)
                                             .font(.system(size: 20))
@@ -105,9 +124,9 @@ struct MemorizationView: View {
                                                 if funcMode == .hide  {
                                                     withAnimation(.easeInOut(duration: 0.02)) {
                                                         if isKorChunkHidden {
-                                                            hiddenKorChunks.remove(chunk.orderIndex)
+                                                            hiddenKorChunks.remove(chunkID)
                                                         } else {
-                                                            hiddenKorChunks.insert(chunk.orderIndex)
+                                                            hiddenKorChunks.insert(chunkID)
                                                         }
                                                     }
                                                 } else { // 재생모드
@@ -181,7 +200,7 @@ struct MemorizationView: View {
                                                     hiddenKorSentences.insert(sentence.orderIndex)
                                                 }
                                             }
-                                        } else { // 재생보드
+                                        } else { // 재생모드
                                             print("재생모드!")
                                         }
                                     }
