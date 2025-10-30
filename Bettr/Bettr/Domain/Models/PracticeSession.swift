@@ -9,6 +9,9 @@ struct PracticeSession: Identifiable, Codable, FetchableRecord, MutablePersistab
     var totalPresentationTime: Double
     var createdAt: Date
 
+    static let script = belongsTo(Script.self)
+    static let feedbackSummary = hasOne(FeedbackSummary.self)
+
     static var databaseTableName: String = "practice_session"
 
     mutating func didInsert(_ inserted: InsertionSuccess) {

@@ -6,8 +6,6 @@ erDiagram
     Script {
         Int64 id PK
         String title
-        String originalEnglishText
-        String originalKoreanText
         Date createdAt
         Date lastPracticedAt
     }

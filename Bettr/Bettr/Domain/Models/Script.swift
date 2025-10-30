@@ -5,10 +5,11 @@ import GRDB
 struct Script: Identifiable, Codable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
     var title: String
-    var originalEnglishText: String
-    var originalKoreanText: String
     var createdAt: Date
-    var lastPracticedAt: Date
+    var lastViewedAt: Date
+
+    static let sentences = hasMany(Sentence.self)
+    static let practiceSessions = hasMany(PracticeSession.self)
 
     static var databaseTableName: String = "script"
 
