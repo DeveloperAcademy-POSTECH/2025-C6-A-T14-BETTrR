@@ -26,10 +26,24 @@ class ScriptRepository {
         return sentence
     }
     
+    func fetchSentences(forScriptId scriptId: Int64, in db: Database) throws -> [Sentence] {
+        try Sentence
+            .filter(Column("scriptId") == scriptId)
+            .order(Column("orderIndex"))
+            .fetchAll(db)
+    }
+    
     // MARK: - Chunk
     func save(chunk: inout Chunk, in db: Database) throws -> Chunk {
         try chunk.save(db)
         return chunk
+    }
+    
+    func fetchChunks(forSentenceId sentenceId: Int64, in db: Database) throws -> [Chunk] {
+        try Chunk
+            .filter(Column("sentenceId") == sentenceId)
+            .order(Column("orderIndex"))
+            .fetchAll(db)
     }
     
     // MARK: - PracticeSession

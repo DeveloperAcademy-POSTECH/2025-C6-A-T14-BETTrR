@@ -386,6 +386,114 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertTrue(allScripts.isEmpty)
     }
 
+    // MARK: - Script Read with Relations Tests
+
+    func test_fetchScriptWithSentences_whenScriptExistsWithSentences_thenReturnsScriptAndSentences() throws {
+        // Given: 여러 문장을 포함한 Script가 존재할 때
+        let scriptData = ScriptData(
+            title: "Script with Sentences",
+            sentences: [
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "First sentence.",
+                    koreanText: "첫 번째 문장.",
+                    chunks: [ChunkData(orderIndex: 0, englishText: "First", koreanText: "첫 번째")]
+                ),
+                SentenceData(
+                    orderIndex: 1,
+                    englishText: "Second sentence.",
+                    koreanText: "두 번째 문장.",
+                    chunks: [ChunkData(orderIndex: 0, englishText: "Second", koreanText: "두 번째")]
+                )
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+
+        // When: Script와 연관된 Sentence들을 함께 조회했을 때
+        let result = try sut.fetchScriptWithSentences(id: createdScript.id!)
+
+        // Then: Script와 Sentence들이 올바르게 반환되어야 함
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.script.id, createdScript.id)
+        XCTAssertEqual(result?.script.title, "Script with Sentences")
+        XCTAssertEqual(result?.sentences.count, 2)
+        XCTAssertEqual(result?.sentences[0].englishText, "First sentence.")
+        XCTAssertEqual(result?.sentences[1].englishText, "Second sentence.")
+    }
+
+    func test_fetchScriptWithSentences_whenScriptDoesNotExist_thenReturnsNil() throws {
+        // Given: 존재하지 않는 Script ID가 있을 때
+        let nonExistentId: Int64 = 9999
+
+        // When: 해당 ID로 Script와 Sentence들을 조회했을 때
+        let result = try sut.fetchScriptWithSentences(id: nonExistentId)
+
+        // Then: nil이 반환되어야 함
+        XCTAssertNil(result)
+    }
+
+    func test_fetchScriptWithSentencesAndChunks_whenScriptExistsWithSentencesAndChunks_thenReturnsScriptSentencesAndChunks() throws {
+        // Given: 여러 문장과 청크를 포함한 Script가 존재할 때
+        let scriptData = ScriptData(
+            title: "Script with Sentences and Chunks",
+            sentences: [
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "Hello world.",
+                    koreanText: "안녕 세상.",
+                    chunks: [
+                        ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕"),
+                        ChunkData(orderIndex: 1, englishText: "world", koreanText: "세상")
+                    ]
+                ),
+                SentenceData(
+                    orderIndex: 1,
+                    englishText: "How are you?",
+                    koreanText: "잘 지내?",
+                    chunks: [
+                        ChunkData(orderIndex: 0, englishText: "How", koreanText: "어떻게"),
+                        ChunkData(orderIndex: 1, englishText: "are", koreanText: "지내"),
+                        ChunkData(orderIndex: 2, englishText: "you", koreanText: "너")
+                    ]
+                )
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+
+        // When: Script, Sentence, Chunk들을 함께 조회했을 때
+        let result = try sut.fetchScriptWithSentencesAndChunks(id: createdScript.id!)
+
+        // Then: Script, Sentence, Chunk들이 올바르게 반환되어야 함
+        XCTAssertNotNil(result)
+        XCTAssertEqual(result?.script.id, createdScript.id)
+        XCTAssertEqual(result?.script.title, "Script with Sentences and Chunks")
+        XCTAssertEqual(result?.sentences.count, 2)
+
+        // 첫 번째 문장 검증
+        XCTAssertEqual(result?.sentences[0].sentence.englishText, "Hello world.")
+        XCTAssertEqual(result?.sentences[0].chunks.count, 2)
+        XCTAssertEqual(result?.sentences[0].chunks[0].englishText, "Hello")
+        XCTAssertEqual(result?.sentences[0].chunks[1].englishText, "world")
+
+        // 두 번째 문장 검증
+        XCTAssertEqual(result?.sentences[1].sentence.englishText, "How are you?")
+        XCTAssertEqual(result?.sentences[1].chunks.count, 3)
+        XCTAssertEqual(result?.sentences[1].chunks[0].englishText, "How")
+        XCTAssertEqual(result?.sentences[1].chunks[1].englishText, "are")
+        XCTAssertEqual(result?.sentences[1].chunks[2].englishText, "you")
+    }
+
+    func test_fetchScriptWithSentencesAndChunks_whenScriptDoesNotExist_thenReturnsNil() throws {
+        // Given: 존재하지 않는 Script ID가 있을 때
+        let nonExistentId: Int64 = 9999
+
+        // When: 해당 ID로 Script, Sentence, Chunk들을 조회했을 때
+        let result = try sut.fetchScriptWithSentencesAndChunks(id: nonExistentId)
+
+        // Then: nil이 반환되어야 함
+        XCTAssertNil(result)
+    }
+
     // MARK: - Script Update Tests
 
     func test_updateLastViewedAt_whenScriptExists_thenUpdatesTimestamp() throws {
