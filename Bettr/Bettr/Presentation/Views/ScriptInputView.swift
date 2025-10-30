@@ -99,62 +99,99 @@ struct ScriptInputView: View {
             let ai = FirebaseAI.firebaseAI(backend: .googleAI())
             let model = ai.generativeModel(modelName: "gemini-2.5-flash")
             
-            //프롬프트 ("/" 기준으로 나누는 형식만 요청)
+//            //프롬프트 ("/" 기준으로 나누는 형식만 요청)
+//            let prompt = """
+//당신은 이제부터 20년 경력의 영어-한국어 언어코치입니다.
+//
+//# 지시문
+//아래 가이드라인에 따라 영어 문장을 의미 단위 청크(Chunk)로 나누고, 각 청크에 대응하는 자연스러운 한국어 번역을 제공합니다. 또한 각 문장 전체의 자연스러운 한 문장 번역을 제시하세요.
+//
+//# Chunking Guideline
+//1. **의미 중심 분할(Meaning-led)**: 문장의 의미를 우선으로 하며, 애매할 경우 의미상 자연스러운 곳에서 끊습니다. 한 청크는 3~8단어 정도의 한 호흡 길이로 유지합니다.
+//2. **문법 구조 존중(Grammar-aware)**: 주어(S)+동사(V)는 분리하지 않습니다. (S+V 결속)  
+//5형식(SVOC)은 S+V / O+OC로 나누되, 목적어(O)와 목적격보어(OC)는 함께 유지합니다. 보어가 절 형태라면 내부에서만 분할 가능합니다.
+//3. **전치사 결속(Preposition attachment)**: 전치사와 보어를 분리하지 않습니다.  
+//- 예: “in the midst / of a vast ocean / of material prosperity” (전치사 단절 금지)
+//- “to/for/of which” 같은 pied-piping 구조는 한 청크로 유지하되 너무 길면 메인 동사 경계에서만 분할합니다.
+//4. **호흡과 리듬(Breath & Rhythm)**: 의미의 흐름이 자연스러우면서도 한 번에 읽기 좋은 리듬을 유지하세요.
+//5. **커버리지(Coverage)**: 모든 단어와 구두점을 포함하며 순서를 바꾸거나 생략하지 않습니다. 구두점은 바로 앞 청크에 붙입니다.
+//6. **출력 규칙(Output format)**:
+//Sentence 1
+//Original sentence:
+//<문장 1의 원문을 그대로 한 줄로 표시>
+//English (meaning-based chunks):
+//<문장 1을 의미 단위로 / 구분하여 표시>
+//Korean (aligned chunks):
+//<각 청크에 대한 한국어 번역, 동일 개수 유지>
+//Full natural translation:
+//<전체 문장을 자연스러운 한국어로 번역>
+//
+//Sentence 2
+//Original sentence:
+//<문장 2의 원문을 그대로 한 줄로 표시>
+//English (meaning-based chunks):
+//<문장 2를 의미 단위로 / 구분하여 표시>
+//Korean (aligned chunks):
+//<각 청크에 대한 한국어 번역>
+//Full natural translation:
+//<자연스러운 전체 번역>
+//
+//…and so on for all sentences.
+//
+//# 입력 형식
+//- 영어 문장 : [청크 분할과 번역이 필요한 영어 스크립트]
+//
+//# 출력 예시
+//Sentence 1
+//Original sentence:
+//When the architects of our republic wrote the magnificent words of the Constitution and the Declaration of Independence, they were signing a promissory note to which every American was to fall heir.
+//English (meaning-based chunks):
+//When the architects of our republic wrote / the magnificent words / of the Constitution / and the Declaration of Independence / they were signing a promissory note / to which every American was to fall heir.
+//Korean (aligned chunks):
+//우리 공화국의 설계자들이 썼을 때 / 웅대한 문구를 / 헌법의 / 그리고 독립 선언문의 / 그들은 약속 어음에 서명하고 있었다 / 모든 미국인이 상속받을 어음에.
+//Full natural translation:
+//우리 공화국의 설계자들은 헌법과 독립선언서의 웅대한 문구를 쓸 때, 모든 미국인이 상속받게 될 약속 어음에 서명하고 있었다.
+//
+//이제 다음 영어 스크립트를 처리하세요:
+//\(scriptText)
+//"""
+            // 새로운 JSON 전용 프롬프트 추가
             let prompt = """
-당신은 이제부터 20년 경력의 영어-한국어 언어코치입니다.
+                       당신은 20년 경력의 영어-한국어 언어 코치입니다.
 
-# 지시문
-아래 가이드라인에 따라 영어 문장을 의미 단위 청크(Chunk)로 나누고, 각 청크에 대응하는 자연스러운 한국어 번역을 제공합니다. 또한 각 문장 전체의 자연스러운 한 문장 번역을 제시하세요.
+                       # 목표
+                       입력된 영어 스크립트를 문장 단위로 분할하고, 각 문장을 의미 단위 청크로 나눈 뒤 1:1로 한국어 번역을 정렬합니다.
+                       또한 각 문장의 자연스러운 전체 번역을 생성합니다.
 
-# Chunking Guideline
-1. **의미 중심 분할(Meaning-led)**: 문장의 의미를 우선으로 하며, 애매할 경우 의미상 자연스러운 곳에서 끊습니다. 한 청크는 3~8단어 정도의 한 호흡 길이로 유지합니다.
-2. **문법 구조 존중(Grammar-aware)**: 주어(S)+동사(V)는 분리하지 않습니다. (S+V 결속)  
-5형식(SVOC)은 S+V / O+OC로 나누되, 목적어(O)와 목적격보어(OC)는 함께 유지합니다. 보어가 절 형태라면 내부에서만 분할 가능합니다.
-3. **전치사 결속(Preposition attachment)**: 전치사와 보어를 분리하지 않습니다.  
-- 예: “in the midst / of a vast ocean / of material prosperity” (전치사 단절 금지)
-- “to/for/of which” 같은 pied-piping 구조는 한 청크로 유지하되 너무 길면 메인 동사 경계에서만 분할합니다.
-4. **호흡과 리듬(Breath & Rhythm)**: 의미의 흐름이 자연스러우면서도 한 번에 읽기 좋은 리듬을 유지하세요.
-5. **커버리지(Coverage)**: 모든 단어와 구두점을 포함하며 순서를 바꾸거나 생략하지 않습니다. 구두점은 바로 앞 청크에 붙입니다.
-6. **출력 규칙(Output format)**:
-Sentence 1
-Original sentence:
-<문장 1의 원문을 그대로 한 줄로 표시>
-English (meaning-based chunks):
-<문장 1을 의미 단위로 / 구분하여 표시>
-Korean (aligned chunks):
-<각 청크에 대한 한국어 번역, 동일 개수 유지>
-Full natural translation:
-<전체 문장을 자연스러운 한국어로 번역>
+                       # 출력 형식 (중요)
+                       - 반드시 **순수 JSON 하나만** 출력합니다.
+                       - 코드펜스(json,  등), 설명, 주석, 추가 텍스트 금지.
+                       - 키 이름은 DTO(ScriptData, SentenceData, ChunkData)와 동일하게 유지:
+                         title, sentences[].englishText, sentences[].koreanText, sentences[].chunks[].englishText, sentences[].chunks[].koreanText
 
-Sentence 2
-Original sentence:
-<문장 2의 원문을 그대로 한 줄로 표시>
-English (meaning-based chunks):
-<문장 2를 의미 단위로 / 구분하여 표시>
-Korean (aligned chunks):
-<각 청크에 대한 한국어 번역>
-Full natural translation:
-<자연스러운 전체 번역>
+                       # JSON 스키마
+                       {
+                         "title": string,
+                         "sentences": [
+                           {
+                             "englishText": string,
+                             "koreanText": string,
+                             "chunks": [ { "englishText": string, "koreanText": string } ]
+                           }
+                         ]
+                       }
 
-…and so on for all sentences.
+                       # 청킹 규칙 (요약)
+                       1) 의미 중심 (3~8단어 권장)
+                       2) S+V 결속 / 5형식은 O+OC 결속
+                       3) 전치사-보어 결속
+                       4) 호흡/리듬 고려
+                       5) 커버리지 100% (단어/구두점 누락 금지, 순서 보존)
 
-# 입력 형식
-- 영어 문장 : [청크 분할과 번역이 필요한 영어 스크립트]
-
-# 출력 예시
-Sentence 1
-Original sentence:
-When the architects of our republic wrote the magnificent words of the Constitution and the Declaration of Independence, they were signing a promissory note to which every American was to fall heir.
-English (meaning-based chunks):
-When the architects of our republic wrote / the magnificent words / of the Constitution / and the Declaration of Independence / they were signing a promissory note / to which every American was to fall heir.
-Korean (aligned chunks):
-우리 공화국의 설계자들이 썼을 때 / 웅대한 문구를 / 헌법의 / 그리고 독립 선언문의 / 그들은 약속 어음에 서명하고 있었다 / 모든 미국인이 상속받을 어음에.
-Full natural translation:
-우리 공화국의 설계자들은 헌법과 독립선언서의 웅대한 문구를 쓸 때, 모든 미국인이 상속받게 될 약속 어음에 서명하고 있었다.
-
-이제 다음 영어 스크립트를 처리하세요:
-\(scriptText)
-"""
+                       # 입력 스크립트
+                       \(scriptText)
+                       """
+            
             let response = try await model.generateContent(prompt)
             guard let text = response.text else {
                 print("⚠️ 응답 없음")
@@ -163,14 +200,22 @@ Full natural translation:
 
             print("Gemini 응답:\n\(text)")
             
-            // ✅ 파싱
-            let parsed = parseGeminiOutputToScriptData(text, title: "사용자 입력 스크립트")
-
-            await MainActor.run {
-                self.parsedScript = parsed
+//            // ✅ 파싱
+//            let parsed = parseGeminiOutputToScriptData(text, title: "사용자 입력 스크립트")
+//
+//            await MainActor.run {
+//                self.parsedScript = parsed
+//            }
+//
+//            print("✅ 총 문장 수: \(parsed.sentences.count)")
+            
+            //    ↓ JSON 디코딩 전용 함수로 교체
+            if let jsonParsed = parseGeminiJSONToScriptData(text, fallbackTitle: "사용자 입력 스크립트") {
+                await MainActor.run { self.parsedScript = jsonParsed }
+                print("✅ JSON 파싱 성공: \(jsonParsed.sentences.count)문장")
+            } else {
+                print("⚠️ JSON 디코딩 실패")
             }
-
-            print("✅ 총 문장 수: \(parsed.sentences.count)")
 
         } catch {
             print("🔥 FirebaseAI 오류:", error.localizedDescription)
@@ -178,69 +223,107 @@ Full natural translation:
     }
 }
 
-// MARK: - 파싱 함수(1. 제미나이에서 받아온 response를 문장 단위로 파싱, 2. "/"가 있는 문장을 "/"로 파싱)
+// MARK: - Gemini가 생성한 json 처리로직
+// 새로 추가됨 — JSON 전용 파서
+// 기존에는 "Original sentence:" / "Korean (aligned chunks):" 등 텍스트 기반 파싱 로직이 있었지만
+// 이제 JSON 구조만 디코딩하기 때문에 완전히 새로 정의됨.
+private struct ChunkJSON: Codable { let englishText: String; let koreanText: String }
+private struct SentenceJSON: Codable { let englishText: String; let koreanText: String; let chunks: [ChunkJSON] }
+private struct ScriptJSON: Codable { let title: String; let sentences: [SentenceJSON] }
 
-// enum 사용.
-enum LinePrefix: String {
-    case originalSentence = "Original sentence:"
-    case fullTranslation = "Full natural translation:"
-    case englishChunks = "English (meaning-based chunks):"
-    case koreanChunks = "Korean (aligned chunks):"
-}
-
-func parseGeminiOutputToScriptData(_ text: String, title: String) -> ScriptData {
-    // 1. 문장 파싱
-    let sections = text.components(separatedBy: "Sentence ")
-        .dropFirst() // 맨 앞의 빈 요소 제거!
-        .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+// JSON 응답을 Swift 구조체로 매핑하는 함수
+// 기존의 'parseGeminiOutputToScriptData' 대신 새롭게 추가됨
+func parseGeminiJSONToScriptData(_ jsonText: String, fallbackTitle: String) -> ScriptData? {
+    // 코드펜스 제거 (Gemini가 ```json 으로 감싸는 경우 대비)
+    let trimmed = jsonText
+        .replacingOccurrences(of: "```json", with: "")
+        .replacingOccurrences(of: "```", with: "")
+        .trimmingCharacters(in: .whitespacesAndNewlines)
     
-    var sentences: [SentenceData] = []
-
-    for (index, section) in sections.enumerated() {
-        var englishText = ""
-        var koreanText = ""
-        var englishChunks: [String] = []
-        var koreanChunks: [String] = []
+    guard let data = trimmed.data(using: .utf8) else { return nil }
+    
+    do {
+        let decoded = try JSONDecoder().decode(ScriptJSON.self, from: data)
         
-        // 2. 청크 파싱
-        let cleanedSection = section.replacingOccurrences(of: "\r", with: "")
-        let lines = cleanedSection.split(separator: "\n").map {
-            String($0).trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-
-        for (i, line) in lines.enumerated() {
-            if line.starts(with: LinePrefix.originalSentence.rawValue) {
-                // 바로 다음 줄이 존재한다면 그걸 사용
-                if i + 1 < lines.count {
-                    englishText = lines[i + 1].trimmingCharacters(in: .whitespaces)
-                }
-            } else if line.starts(with: LinePrefix.fullTranslation.rawValue) {
-                if i + 1 < lines.count {
-                    koreanText = lines[i + 1].trimmingCharacters(in: .whitespaces)
-                }
-            } else if line.starts(with: LinePrefix.englishChunks.rawValue) {
-                if i + 1 < lines.count {
-                    let chunkLine = lines[i + 1].trimmingCharacters(in: .whitespaces)
-                    englishChunks = chunkLine.components(separatedBy: " / ").map { $0.trimmingCharacters(in: .whitespaces) }
-                }
-            } else if line.starts(with: LinePrefix.koreanChunks.rawValue) {
-                if i + 1 < lines.count {
-                    let chunkLine = lines[i + 1].trimmingCharacters(in: .whitespaces)
-                    koreanChunks = chunkLine.components(separatedBy: " / ").map { $0.trimmingCharacters(in: .whitespaces) }
-                }
+        // Gemini가 orderIndex를 주지 않아도 Swift가 자동으로 인덱스 생성
+        let sentences: [SentenceData] = decoded.sentences.enumerated().map { (sIndex, s) in
+            let chunks: [ChunkData] = s.chunks.enumerated().map { (cIndex, c) in
+                ChunkData(orderIndex: cIndex, englishText: c.englishText, koreanText: c.koreanText)
             }
+            return SentenceData(orderIndex: sIndex, englishText: s.englishText, koreanText: s.koreanText, chunks: chunks)
         }
-
-        let chunks: [ChunkData] = zip(englishChunks.indices, englishChunks).map { (i, eng) in
-            ChunkData(orderIndex: i, englishText: eng, koreanText: koreanChunks[safe: i] ?? "")
-        }
-
-        let sentence = SentenceData(orderIndex: index, englishText: englishText, koreanText: koreanText, chunks: chunks)
-        sentences.append(sentence)
+        
+        // title이 비어 있을 경우 대비
+        return ScriptData(title: decoded.title.isEmpty ? fallbackTitle : decoded.title, sentences: sentences)
+    } catch {
+        print("⚠️ JSON 디코딩 실패: \(error)")
+        return nil
     }
-
-    return ScriptData(title: title, sentences: sentences)
 }
+
+//// MARK: - 파싱 함수(1. 제미나이에서 받아온 response를 문장 단위로 파싱, 2. "/"가 있는 문장을 "/"로 파싱)
+//
+//// enum 사용.
+//enum LinePrefix: String {
+//    case originalSentence = "Original sentence:"
+//    case fullTranslation = "Full natural translation:"
+//    case englishChunks = "English (meaning-based chunks):"
+//    case koreanChunks = "Korean (aligned chunks):"
+//}
+//
+//func parseGeminiOutputToScriptData(_ text: String, title: String) -> ScriptData {
+//    // 1. 문장 파싱
+//    let sections = text.components(separatedBy: "Sentence ")
+//        .dropFirst() // 맨 앞의 빈 요소 제거!
+//        .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+//    
+//    var sentences: [SentenceData] = []
+//
+//    for (index, section) in sections.enumerated() {
+//        var englishText = ""
+//        var koreanText = ""
+//        var englishChunks: [String] = []
+//        var koreanChunks: [String] = []
+//        
+//        // 2. 청크 파싱
+//        let cleanedSection = section.replacingOccurrences(of: "\r", with: "")
+//        let lines = cleanedSection.split(separator: "\n").map {
+//            String($0).trimmingCharacters(in: .whitespacesAndNewlines)
+//        }
+//
+//        for (i, line) in lines.enumerated() {
+//            if line.starts(with: LinePrefix.originalSentence.rawValue) {
+//                // 바로 다음 줄이 존재한다면 그걸 사용
+//                if i + 1 < lines.count {
+//                    englishText = lines[i + 1].trimmingCharacters(in: .whitespaces)
+//                }
+//            } else if line.starts(with: LinePrefix.fullTranslation.rawValue) {
+//                if i + 1 < lines.count {
+//                    koreanText = lines[i + 1].trimmingCharacters(in: .whitespaces)
+//                }
+//            } else if line.starts(with: LinePrefix.englishChunks.rawValue) {
+//                if i + 1 < lines.count {
+//                    let chunkLine = lines[i + 1].trimmingCharacters(in: .whitespaces)
+//                    englishChunks = chunkLine.components(separatedBy: " / ").map { $0.trimmingCharacters(in: .whitespaces) }
+//                }
+//            } else if line.starts(with: LinePrefix.koreanChunks.rawValue) {
+//                if i + 1 < lines.count {
+//                    let chunkLine = lines[i + 1].trimmingCharacters(in: .whitespaces)
+//                    koreanChunks = chunkLine.components(separatedBy: " / ").map { $0.trimmingCharacters(in: .whitespaces) }
+//                }
+//            }
+//        }
+//
+//        let chunks: [ChunkData] = zip(englishChunks.indices, englishChunks).map { (i, eng) in
+//            ChunkData(orderIndex: i, englishText: eng, koreanText: koreanChunks[safe: i] ?? "")
+//        }
+//
+//        let sentence = SentenceData(orderIndex: index, englishText: englishText, koreanText: koreanText, chunks: chunks)
+//        sentences.append(sentence)
+//    }
+//
+//    return ScriptData(title: title, sentences: sentences)
+//}
 
 #Preview {
     ScriptInputView()
