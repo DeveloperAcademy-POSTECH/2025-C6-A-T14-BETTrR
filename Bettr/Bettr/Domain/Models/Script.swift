@@ -17,3 +17,11 @@ struct Script: Identifiable, Codable, FetchableRecord, MutablePersistableRecord 
         id = inserted.rowID
     }
 }
+
+// MARK: - Relationships
+extension Script {
+    // Script의 모든 Sentence 가져오기
+    var sentencesRequest: QueryInterfaceRequest<Sentence> {
+        request(for: Script.sentences)
+    }
+}

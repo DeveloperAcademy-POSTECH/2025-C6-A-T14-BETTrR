@@ -21,10 +21,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct BettrApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    private let database = AppDatabase.shared
+    
     var body: some Scene {
         WindowGroup {
 //            ContentView()
             ScriptInputView()
+                .environmentObject(DatabaseContainer(database: database))
         }
     }
 }
