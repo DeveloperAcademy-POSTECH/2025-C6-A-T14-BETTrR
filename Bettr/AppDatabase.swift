@@ -22,7 +22,12 @@ class AppDatabase {
 
             #if DEBUG
             // 개발 모드에서만 데모 데이터 생성
-            appDB.createDemoData()
+            do {
+                try DemoDataGenerator.generate(into: appDB)
+                print("✅ Demo data creation attempted.")
+            } catch {
+                print("🔥 Failed to create demo data: \(error.localizedDescription)")
+            }
             #endif
 
             return appDB
