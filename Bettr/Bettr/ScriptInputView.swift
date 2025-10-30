@@ -200,6 +200,15 @@ Full natural translation:
 }
 
 // MARK: - 파싱 함수(1. 제미나이에서 받아온 response를 문장 단위로 파싱, 2. "/"가 있는 문장을 "/"로 파싱)
+
+// enum 사용.
+enum LinePrefix: String {
+    case originalSentence = "Original sentence:"
+    case fullTranslation = "Full natural translation:"
+    case englishChunks = "English (meaning-based chunks):"
+    case koreanChunks = "Korean (aligned chunks):"
+}
+
 func parseGeminiOutputToScriptData(_ text: String, title: String) -> ScriptData {
     // 1. 문장 파싱
     let sections = text.components(separatedBy: "Sentence ")
@@ -221,21 +230,21 @@ func parseGeminiOutputToScriptData(_ text: String, title: String) -> ScriptData 
         }
 
         for (i, line) in lines.enumerated() {
-            if line.starts(with: "Original sentence:") {
+            if line.starts(with: LinePrefix.originalSentence.rawValue) {
                 // 바로 다음 줄이 존재한다면 그걸 사용
                 if i + 1 < lines.count {
                     englishText = lines[i + 1].trimmingCharacters(in: .whitespaces)
                 }
-            } else if line.starts(with: "Full natural translation:") {
+            } else if line.starts(with: LinePrefix.fullTranslation.rawValue) {
                 if i + 1 < lines.count {
                     koreanText = lines[i + 1].trimmingCharacters(in: .whitespaces)
                 }
-            } else if line.starts(with: "English (meaning-based chunks):") {
+            } else if line.starts(with: LinePrefix.englishChunks.rawValue) {
                 if i + 1 < lines.count {
                     let chunkLine = lines[i + 1].trimmingCharacters(in: .whitespaces)
                     englishChunks = chunkLine.components(separatedBy: " / ").map { $0.trimmingCharacters(in: .whitespaces) }
                 }
-            } else if line.starts(with: "Korean (aligned chunks):") {
+            } else if line.starts(with: LinePrefix.koreanChunks.rawValue) {
                 if i + 1 < lines.count {
                     let chunkLine = lines[i + 1].trimmingCharacters(in: .whitespaces)
                     koreanChunks = chunkLine.components(separatedBy: " / ").map { $0.trimmingCharacters(in: .whitespaces) }
