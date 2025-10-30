@@ -122,7 +122,7 @@ struct MemorizationView: View {
                                             let isEngChunkHidden = hiddenEngChunks.contains(chunkID)
                                             
                                             Text(chunk.englishText)
-                                                .font(.system(size: 36))
+                                                .font(.system(size: 30))
                                                 .opacity(isEngChunkHidden ? 0 : 1) // 텍스트 투명도
                                                 .background(
                                                     RoundedRectangle(cornerRadius: 2)
@@ -146,7 +146,7 @@ struct MemorizationView: View {
                                             // 마지막 청크가 아니면 구분 기호 추가
                                             if chunk.orderIndex != lastChunkIndex {
                                                 Text(" / ")
-                                                    .font(.system(size: 36))
+                                                    .font(.system(size: 33))
                                                     .foregroundColor(.gray.opacity(0.7))
                                             }
                                         }
@@ -201,13 +201,13 @@ struct MemorizationView: View {
                         } else {
                             // MARK: - 전체 모드
                             ForEach(scriptData.sentences, id: \.orderIndex) { sentence in
-                                VStack(alignment: .leading, spacing: 8) {
+                                VStack(alignment: .leading, spacing: 12) {
                                     // 현재 숨김 상태인지 확인하는 변수
                                     let isEngSentenceHidden = hiddenEngSentences.contains(sentence.orderIndex)
                                     
                                     // 1. 영어 텍스트
                                     Text(sentence.englishText)
-                                        .font(.system(size: 36))
+                                        .font(.system(size: 30))
                                         .opacity(isEngSentenceHidden ? 0 : 1)
                                         .background(
                                             RoundedRectangle(cornerRadius: 2)

@@ -18,7 +18,6 @@ struct HomeView: View {
             }
             .padding(.top, 20)
         }
-        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             loadScripts()
         }
@@ -42,11 +41,13 @@ struct HomeView: View {
 struct ScriptsSectionView: View {
     let scripts: [Script]
     
+    @Environment(NavigationRouter.self) var router
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Scripts")
-                    .font(.system(size: 34, weight: .bold))
+                    .font(.system(size: 25, weight: .semibold))
                 
                 Spacer()
                 
@@ -69,6 +70,7 @@ struct ScriptsSectionView: View {
                     // 새 스크립트 추가 버튼
                     Button(action: {
                         // TODO: Navigate to add script
+                        router.push(Route.scriptInput)
                     }) {
                         VStack(alignment: .leading, spacing: 8) {
                             RoundedRectangle(cornerRadius: 12)
@@ -114,8 +116,8 @@ struct FeedbackHistorySectionView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("Recent Feedback History")
-                    .font(.system(size: 34, weight: .bold))
-                
+                    .font(.system(size: 25, weight: .bold))
+                    .padding(.top, 15)
                 Spacer()
                 
                 Button(action: {
