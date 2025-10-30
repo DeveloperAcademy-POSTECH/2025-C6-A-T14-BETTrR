@@ -168,7 +168,37 @@ final class PracticeSessionServiceTests: XCTestCase {
     }
     
     // MARK: - PracticeSession Read Tests
-    
+
+    func test_fetchPracticeSession_whenSessionExists_thenReturnsSession() throws {
+        // Given: PracticeSession이 존재할 때
+        let createdScript = try createTestScript()
+        let createdSession = try sut.createPracticeSession(
+            scriptId: createdScript.id!,
+            recordingPath: "path/to/session.m4a",
+            totalPresentationTime: 100.0
+        )
+        let sessionId = createdSession.id!
+
+        // When: 해당 ID로 PracticeSession을 조회했을 때
+        let fetchedSession = try sut.fetchPracticeSession(id: sessionId)
+
+        // Then: 올바른 PracticeSession이 반환되어야 함
+        XCTAssertNotNil(fetchedSession)
+        XCTAssertEqual(fetchedSession?.id, sessionId)
+        XCTAssertEqual(fetchedSession?.recordingPath, "path/to/session.m4a")
+    }
+
+    func test_fetchPracticeSession_whenSessionDoesNotExist_thenReturnsNil() throws {
+        // Given: 존재하지 않는 PracticeSession ID가 있을 때
+        let nonExistentSessionId: Int64 = 9999
+
+        // When: 해당 ID로 PracticeSession을 조회했을 때
+        let fetchedSession = try sut.fetchPracticeSession(id: nonExistentSessionId)
+
+        // Then: nil이 반환되어야 함
+        XCTAssertNil(fetchedSession)
+    }
+
     func test_fetchPracticeSessions_whenSessionsExist_thenReturnsAllSessions() throws {
         // Given: Script와 여러 PracticeSession이 존재할 때
         let createdScript = try createTestScript()
