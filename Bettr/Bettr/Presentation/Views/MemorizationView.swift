@@ -96,6 +96,8 @@ struct MemorizationView: View {
         }
     
     var body: some View {
+        let isRecordingDisabled = (scriptData == nil)
+        
         ZStack {
             if let scriptData = scriptData {
                 ScrollView {
@@ -303,13 +305,13 @@ struct MemorizationView: View {
             languageMode: $langMode,
             isWordListOpen: $showWordList,
             isPlaying: $isPlaying,
-            isFeedbackModalOpen: $showFeedbackModal
+            isFeedbackModalOpen: $showFeedbackModal,
+            isRecordingDisabled: isRecordingDisabled
         )
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showFeedbackModal) {
-            RecordingView(sentences: [
-                "I'm testing now.", "This is Test."
-            ])
+            let referenceSentences = scriptData?.sentences.map { $0.englishText } ?? []
+                RecordingView(sentences: referenceSentences)
         }
         .onAppear {
             loadScriptById()
