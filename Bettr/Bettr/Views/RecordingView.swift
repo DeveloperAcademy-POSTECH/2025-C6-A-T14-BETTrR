@@ -9,7 +9,10 @@ import SwiftUI
 import Speech
 
 struct RecordingView: View {
-    @Environment(NavigationRouter.self) var router
+    @Environment(\.dismiss) var modalDismiss
+    
+    @State private var modalRouter = NavigationRouter()
+    
     @StateObject private var speechRecognizer: SpeechRecognizer
     @State private var showEmptyTranscriptAlert = false
     
@@ -18,7 +21,7 @@ struct RecordingView: View {
     }
     
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $modalRouter.path) {
             VStack(alignment: .center, spacing: 24) {
                 Text(speechRecognizer.isRecording ? "네 듣고잇어요....": "녹음ㄱㄱ?")
                     .font(.title2)
@@ -53,8 +56,10 @@ struct RecordingView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(12)
                         }
-                        .disabled(speechRecognizer.authorizationStatus != .authorized)
-                        
+                        .disabled(
+                            speechRecognizer.authorizationStatus != .authorized ||
+                            speechRecognizer.microphoneAuthorizationStatus != .granted
+                        )
                         Button(action: {}) {
                             Label("취소", systemImage: "trash")
                                 .padding()
@@ -103,7 +108,7 @@ struct RecordingView: View {
             .onChange(of: speechRecognizer.feedbackResult) { _, newSummary in
                 if let summary = newSummary {
                     // 1. 결과 화면으로 이동
-                    router.push(.feedbackResult(
+                    modalRouter.push(ModalRoute.feedbackResult(
                         result: summary,
                         sentences: speechRecognizer.sentences
                     ))
@@ -119,13 +124,20 @@ struct RecordingView: View {
                 Text("인식된 영어 텍스트가 없습니다!")
             }
             .cancelToolbar()
+            .navigationDestination(for: ModalRoute.self) { route in
+                switch route {
+                case .feedbackResult(let result, let sentences):
+                    FeedbackResultView(feedback: result, sentences: sentences)
+                        .environment(\.modalDismiss, modalDismiss)
+                }
+            }
         }
     }
 }
 
 #Preview {
     RecordingView(sentences: [
-        "I'm coding now.", "This is a very long sentence.","Hello world."
+        "I'm testing now.", "This is Test."
     ])
     .environment(NavigationRouter())
 }

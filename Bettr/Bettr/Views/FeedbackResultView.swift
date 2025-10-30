@@ -224,6 +224,8 @@ struct FeedbackResultView: View {
             }
             .padding()
         }
+        .navigationBarBackButtonHidden()
+        .cancelToolbar()
         .navigationTitle("분석 결과")
         .navigationBarTitleDisplayMode(.inline)
     }
