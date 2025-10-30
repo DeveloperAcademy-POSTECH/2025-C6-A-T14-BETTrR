@@ -8,7 +8,7 @@
 import SwiftUI
 
 enum Route: Hashable {
-    case memorization(title: String)
+    case memorization(scriptData: ScriptData)
     case scriptInput
 }
 

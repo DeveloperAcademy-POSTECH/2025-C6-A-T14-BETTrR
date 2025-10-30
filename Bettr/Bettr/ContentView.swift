@@ -84,7 +84,7 @@ struct ContentView: View {
         NavigationStack(path: $router.path) {
             VStack {
                 Button("MemorizationView로 이동") {
-                    router.push(Route.memorization(title: "스크립트.pdf"))
+                    router.push(Route.memorization(scriptData: MockData))
                 }
                 
                 Spacer().frame(height: 50)
@@ -96,8 +96,8 @@ struct ContentView: View {
             .navigationTitle("Home")
             .navigationDestination(for: Route.self) { route in
                 switch route {
-                case .memorization(let title):
-                    MemorizationView(title: title)
+                case .memorization(let scriptData):
+                    MemorizationView(scriptData: scriptData)
                 case .scriptInput:
                     ScriptInputView()
                 }
