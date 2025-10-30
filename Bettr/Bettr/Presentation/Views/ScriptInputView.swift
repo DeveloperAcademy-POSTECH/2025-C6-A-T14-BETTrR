@@ -10,8 +10,8 @@ import FirebaseAI
 
 // MARK: - 화면 UI
 struct ScriptInputView: View {
-    @EnvironmentObject var databaseContainer: DatabaseContainer
-    
+    @Environment(DatabaseContainer.self) var databaseContainer
+
     @State private var scriptText: String = """
     Hello everyone, my name is Dewy.
     Today, I want to talk about the power of challenge.
