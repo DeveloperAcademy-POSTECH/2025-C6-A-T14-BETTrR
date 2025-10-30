@@ -8,7 +8,8 @@
 import Foundation
 import Combine
 
-class DatabaseContainer: ObservableObject {
+@Observable
+class DatabaseContainer {
     let scriptRepository: ScriptRepository
     let scriptManagementService: ScriptManagementService
     let practiceSessionService: PracticeSessionService

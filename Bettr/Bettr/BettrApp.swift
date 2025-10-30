@@ -26,7 +26,7 @@ struct BettrApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(DatabaseContainer(database: database))
+                .environment(DatabaseContainer(database: database))
         }
     }
 }

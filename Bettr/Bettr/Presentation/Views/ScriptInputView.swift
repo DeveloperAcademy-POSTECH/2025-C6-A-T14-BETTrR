@@ -10,7 +10,7 @@ import FirebaseAI
 
 // MARK: - 화면 UI
 struct ScriptInputView: View {
-    @EnvironmentObject var databaseContainer: DatabaseContainer
+    @Environment(DatabaseContainer.self) var databaseContainer
     @State private var scriptText: String = ""       // 사용자가 입력한 스크립트 저장용 변수
     @State private var isLoading: Bool = false              // FirebaseAI 호출 중 로딩 상태
     @State private var parsedScript: ScriptData?     // Gemini 분석 후 결과 저장(추가)

@@ -84,7 +84,7 @@ struct ContentView: View {
         NavigationStack(path: $router.path) {
             VStack {
                 Button("MemorizationView로 이동") {
-                    router.push(Route.memorization(scriptData: MockData))
+                    router.push(Route.memorization(scriptId: 1))
                 }
                 
                 Spacer().frame(height: 50)
@@ -92,18 +92,26 @@ struct ContentView: View {
                 Button("ScriptInputView로 이동") {
                     router.push(Route.scriptInput)
                 }
-            }
-            .navigationTitle("Home")
-            .navigationDestination(for: Route.self) { route in
-                switch route {
-                case .memorization(let scriptData):
-                    MemorizationView(scriptData: scriptData)
-                case .scriptInput:
-                    ScriptInputView()
+                
+                Spacer().frame(height: 50)
+                
+                Button("HomeView로 이동") {
+                    router.push(Route.home)
                 }
             }
-            .environment(router)
+            .navigationTitle("Bettr")
+            .navigationDestination(for: Route.self) { route in
+                switch route {
+                case .memorization(let scriptId):
+                    MemorizationView(scriptId: scriptId)
+                case .scriptInput:
+                    ScriptInputView()
+                case .home:
+                    HomeView()
+                }
+            }
         }
+        .environment(router)
     }
 }
 

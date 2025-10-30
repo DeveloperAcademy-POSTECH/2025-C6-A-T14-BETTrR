@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct HomeView: View {
-    @EnvironmentObject var container: DatabaseContainer
+    @Environment(DatabaseContainer.self) var container
+    
     @State private var scripts: [Script] = []
     @State private var showingError = false
     @State private var errorMessage = ""
@@ -65,7 +66,7 @@ struct ScriptsSectionView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 16) {
-                    // Add New Script Button
+                    // 새 스크립트 추가 버튼
                     Button(action: {
                         // TODO: Navigate to add script
                     }) {
@@ -93,7 +94,7 @@ struct ScriptsSectionView: View {
                     }
                     
                     // Script Cards
-                    ForEach(scripts.prefix(4)) { script in
+                    ForEach(scripts.prefix(5)) { script in
                         ScriptCard(script: script)
                     }
                 }
@@ -104,11 +105,11 @@ struct ScriptsSectionView: View {
 }
 
 struct FeedbackHistorySectionView: View {
-    @EnvironmentObject var container: DatabaseContainer
+    @Environment(DatabaseContainer.self) var container
     @State private var feedbackSummaries: [FeedbackSummary] = []
     @State private var showingError = false
     @State private var errorMessage = ""
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -147,13 +148,13 @@ struct FeedbackHistorySectionView: View {
             Text(errorMessage)
         }
     }
-
+    
     private func loadFeedbackSummaries() {
         do {
             // Fetch all scripts to get their IDs, then fetch practice sessions for each script
             let allScripts = try container.scriptManagementService.fetchAllScripts()
             var allFeedbackSummaries: [FeedbackSummary] = []
-
+            
             for script in allScripts {
                 if let scriptId = script.id {
                     let practiceSessions = try container.practiceSessionService.fetchPracticeSessions(forScriptId: scriptId)
@@ -178,30 +179,41 @@ struct FeedbackHistorySectionView: View {
 // MARK: - Script Card Component
 
 struct ScriptCard: View {
+    @Environment(NavigationRouter.self) var router
+    
     let script: Script
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.gray)
-                .frame(width: 200, height: 150)
-            
-            Text(script.title)
-                .font(.system(size: 15))
-                .lineLimit(2)
-                .frame(width: 200, alignment: .leading)
-        }
+        Button(action: {
+            if let scriptId = script.id {
+                router.push(Route.memorization(scriptId: scriptId))
+            } else {
+                // id가 nil인 경우
+                print("Error: script.id가 nil이어서 네비게이션할 수 없습니다.")
+            }        }){
+                VStack(alignment: .leading, spacing: 8) {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.gray)
+                        .frame(width: 200, height: 150)
+                    
+                    Text(script.title)
+                        .foregroundStyle(Color.primary)
+                        .font(.system(size: 15))
+                        .lineLimit(2)
+                        .frame(width: 200, alignment: .leading)
+                }
+            }
     }
 }
 
 struct FeedbackItemView: View {
-    @EnvironmentObject var container: DatabaseContainer
+    @Environment(DatabaseContainer.self) var container
     let feedbackSummary: FeedbackSummary
     @State private var scriptTitle: String = ""
     @State private var practiceSessionDuration: Double = 0.0
     @State private var showingError = false
     @State private var errorMessage = ""
-
+    
     var body: some View {
         HStack(spacing: 12) {
             Circle()
@@ -242,7 +254,7 @@ struct FeedbackItemView: View {
             Text(errorMessage)
         }
     }
-
+    
     private func loadRelatedData() {
         do {
             if let practiceSession = try container.practiceSessionService.fetchPracticeSession(id: feedbackSummary.practiceSessionId) {
@@ -256,30 +268,16 @@ struct FeedbackItemView: View {
             showingError = true
         }
     }
-
+    
     private func formatDuration(_ duration: Double) -> String {
         let minutes = Int(duration / 60)
         let seconds = Int(duration.truncatingRemainder(dividingBy: 60))
         return String(format: "%02d:%02d", minutes, seconds)
     }
-
+    
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd"
         return formatter.string(from: date)
     }
-}
-
-#Preview(traits: .landscapeLeft) {
-    let database = try! AppDatabase.makeInMemory()
-    let container = DatabaseContainer(database: database)
-
-    do {
-        try DemoDataGenerator.generate(into: database)
-    } catch {
-        print("Error creating preview data: \(error.localizedDescription)")
-    }
-
-    return HomeView()
-        .environmentObject(container)
 }
