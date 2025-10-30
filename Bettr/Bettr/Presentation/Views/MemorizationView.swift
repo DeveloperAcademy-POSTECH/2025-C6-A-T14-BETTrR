@@ -25,6 +25,14 @@ struct MemorizationView: View {
     @State private var hiddenEngSentences: Set<Int> = []
     @State private var hiddenKorSentences: Set<Int> = []
     
+    // 숨김 상태를 모두 초기화 하는 함수
+    private func clearAllHiddenStates() {
+        hiddenEngChunks.removeAll()
+        hiddenKorChunks.removeAll()
+        hiddenEngSentences.removeAll()
+        hiddenKorSentences.removeAll()
+    }
+    
     var body: some View {
         ZStack {
             ScrollView {
@@ -206,6 +214,11 @@ struct MemorizationView: View {
             }
         }
         .animation(.easeInOut, value: showWordList)
+        .onChange(of: funcMode) {
+            if funcMode == .read {
+                clearAllHiddenStates()
+            }
+        }
         .memorizationToolbar(
             title: scriptData.title,
             isChunkMode: $isChunkMode,
