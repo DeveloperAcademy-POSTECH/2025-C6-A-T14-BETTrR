@@ -56,8 +56,10 @@ struct RecordingView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(12)
                         }
-                        .disabled(speechRecognizer.authorizationStatus != .authorized)
-                        
+                        .disabled(
+                            speechRecognizer.authorizationStatus != .authorized ||
+                            speechRecognizer.microphoneAuthorizationStatus != .granted
+                        )
                         Button(action: {}) {
                             Label("취소", systemImage: "trash")
                                 .padding()

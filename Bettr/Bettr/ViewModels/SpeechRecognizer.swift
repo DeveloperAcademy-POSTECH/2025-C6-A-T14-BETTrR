@@ -16,6 +16,7 @@ class SpeechRecognizer: ObservableObject {
     @Published var transcript = ""
     @Published var isRecording = false
     @Published var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
+    @Published var microphoneAuthorizationStatus: AVAudioApplication.recordPermission = .undetermined
     @Published var feedbackResult: FeedbackResultModel? = nil
     
     // 실시간 경과 시간
@@ -40,15 +41,25 @@ class SpeechRecognizer: ObservableObject {
     init(sentences: [String]) {
         self.sentences = sentences
         DispatchQueue.main.async { [weak self] in
+            self?.microphoneAuthorizationStatus = AVAudioApplication.shared.recordPermission
             self?.checkAuthorization()
         }
     }
     
     // MARK: - 권한 확인
     func checkAuthorization() {
+        // 1. 음성 인식 권한 요청
         SFSpeechRecognizer.requestAuthorization { [weak self] status in
             Task { @MainActor in
                 self?.authorizationStatus = status
+            }
+        }
+        
+        // 2. 마이크 권한 명시적 요청
+        AVAudioApplication.requestRecordPermission { [weak self] granted in
+            let status: AVAudioApplication.recordPermission = granted ? .granted : .denied
+            Task { @MainActor [weak self] in
+                self?.microphoneAuthorizationStatus = status
             }
         }
     }
