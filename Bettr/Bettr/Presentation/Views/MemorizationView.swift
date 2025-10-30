@@ -52,7 +52,7 @@ struct MemorizationView: View {
                             
                             VStack(alignment: .leading, spacing: 8) {
                                 // 2. 영어 청크 라인
-                                CustomFlowLayout(spacing: 0) { // 청크 간 간격은 Text로 조절
+                                CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
                                     ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                                         
                                         // 고유 ID 생성
@@ -66,8 +66,6 @@ struct MemorizationView: View {
                                         
                                         Text(chunk.englishText)
                                             .font(.system(size: 36))
-                                            .padding(.vertical, 8)
-                                            .padding(.horizontal, 5)
                                             .opacity(isEngChunkHidden ? 0 : 1) // 텍스트 투명도
                                             .background(
                                                 RoundedRectangle(cornerRadius: 2)
@@ -98,7 +96,7 @@ struct MemorizationView: View {
                                 }
                                 
                                 // 3. 한국어 청크 라인
-                                CustomFlowLayout(spacing: 0) {
+                                CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
                                     ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                                         
                                         // 고유 ID 생성
@@ -112,8 +110,6 @@ struct MemorizationView: View {
                                         
                                         Text(chunk.koreanText)
                                             .font(.system(size: 20))
-                                            .padding(.vertical, 5)
-                                            .padding(.horizontal, 4)
                                             .opacity(isKorChunkHidden ? 0 : 1)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 2)
@@ -155,8 +151,6 @@ struct MemorizationView: View {
                                 // 1. 영어 텍스트
                                 Text(sentence.englishText)
                                     .font(.system(size: 36))
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 10)
                                     .opacity(isEngSentenceHidden ? 0 : 1)
                                     .background(
                                         RoundedRectangle(cornerRadius: 2)
@@ -183,8 +177,6 @@ struct MemorizationView: View {
                                 // 2. 한국어 텍스트
                                 Text(sentence.koreanText)
                                     .font(.system(size: 20))
-                                    .padding(.vertical, 5)
-                                    .padding(.horizontal, 8)
                                     .opacity(isKorSentenceHidden ? 0 : 1)
                                     .background(
                                         RoundedRectangle(cornerRadius: 2)

@@ -3,11 +3,13 @@ import SwiftUI
 // iOS 16, macOS 13 이상에서만 사용 가능
 @available(iOS 16.0, macOS 13.0, *)
 struct CustomFlowLayout: Layout {
-    var spacing: CGFloat // 뷰 사이의 가로, 세로 간격
+    var horizontalSpacing: CGFloat // 뷰 사이의 '가로' 간격
+        var verticalSpacing: CGFloat   // '줄' 사이의 '세로' 간격
     
-    init(spacing: CGFloat = 8) {
-        self.spacing = spacing
-    }
+    init(horizontalSpacing: CGFloat = 8, verticalSpacing: CGFloat = 8) {
+            self.horizontalSpacing = horizontalSpacing
+            self.verticalSpacing = verticalSpacing
+        }
     
     // 1. 레이아웃이 차지할 전체 크기를 계산하는 함수 (이 함수는 수정할 필요 없습니다)
     func sizeThatFits(
@@ -23,12 +25,12 @@ struct CustomFlowLayout: Layout {
             let subviewSize = subview.sizeThatFits(.unspecified)
             
             if currentX + subviewSize.width > availableWidth {
-                totalHeight += currentLineHeight + spacing
+                totalHeight += currentLineHeight + verticalSpacing
                 currentX = 0
                 currentLineHeight = 0
             }
             
-            currentX += subviewSize.width + spacing
+            currentX += subviewSize.width + horizontalSpacing
             currentLineHeight = max(currentLineHeight, subviewSize.height)
         }
         
@@ -73,7 +75,7 @@ struct CustomFlowLayout: Layout {
             // 현재 줄의 최대 높이를 갱신
             lines[lines.count - 1].height = max(lines.last!.height, subviewSize.height)
             // X좌표 이동
-            currentX += subviewSize.width + spacing
+            currentX += subviewSize.width + horizontalSpacing
         }
         
         // --- Pass 2: 계산된 '줄' 정보를 바탕으로 뷰를 중앙 정렬하여 배치 ---
@@ -98,11 +100,11 @@ struct CustomFlowLayout: Layout {
                 )
                 
                 // 다음 뷰를 위해 X좌표 이동
-                currentX += subviewSize.width + spacing
+                currentX += subviewSize.width + horizontalSpacing
             }
             
             // 다음 '줄'을 위해 Y좌표 이동
-            currentY += line.height + spacing
+            currentY += line.height + verticalSpacing
         }
     }
 }
