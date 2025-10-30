@@ -89,6 +89,13 @@ class ScriptRepository {
         }
     }
 
+    // MARK: - PracticeSession Read
+    func fetchPracticeSessions(forScriptId scriptId: Int64) throws -> [PracticeSession] {
+        return try dbQueue.read { db in
+            try PracticeSession.filter(Column("scriptId") == scriptId).fetchAll(db)
+        }
+    }
+
     // MARK: - FeedbackSummary Create
     func createFeedbackSummary(
         practiceSessionId: Int64,
@@ -119,6 +126,19 @@ class ScriptRepository {
                 _ = try createAndSaveFeedbackDetail(db: db, feedbackSummaryId: summaryId, detailData: detailData)
             }
             return summary
+        }
+    }
+
+    // MARK: - Feedback Read
+    func fetchFeedbackSummary(forPracticeSessionId practiceSessionId: Int64) throws -> FeedbackSummary? {
+        return try dbQueue.read { db in
+            try FeedbackSummary.filter(Column("practiceSessionId") == practiceSessionId).fetchOne(db)
+        }
+    }
+
+    func fetchFeedbackDetails(forFeedbackSummaryId feedbackSummaryId: Int64) throws -> [FeedbackDetail] {
+        return try dbQueue.read { db in
+            try FeedbackDetail.filter(Column("feedbackSummaryId") == feedbackSummaryId).fetchAll(db)
         }
     }
     

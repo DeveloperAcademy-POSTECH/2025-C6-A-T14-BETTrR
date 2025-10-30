@@ -706,4 +706,170 @@ final class ScriptRepositoryTests: XCTestCase {
             XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription)
         }
     }
+
+    // MARK: - PracticeSession Read Tests
+
+    func test_fetchPracticeSessions_whenSessionsExist_thenReturnsAllSessions() throws {
+        // Given: Script와 여러 PracticeSession이 존재할 때
+        let scriptData = ScriptData(
+            title: "Script with multiple sessions",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Hello.", koreanText: "안녕.", chunks: [ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+        let scriptId = createdScript.id!
+
+        _ = try sut.createPracticeSession(
+            scriptId: scriptId,
+            recordingPath: "path/to/session1.m4a",
+            totalPresentationTime: 60.0
+        )
+        _ = try sut.createPracticeSession(
+            scriptId: scriptId,
+            recordingPath: "path/to/session2.m4a",
+            totalPresentationTime: 70.0
+        )
+
+        // When: 해당 Script ID로 PracticeSession을 조회했을 때
+        let fetchedSessions = try sut.fetchPracticeSessions(forScriptId: scriptId)
+
+        // Then: 모든 PracticeSession이 반환되어야 함
+        XCTAssertEqual(fetchedSessions.count, 2)
+        XCTAssertTrue(fetchedSessions.contains(where: { $0.recordingPath == "path/to/session1.m4a" }))
+        XCTAssertTrue(fetchedSessions.contains(where: { $0.recordingPath == "path/to/session2.m4a" }))
+    }
+
+    func test_fetchPracticeSessions_whenNoSessionsExist_thenReturnsEmptyArray() throws {
+        // Given: Script는 존재하지만 PracticeSession이 없을 때
+        let scriptData = ScriptData(
+            title: "Script with no sessions",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Hello.", koreanText: "안녕.", chunks: [ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+        let scriptId = createdScript.id!
+
+        // When: 해당 Script ID로 PracticeSession을 조회했을 때
+        let fetchedSessions = try sut.fetchPracticeSessions(forScriptId: scriptId)
+
+        // Then: 빈 배열이 반환되어야 함
+        XCTAssertTrue(fetchedSessions.isEmpty)
+    }
+
+    // MARK: - Feedback Read Tests
+
+    func test_fetchFeedbackSummary_whenSummaryExists_thenReturnsSummary() throws {
+        // Given: FeedbackSummary가 존재하는 PracticeSession이 있을 때
+        let scriptData = ScriptData(
+            title: "Script for summary fetch",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Test.", koreanText: "테스트.", chunks: [ChunkData(orderIndex: 0, englishText: "Test", koreanText: "테스트")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+
+        let createdSession = try sut.createPracticeSession(
+            scriptId: createdScript.id!,
+            recordingPath: "path/to/recording.m4a",
+            totalPresentationTime: 60.0
+        )
+        let sessionId = createdSession.id!
+
+        let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+            (errorType: .missingWord, originalText: "original", spokenText: nil, startTime: 1.0, endTime: 2.0)
+        ]
+        let createdSummary = try sut.createFeedbackSummary(
+            practiceSessionId: sessionId,
+            totalScore: 80.0,
+            missingWordCount: 1,
+            addedWordCount: 0,
+            replacedWordCount: 0,
+            feedbackDetailsData: feedbackDetailsData
+        )
+
+        // When: 해당 PracticeSession ID로 FeedbackSummary를 조회했을 때
+        let fetchedSummary = try sut.fetchFeedbackSummary(forPracticeSessionId: sessionId)
+
+        // Then: 올바른 FeedbackSummary가 반환되어야 함
+        XCTAssertNotNil(fetchedSummary)
+        XCTAssertEqual(fetchedSummary?.id, createdSummary.id)
+        XCTAssertEqual(fetchedSummary?.totalScore, 80.0)
+    }
+
+    func test_fetchFeedbackSummary_whenSummaryDoesNotExist_thenReturnsNil() throws {
+        // Given: FeedbackSummary가 존재하지 않는 PracticeSession ID가 있을 때
+        let scriptData = ScriptData(
+            title: "Script for no summary",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Test.", koreanText: "테스트.", chunks: [ChunkData(orderIndex: 0, englishText: "Test", koreanText: "테스트")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+
+        let createdSession = try sut.createPracticeSession(
+            scriptId: createdScript.id!,
+            recordingPath: "path/to/recording.m4a",
+            totalPresentationTime: 60.0
+        )
+        let sessionId = createdSession.id!
+
+        // When: 해당 PracticeSession ID로 FeedbackSummary를 조회했을 때
+        let fetchedSummary = try sut.fetchFeedbackSummary(forPracticeSessionId: sessionId)
+
+        // Then: nil이 반환되어야 함
+        XCTAssertNil(fetchedSummary)
+    }
+
+    func test_fetchFeedbackDetails_whenDetailsExist_thenReturnsAllDetails() throws {
+        // Given: FeedbackDetail이 존재하는 FeedbackSummary가 있을 때
+        let scriptData = ScriptData(
+            title: "Script for details fetch",
+            sentences: [
+                SentenceData(orderIndex: 0, englishText: "Test.", koreanText: "테스트.", chunks: [ChunkData(orderIndex: 0, englishText: "Test", koreanText: "테스트")])
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+
+        let createdSession = try sut.createPracticeSession(
+            scriptId: createdScript.id!,
+            recordingPath: "path/to/recording.m4a",
+            totalPresentationTime: 60.0
+        )
+        let sessionId = createdSession.id!
+
+        let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
+            (errorType: .missingWord, originalText: "original1", spokenText: nil, startTime: 1.0, endTime: 2.0),
+            (errorType: .addedWord, originalText: nil, spokenText: "spoken1", startTime: 3.0, endTime: 4.0)
+        ]
+        let createdSummary = try sut.createFeedbackSummary(
+            practiceSessionId: sessionId,
+            totalScore: 80.0,
+            missingWordCount: 1,
+            addedWordCount: 1,
+            replacedWordCount: 0,
+            feedbackDetailsData: feedbackDetailsData
+        )
+        let summaryId = createdSummary.id!
+
+        // When: 해당 FeedbackSummary ID로 FeedbackDetail을 조회했을 때
+        let fetchedDetails = try sut.fetchFeedbackDetails(forFeedbackSummaryId: summaryId)
+
+        // Then: 모든 FeedbackDetail이 반환되어야 함
+        XCTAssertEqual(fetchedDetails.count, 2)
+        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == .missingWord && $0.originalText == "original1" }))
+        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == .addedWord && $0.spokenText == "spoken1" }))
+    }
+
+    func test_fetchFeedbackDetails_whenNoDetailsExist_thenReturnsEmptyArray() throws {
+        // Given: 존재하지 않는 FeedbackSummary ID가 있을 때
+        let nonExistentSummaryId: Int64 = 9999
+
+        // When: 해당 FeedbackSummary ID로 FeedbackDetail을 조회했을 때
+        let fetchedDetails = try sut.fetchFeedbackDetails(forFeedbackSummaryId: nonExistentSummaryId)
+
+        // Then: 빈 배열이 반환되어야 함
+        XCTAssertTrue(fetchedDetails.isEmpty)
+    }
 }
