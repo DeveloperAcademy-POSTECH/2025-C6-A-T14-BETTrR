@@ -11,8 +11,6 @@
 		129A718A2EB0B038001CE8EB /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71892EB0B038001CE8EB /* FirebaseAppCheck */; };
 		129A718C2EB0B038001CE8EB /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 129A718B2EB0B038001CE8EB /* FirebaseCore */; };
 		129A71B32EB0EEA8001CE8EB /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71B22EB0EEA8001CE8EB /* GRDB */; };
-		A7CF26912EB34CAC00CEA916 /* DatabaseContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7CF26902EB34CAC00CEA916 /* DatabaseContainer.swift */; };
-		A7CF26932EB34CFF00CEA916 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7CF26922EB34CFF00CEA916 /* AppDatabase.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,8 +26,6 @@
 /* Begin PBXFileReference section */
 		129A71762EB0AD3D001CE8EB /* Bettr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bettr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A7CF26062EB2440300CEA916 /* BettrTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A7CF26902EB34CAC00CEA916 /* DatabaseContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseContainer.swift; sourceTree = "<group>"; };
-		A7CF26922EB34CFF00CEA916 /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -70,8 +66,6 @@
 		129A716D2EB0AD3D001CE8EB = {
 			isa = PBXGroup;
 			children = (
-				A7CF26922EB34CFF00CEA916 /* AppDatabase.swift */,
-				A7CF26902EB34CAC00CEA916 /* DatabaseContainer.swift */,
 				129A71782EB0AD3D001CE8EB /* Bettr */,
 				A7CF26072EB2440300CEA916 /* BettrTests */,
 				129A71772EB0AD3D001CE8EB /* Products */,
@@ -204,8 +198,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A7CF26912EB34CAC00CEA916 /* DatabaseContainer.swift in Sources */,
-				A7CF26932EB34CFF00CEA916 /* AppDatabase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,6 +349,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = RAXCR9X83K;
+				DEVELOPMENT_TEAM = JMAUFK6U82;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "“App needs access to the microphone.”";
@@ -396,6 +389,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = RAXCR9X83K;
+				DEVELOPMENT_TEAM = JMAUFK6U82;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "“App needs access to the microphone.”";

@@ -28,6 +28,12 @@ class PracticeSessionService {
     }
 
     // MARK: - PracticeSession Read
+    func fetchPracticeSession(id: Int64) throws -> PracticeSession? {
+        return try dbQueue.read { db in
+            try scriptRepository.fetchPracticeSession(id: id, in: db)
+        }
+    }
+
     func fetchPracticeSessions(forScriptId scriptId: Int64) throws -> [PracticeSession] {
         return try dbQueue.read { db in
             try scriptRepository.fetchPracticeSessions(forScriptId: scriptId, in: db)
