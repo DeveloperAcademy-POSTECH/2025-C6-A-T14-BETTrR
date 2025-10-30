@@ -2,8 +2,9 @@ import XCTest
 import GRDB
 @testable import Bettr
 
-final class ScriptRepositoryTests: XCTestCase {
-    var sut: ScriptRepository!
+final class ScriptManagementServiceTests: XCTestCase {
+    var sut: ScriptManagementService!
+    var scriptRepository: ScriptRepository!
     var dbQueue: DatabaseQueue!
     
     override func setUp() {
@@ -11,14 +12,18 @@ final class ScriptRepositoryTests: XCTestCase {
         
         dbQueue = try! DatabaseQueue()
         try! setupDatabase(dbQueue)
-        sut = ScriptRepository(dbQueue: dbQueue)
+        scriptRepository = ScriptRepository()
+        sut = ScriptManagementService(dbQueue: dbQueue, scriptRepository: scriptRepository)
     }
     
     override func tearDown() {
         sut = nil
+        scriptRepository = nil
         dbQueue = nil
         super.tearDown()
     }
+    
+    // MARK: - Helper Methods
     
     private func setupDatabase(_ db: DatabaseQueue) throws {
         try db.write { db in
@@ -78,6 +83,7 @@ final class ScriptRepositoryTests: XCTestCase {
     }
     
     // MARK: - Script Create Tests
+    
     func test_createScript_whenValidScriptDataProvided_thenScriptIsCreatedSuccessfully() throws {
         // Given: 유효한 ScriptData가 존재할 때
         let scriptData = ScriptData(
@@ -258,7 +264,7 @@ final class ScriptRepositoryTests: XCTestCase {
         XCTAssertEqual(chunkCount, 4)
     }
     
-    func test_createScript_whenEmptySentences_thenOnlyScriptIsCreated() throws {
+    func test_createScript_whenEmptySentences_thenThrowsError() throws {
         // Given: 문장이 없는 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Empty Script",
@@ -266,9 +272,11 @@ final class ScriptRepositoryTests: XCTestCase {
         )
         
         // When-Then: Script 생성 시 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.createScript(scriptData: scriptData)) {
-            error in
-            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.").errorDescription)
+        XCTAssertThrowsError(try sut.createScript(scriptData: scriptData)) { error in
+            XCTAssertEqual(
+                (error as? ScriptRepositoryError)?.errorDescription,
+                ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.").errorDescription
+            )
         }
     }
     
@@ -287,20 +295,27 @@ final class ScriptRepositoryTests: XCTestCase {
         )
         
         // When-Then: Script 생성 시 검증 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.createScript(scriptData: scriptData)) {
-            error in
-            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "A Sentence must contain at least one chunk.").errorDescription)
+        XCTAssertThrowsError(try sut.createScript(scriptData: scriptData)) { error in
+            XCTAssertEqual(
+                (error as? ScriptRepositoryError)?.errorDescription,
+                ScriptRepositoryError.validationError(message: "A Sentence must contain at least one chunk.").errorDescription
+            )
         }
     }
     
-    // MARK: - Read Tests
+    // MARK: - Script Read Tests
     
     func test_fetchScript_whenScriptExists_thenReturnsScript() throws {
         // Given: Script가 존재할 때
         let scriptData = ScriptData(
             title: "Fetchable Script",
             sentences: [
-                SentenceData(orderIndex: 0, englishText: "A sentence.", koreanText: "문장.", chunks: [ChunkData(orderIndex: 0, englishText: "Dummy", koreanText: "더미")])
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "A sentence.",
+                    koreanText: "문장.",
+                    chunks: [ChunkData(orderIndex: 0, englishText: "Dummy", koreanText: "더미")]
+                )
             ]
         )
         let createdScript = try sut.createScript(scriptData: scriptData)
@@ -330,13 +345,23 @@ final class ScriptRepositoryTests: XCTestCase {
         let scriptData1 = ScriptData(
             title: "Script One",
             sentences: [
-                SentenceData(orderIndex: 0, englishText: "S1.", koreanText: "S1.", chunks: [ChunkData(orderIndex: 0, englishText: "Dummy1", koreanText: "더미1")])
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "S1.",
+                    koreanText: "S1.",
+                    chunks: [ChunkData(orderIndex: 0, englishText: "Dummy1", koreanText: "더미1")]
+                )
             ]
         )
         let scriptData2 = ScriptData(
             title: "Script Two",
             sentences: [
-                SentenceData(orderIndex: 0, englishText: "S2.", koreanText: "S2.", chunks: [ChunkData(orderIndex: 0, englishText: "Dummy2", koreanText: "더미2")])
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "S2.",
+                    koreanText: "S2.",
+                    chunks: [ChunkData(orderIndex: 0, englishText: "Dummy2", koreanText: "더미2")]
+                )
             ]
         )
         _ = try sut.createScript(scriptData: scriptData1)
@@ -368,7 +393,12 @@ final class ScriptRepositoryTests: XCTestCase {
         let scriptData = ScriptData(
             title: "Script to Update",
             sentences: [
-                SentenceData(orderIndex: 0, englishText: "Sentence.", koreanText: "문장.", chunks: [ChunkData(orderIndex: 0, englishText: "Chunk", koreanText: "청크")])
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "Sentence.",
+                    koreanText: "문장.",
+                    chunks: [ChunkData(orderIndex: 0, englishText: "Chunk", koreanText: "청크")]
+                )
             ]
         )
         let createdScript = try sut.createScript(scriptData: scriptData)
@@ -390,236 +420,11 @@ final class ScriptRepositoryTests: XCTestCase {
         let nonExistentId: Int64 = 9999
 
         // When-Then: 업데이트 시 notFound 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.updateLastViewedAt(forScriptId: nonExistentId)) {
-            error in
-            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription)
-        }
-    }
-
-    // MARK: - PracticeSession Create Tests
-
-    func test_createPracticeSession_whenValidDataProvided_thenCreatesSuccessfully() throws {
-        // Given: Script가 존재하고 유효한 PracticeSession 데이터가 있을 때
-        let scriptData = ScriptData(
-            title: "Test Script for Practice Session",
-            sentences: [
-                SentenceData(orderIndex: 0, englishText: "Hello.", koreanText: "안녕.", chunks: [ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕")])
-            ]
-        )
-        let createdScript = try sut.createScript(scriptData: scriptData)
-        
-        let recordingPath = "path/to/recording.m4a"
-        let totalPresentationTime: Double = 120.5
-        
-        // When: PracticeSession을 생성했을 때
-        let createdSession = try sut.createPracticeSession(
-            scriptId: createdScript.id!,
-            recordingPath: recordingPath,
-            totalPresentationTime: totalPresentationTime
-        )
-        
-        // Then: PracticeSession이 성공적으로 생성되어야 함
-        XCTAssertNotNil(createdSession.id)
-        XCTAssertEqual(createdSession.scriptId, createdScript.id)
-        XCTAssertEqual(createdSession.recordingPath, recordingPath)
-        XCTAssertEqual(createdSession.totalPresentationTime, totalPresentationTime)
-        XCTAssertNotNil(createdSession.createdAt)
-    }
-    
-    func test_createPracticeSession_whenScriptDoesNotExist_thenThrowsError() throws {
-        // Given: 존재하지 않는 Script ID가 있을 때
-        let nonExistentScriptId: Int64 = 9999
-        let recordingPath = "path/to/recording.m4a"
-        let totalPresentationTime: Double = 120.5
-        
-        // When-Then: PracticeSession 생성 시 notFound 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.createPracticeSession(
-            scriptId: nonExistentScriptId,
-            recordingPath: recordingPath,
-            totalPresentationTime: totalPresentationTime
-        )) {
-            error in
-            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentScriptId) not found.").errorDescription)
-        }
-    }
-    
-    func test_createPracticeSession_whenPracticeSessionCreated_thenExistsInDatabase() throws {
-        // Given: 스크립트가 존재하고 유효한 연습 세션 데이터가 제공된 경우
-        let scriptData = ScriptData(
-            title: "Test Script for DB Check",
-            sentences: [
-                SentenceData(orderIndex: 0, englishText: "Hello.", koreanText: "안녕.", chunks: [ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕")])
-            ]
-        )
-        let createdScript = try sut.createScript(scriptData: scriptData)
-        
-        let recordingPath = "path/to/recording.m4a"
-        let totalPresentationTime: Double = 120.5
-        
-        // When: 연습 세션을 생성할 때
-        let createdSession = try sut.createPracticeSession(
-            scriptId: createdScript.id!,
-            recordingPath: recordingPath,
-            totalPresentationTime: totalPresentationTime
-        )
-        
-        // Then: 생성된 연습 세션이 데이터베이스에 존재해야 함
-        let fetchedSession = try dbQueue.read { db in
-            try PracticeSession.fetchOne(db, key: createdSession.id)
-        }
-        XCTAssertNotNil(fetchedSession)
-        XCTAssertEqual(fetchedSession?.id, createdSession.id)
-        XCTAssertEqual(fetchedSession?.scriptId, createdScript.id)
-    }
-
-    // MARK: - FeedbackSummary Create Tests
-
-    func test_createFeedbackSummary_whenValidDataProvided_thenCreatesSuccessfully() throws {
-        // Given: Script와 PracticeSession이 존재하고 유효한 FeedbackSummary 데이터가 있을 때
-        let scriptData = ScriptData(
-            title: "Test Script for Feedback Summary",
-            sentences: [
-                SentenceData(orderIndex: 0, englishText: "Hello.", koreanText: "안녕.", chunks: [ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕")])
-            ]
-        )
-        let createdScript = try sut.createScript(scriptData: scriptData)
-
-        let createdSession = try sut.createPracticeSession(
-            scriptId: createdScript.id!,
-            recordingPath: "path/to/recording.m4a",
-            totalPresentationTime: 120.5
-        )
-
-        let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
-            (errorType: .missingWord, originalText: "original1", spokenText: nil, startTime: 1.0, endTime: 2.0),
-            (errorType: .addedWord, originalText: nil, spokenText: "spoken1", startTime: 3.0, endTime: 4.0),
-            (errorType: .replacedWord, originalText: "original2", spokenText: "spoken2", startTime: 5.0, endTime: 6.0)
-        ]
-
-        // When: FeedbackSummary를 생성하면
-        let createdSummary = try sut.createFeedbackSummary(
-            practiceSessionId: createdSession.id!,
-            totalScore: 95.5,
-            missingWordCount: 1,
-            addedWordCount: 1,
-            replacedWordCount: 1,
-            feedbackDetailsData: feedbackDetailsData
-        )
-
-        // Then: 성공적으로 생성되어야 함
-        XCTAssertNotNil(createdSummary.id)
-        XCTAssertEqual(createdSummary.practiceSessionId, createdSession.id)
-        XCTAssertEqual(createdSummary.totalScore, 95.5)
-        XCTAssertEqual(createdSummary.missingWordCount, 1)
-        XCTAssertEqual(createdSummary.addedWordCount, 1)
-        XCTAssertEqual(createdSummary.replacedWordCount, 1)
-        XCTAssertNotNil(createdSummary.analyzedAt)
-
-        // 그리고 관련 FeedbackDetail도 생성되어야 함
-        let fetchedDetails = try dbQueue.read { db in
-            try FeedbackDetail.filter(Column("feedbackSummaryId") == createdSummary.id!).fetchAll(db)
-        }
-        XCTAssertEqual(fetchedDetails.count, 3)
-        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == .missingWord && $0.originalText == "original1" }))
-        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == .addedWord && $0.spokenText == "spoken1" }))
-        XCTAssertTrue(fetchedDetails.contains(where: { $0.errorType == .replacedWord && $0.originalText == "original2" && $0.spokenText == "spoken2" }))
-    }
-
-    func test_createFeedbackSummary_whenPracticeSessionDoesNotExist_thenThrowsError() throws {
-        // Given: 존재하지 않는 PracticeSession ID가 있을 때
-        let nonExistentPracticeSessionId: Int64 = 9999
-
-        let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
-            (errorType: .missingWord, originalText: "original1", spokenText: nil, startTime: 1.0, endTime: 2.0)
-        ]
-
-        // When-Then: FeedbackSummary 생성 시 notFound 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.createFeedbackSummary(
-            practiceSessionId: nonExistentPracticeSessionId,
-            totalScore: 90.0,
-            missingWordCount: 0,
-            addedWordCount: 0,
-            replacedWordCount: 0,
-            feedbackDetailsData: feedbackDetailsData
-        )) {
-            error in
-            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "PracticeSession with ID \(nonExistentPracticeSessionId) not found.").errorDescription)
-        }
-    }
-
-    func test_createFeedbackSummary_whenFeedbackSummaryAlreadyExists_thenThrowsError() throws {
-        // Given: 이미 FeedbackSummary가 존재하는 PracticeSession이 있을 때
-        let scriptData = ScriptData(
-            title: "Script for existing summary",
-            sentences: [
-                SentenceData(orderIndex: 0, englishText: "Test.", koreanText: "테스트.", chunks: [ChunkData(orderIndex: 0, englishText: "Test", koreanText: "테스트")])
-            ]
-        )
-        let createdScript = try sut.createScript(scriptData: scriptData)
-
-        let createdSession = try sut.createPracticeSession(
-            scriptId: createdScript.id!,
-            recordingPath: "path/to/recording.m4a",
-            totalPresentationTime: 60.0
-        )
-
-        let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
-            (errorType: .missingWord, originalText: "original", spokenText: nil, startTime: 1.0, endTime: 2.0)
-        ]
-
-        // 첫 번째 FeedbackSummary 생성
-        _ = try sut.createFeedbackSummary(
-            practiceSessionId: createdSession.id!,
-            totalScore: 80.0,
-            missingWordCount: 1,
-            addedWordCount: 0,
-            replacedWordCount: 0,
-            feedbackDetailsData: feedbackDetailsData
-        )
-
-        // When-Then: 동일한 PracticeSession ID로 두 번째 FeedbackSummary 생성 시 validationError 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.createFeedbackSummary(
-            practiceSessionId: createdSession.id!,
-            totalScore: 70.0,
-            missingWordCount: 0,
-            addedWordCount: 1,
-            replacedWordCount: 0,
-            feedbackDetailsData: feedbackDetailsData
-        )) {
-            error in
-            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "FeedbackSummary already exists for PracticeSession ID \(createdSession.id!).").errorDescription)
-        }
-    }
-
-    func test_createFeedbackSummary_whenFeedbackDetailsDataIsEmpty_thenThrowsError() throws {
-        // Given: Script와 PracticeSession이 존재하지만 feedbackDetailsData가 비어있을 때
-        let scriptData = ScriptData(
-            title: "Script for empty details",
-            sentences: [
-                SentenceData(orderIndex: 0, englishText: "Empty.", koreanText: "비어있음.", chunks: [ChunkData(orderIndex: 0, englishText: "Empty", koreanText: "비어있음")])
-            ]
-        )
-        let createdScript = try sut.createScript(scriptData: scriptData)
-
-        let createdSession = try sut.createPracticeSession(
-            scriptId: createdScript.id!,
-            recordingPath: "path/to/recording.m4a",
-            totalPresentationTime: 30.0
-        )
-
-        let emptyFeedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = []
-
-        // When-Then: FeedbackSummary 생성 시 validationError 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.createFeedbackSummary(
-            practiceSessionId: createdSession.id!,
-            totalScore: 100.0,
-            missingWordCount: 0,
-            addedWordCount: 0,
-            replacedWordCount: 0,
-            feedbackDetailsData: emptyFeedbackDetailsData
-        )) {
-            error in
-            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.validationError(message: "FeedbackSummary must contain at least one FeedbackDetail.").errorDescription)
+        XCTAssertThrowsError(try sut.updateLastViewedAt(forScriptId: nonExistentId)) { error in
+            XCTAssertEqual(
+                (error as? ScriptRepositoryError)?.errorDescription,
+                ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription
+            )
         }
     }
 
@@ -643,26 +448,6 @@ final class ScriptRepositoryTests: XCTestCase {
         let createdScript = try sut.createScript(scriptData: scriptData)
         let scriptId = createdScript.id!
 
-        let createdSession = try sut.createPracticeSession(
-            scriptId: scriptId,
-            recordingPath: "path/to/recording.m4a",
-            totalPresentationTime: 100.0
-        )
-        let sessionId = createdSession.id!
-
-        let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
-            (errorType: .missingWord, originalText: "original", spokenText: nil, startTime: 1.0, endTime: 2.0)
-        ]
-        let createdSummary = try sut.createFeedbackSummary(
-            practiceSessionId: sessionId,
-            totalScore: 90.0,
-            missingWordCount: 1,
-            addedWordCount: 0,
-            replacedWordCount: 0,
-            feedbackDetailsData: feedbackDetailsData
-        )
-        let summaryId = createdSummary.id!
-
         // When: Script를 삭제했을 때
         try sut.deleteScript(id: scriptId)
 
@@ -679,21 +464,6 @@ final class ScriptRepositoryTests: XCTestCase {
             try Chunk.fetchCount(db)
         }
         XCTAssertEqual(chunkCount, 0)
-
-        let practiceSessionCount = try dbQueue.read { db in
-            try PracticeSession.filter(Column("scriptId") == scriptId).fetchCount(db)
-        }
-        XCTAssertEqual(practiceSessionCount, 0)
-
-        let feedbackSummaryCount = try dbQueue.read { db in
-            try FeedbackSummary.filter(Column("practiceSessionId") == sessionId).fetchCount(db)
-        }
-        XCTAssertEqual(feedbackSummaryCount, 0)
-
-        let feedbackDetailCount = try dbQueue.read { db in
-            try FeedbackDetail.filter(Column("feedbackSummaryId") == summaryId).fetchCount(db)
-        }
-        XCTAssertEqual(feedbackDetailCount, 0)
     }
 
     func test_deleteScript_whenScriptDoesNotExist_thenThrowsError() throws {
@@ -701,9 +471,11 @@ final class ScriptRepositoryTests: XCTestCase {
         let nonExistentId: Int64 = 9999
 
         // When-Then: 삭제 시 notFound 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.deleteScript(id: nonExistentId)) {
-            error in
-            XCTAssertEqual((error as? ScriptRepositoryError)?.errorDescription, ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription)
+        XCTAssertThrowsError(try sut.deleteScript(id: nonExistentId)) { error in
+            XCTAssertEqual(
+                (error as? ScriptRepositoryError)?.errorDescription,
+                ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription
+            )
         }
     }
 }
