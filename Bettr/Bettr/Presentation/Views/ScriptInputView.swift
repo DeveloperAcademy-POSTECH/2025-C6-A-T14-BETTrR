@@ -8,27 +8,6 @@
 import SwiftUI
 import FirebaseAI
 
-import Foundation
-
-// MARK: - 올리버의 dto
-struct ChunkData: Codable, Hashable {
-    var orderIndex: Int
-    var englishText: String
-    var koreanText: String
-}
-
-struct SentenceData: Codable, Hashable {
-    var orderIndex: Int
-    var englishText: String
-    var koreanText: String
-    var chunks: [ChunkData]
-}
-
-struct ScriptData: Codable, Hashable {
-    var title: String
-    var sentences: [SentenceData]
-}
-
 // MARK: - 화면 UI
 struct ScriptInputView: View {
     @State private var scriptText: String = ""       // 사용자가 입력한 스크립트 저장용 변수
