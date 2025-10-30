@@ -254,13 +254,6 @@ func parseGeminiOutputToScriptData(_ text: String, title: String) -> ScriptData 
     return ScriptData(title: title, sentences: sentences)
 }
 
-// 🔹 안전한 인덱스 접근용 확장
-extension Collection {
-    subscript(safe index: Index) -> Element? {
-        return indices.contains(index) ? self[index] : nil
-    }
-}
-
 #Preview {
     ScriptInputView()
 }
