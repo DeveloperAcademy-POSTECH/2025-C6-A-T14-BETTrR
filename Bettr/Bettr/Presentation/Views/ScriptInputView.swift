@@ -11,24 +11,73 @@ import FirebaseAI
 // MARK: - 화면 UI
 struct ScriptInputView: View {
     @EnvironmentObject var databaseContainer: DatabaseContainer
-    @State private var scriptText: String = ""       // 사용자가 입력한 스크립트 저장용 변수
+    
+    @State private var scriptText: String = """
+    Hello everyone, my name is Dewy.
+    Today, I want to talk about the power of challenge.
+    I used to be afraid of speaking English in front of others.
+    But my teacher told me, “Mistakes are part of learning.”
+    So I decided to join the English speech contest.
+    At first, I was really nervous, but I didn’t give up.
+    When I finished, I felt proud of myself.
+    That experience taught me to be brave.
+    Now I know every challenge helps me grow.
+    Thank you for listening.
+    """
     @State private var isLoading: Bool = false              // FirebaseAI 호출 중 로딩 상태
-    @State private var parsedScript: ScriptData?     // Gemini 분석 후 결과 저장(추가)
+    @State private var isEditing: Bool = false
+    @FocusState private var editorFocused: Bool
 
+    @State private var parsedScript: ScriptData?     // Gemini 분석 후 결과 저장(추가)
+    
+    
+    
     var body: some View {
         VStack(spacing: 20) {
-            Text("영어 스크립트를 입력하세요")
-                .font(.headline)
+            HStack{
+                Text("영어 스크립트를 입력하세요")
+                    .font(.headline)
+                Button(action: {
+                    // 편집 모드 토글
+                    withAnimation {
+                        isEditing.toggle()
+                        // 편집 모드 전환 시 포커스 제어
+                        editorFocused = isEditing
+                    }
+                }) {
+                    Text(isEditing ? "편집 완료" : "편집")
+                        .bold()
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .frame(minWidth: 90)
+                        .background(isEditing ? Color.blue : Color.gray.opacity(0.2))
+                        .foregroundColor(isEditing ? .white : .primary)
+                        .cornerRadius(8)
+                }
+                // 편집 중이면 간단 안내 텍스트
+                if isEditing {
+                    Text("편집 중..")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
             
-            // 텍스트 입력창
+            
+            // 텍스트 입력창 (편집 비허용 상태에서는 disabled)
             TextEditor(text: $scriptText)
+                .focused($editorFocused)
+                .disabled(!isEditing)
                 .frame(height: 300)
                 .padding()
                 .overlay(
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(Color.gray.opacity(0.5))
                 )
-                .padding(.horizontal)
+            // 시각적 힌트: 편집 모드일 때 배경을 연하게 표시
+                .background(
+                    isEditing ? Color.yellow.opacity(0.08) : Color.white
+                )                .padding(.horizontal)
+                .opacity(isEditing ? 1.0 : 0.95)
             
             // Gemini 호출 버튼
             Button(action: {
@@ -44,12 +93,17 @@ struct ScriptInputView: View {
                         .bold()
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.blue)
+                        .background(
+                            (isEditing || isLoading || scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            ? Color.gray
+                            : Color.blue
+                        )
                         .foregroundColor(.white)
+                        .cornerRadius(10)                        .foregroundColor(.white)
                         .cornerRadius(10)
                 }
             }
-            .disabled(scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
+            .disabled(scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading || isEditing)
             .padding(.horizontal)
             
             // 결과 표시 (파싱 버전 삽입용)
@@ -93,6 +147,12 @@ struct ScriptInputView: View {
     
     // MARK: - 저장 + AI 호출
     func callGemini() async {
+        // 편집 모드일 때는 호출을 막음 (안전장치)
+        if isEditing {
+            print("편집 중에는 Gemini 호출이 비활성화되어 있습니다.")
+            return
+        }
+        
         isLoading = true
         defer { isLoading = false }
         
