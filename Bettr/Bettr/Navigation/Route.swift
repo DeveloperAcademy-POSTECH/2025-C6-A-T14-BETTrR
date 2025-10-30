@@ -10,5 +10,8 @@ import SwiftUI
 enum Route: Hashable {
     case memorization(title: String)
     case recording(sentences: [String])
+}
+
+enum ModalRoute: Hashable {
     case feedbackResult(result: FeedbackResultModel, sentences: [String])
 }
