@@ -69,7 +69,6 @@ struct ScriptsSectionView: View {
                 HStack(alignment: .top, spacing: 16) {
                     // 새 스크립트 추가 버튼
                     Button(action: {
-                        // TODO: Navigate to add script
                         router.push(Route.scriptInput)
                     }) {
                         VStack(alignment: .leading, spacing: 8) {

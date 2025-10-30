@@ -28,6 +28,7 @@ struct MemorizationToolbar: ViewModifier {
     @Binding var isWordListOpen: Bool
     @Binding var isPlaying: Bool
     @Binding var isFeedbackModalOpen: Bool
+    let isRecordingDisabled: Bool
     
     func body(content: Content) -> some View {
         content
@@ -125,6 +126,7 @@ struct MemorizationToolbar: ViewModifier {
                         Image(systemName: "append.page")
                             .foregroundStyle(Color.blue)
                     }
+                    .disabled(isRecordingDisabled)
                 }
             }
     }
@@ -138,7 +140,8 @@ extension View {
         languageMode: Binding<LanguageMode>,
         isWordListOpen: Binding<Bool>,
         isPlaying: Binding<Bool>,
-        isFeedbackModalOpen: Binding<Bool>
+        isFeedbackModalOpen: Binding<Bool>,
+        isRecordingDisabled: Bool
     ) -> some View {
         self.modifier(MemorizationToolbar(
             title: title,
@@ -147,7 +150,8 @@ extension View {
             languageMode: languageMode,
             isWordListOpen: isWordListOpen,
             isPlaying: isPlaying,
-            isFeedbackModalOpen: isFeedbackModalOpen
+            isFeedbackModalOpen: isFeedbackModalOpen,
+            isRecordingDisabled: isRecordingDisabled
         ))
     }
 }
