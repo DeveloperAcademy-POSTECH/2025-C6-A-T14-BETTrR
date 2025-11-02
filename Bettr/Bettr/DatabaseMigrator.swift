@@ -83,6 +83,19 @@ class DatabaseMigrator {
                 t.column("startTime", .double).notNull()
                 t.column("endTime", .double).notNull()
             }
+            
+            // Word 테이블
+            try db.create(table: Word.databaseTableName, ifNotExists: true) { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("scriptId", .integer)
+                    .notNull()
+                    .indexed()
+                    .references(Script.databaseTableName, onDelete: .cascade)
+                t.column("lemma", .text).notNull()
+                t.column("pos", .text).notNull()
+                t.column("meaning", .text).notNull()
+                t.column("orderIndex", .integer).notNull()
+            }
         }
     }
 }
