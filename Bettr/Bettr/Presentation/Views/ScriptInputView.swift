@@ -172,19 +172,25 @@ struct ScriptInputView: View {
                        - 반드시 **순수 JSON 하나만** 출력합니다.
                        - 코드펜스(json,  등), 설명, 주석, 추가 텍스트 금지.
                        - 키 이름은 DTO(ScriptData, SentenceData, ChunkData)와 동일하게 유지:
-                         title, sentences[].englishText, sentences[].koreanText, sentences[].chunks[].englishText, sentences[].chunks[].koreanText
+                         title, sentences[].orderIndex, sentences[].englishText, sentences[].koreanText, sentences[].chunks[].orderIndex,sentences[].chunks[].englishText, sentences[].chunks[].koreanText
 
                        # JSON 스키마
                        {
                          "title": string,
                          "sentences": [
                            {
+                             "orderIndex": number,
                              "englishText": string,
                              "koreanText": string,
-                             "chunks": [ { "englishText": string, "koreanText": string } ]
+                             "chunks": [ { "orderIndex": number, "englishText": string, "koreanText": string } ]
                            }
                          ]
                        }
+                       
+                       # 인덱싱 규칙
+                       1. sentences[].orderIndex는 0부터 시작하여 각 문장 순서대로 1씩 증가합니다.
+                       2. 각 문장 내부의 chunks[].orderIndex도 0부터 시작하여 순서대로 1씩 증가합니다.
+                       3. 인덱스는 문장과 청크의 실제 순서를 반영해야 합니다.
 
                        # 청킹 규칙 (요약)
                        1) 의미 중심 (3~8단어 권장)
@@ -242,13 +248,6 @@ struct ScriptInputView: View {
 }
 
 // MARK: - Gemini가 생성한 json 처리로직
-// 새로 추가됨 — JSON 전용 파서
-// 기존에는 "Original sentence:" / "Korean (aligned chunks):" 등 텍스트 기반 파싱 로직이 있었지만
-// 이제 JSON 구조만 디코딩하기 때문에 완전히 새로 정의됨.
-private struct ChunkJSON: Codable { let englishText: String; let koreanText: String }
-private struct SentenceJSON: Codable { let englishText: String; let koreanText: String; let chunks: [ChunkJSON] }
-private struct ScriptJSON: Codable { let title: String; let sentences: [SentenceJSON] }
-
 // JSON 응답을 Swift 구조체로 매핑하는 함수
 // 기존의 'parseGeminiOutputToScriptData' 대신 새롭게 추가됨
 func parseGeminiJSONToScriptData(_ jsonText: String, fallbackTitle: String) -> ScriptData? {
@@ -261,18 +260,15 @@ func parseGeminiJSONToScriptData(_ jsonText: String, fallbackTitle: String) -> S
     guard let data = trimmed.data(using: .utf8) else { return nil }
     
     do {
-        let decoded = try JSONDecoder().decode(ScriptJSON.self, from: data)
-        
-        // Gemini가 orderIndex를 주지 않아도 Swift가 자동으로 인덱스 생성
-        let sentences: [SentenceData] = decoded.sentences.enumerated().map { (sIndex, s) in
-            let chunks: [ChunkData] = s.chunks.enumerated().map { (cIndex, c) in
-                ChunkData(orderIndex: cIndex, englishText: c.englishText, koreanText: c.koreanText)
-            }
-            return SentenceData(orderIndex: sIndex, englishText: s.englishText, koreanText: s.koreanText, chunks: chunks)
-        }
-        
+        // Gemini가 orderIndex를 주므로, 별도 enumerated() 보정 불필요
+        let decoded = try JSONDecoder().decode(ScriptData.self, from: data)
+
         // title이 비어 있을 경우 대비
-        return ScriptData(title: decoded.title.isEmpty ? fallbackTitle : decoded.title, sentences: sentences)
+        let finalTitle = decoded.title.isEmpty ? fallbackTitle : decoded.title
+
+        // 그대로 반환 (orderIndex는 Gemini가 부여한 값 사용)
+        return ScriptData(title: finalTitle, sentences: decoded.sentences)
+        
     } catch {
         print("⚠️ JSON 디코딩 실패: \(error)")
         return nil
