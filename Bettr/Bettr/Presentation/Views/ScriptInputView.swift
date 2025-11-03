@@ -277,4 +277,6 @@ func parseGeminiJSONToScriptData(_ jsonText: String, fallbackTitle: String) -> S
 
 #Preview {
     ScriptInputView()
+        .environment(DatabaseContainer.getForPreview())
+        .environment(NavigationRouter())
 }
