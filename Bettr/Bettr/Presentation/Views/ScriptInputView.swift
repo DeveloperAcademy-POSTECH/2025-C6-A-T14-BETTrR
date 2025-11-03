@@ -32,6 +32,21 @@ struct ScriptInputView: View {
     
     
     
+    init(initialText: String? = nil) {
+        _scriptText = State(initialValue: initialText ?? """
+    Hello everyone, my name is Dewy.
+    Today, I want to talk about the power of challenge.
+    I used to be afraid of speaking English in front of others.
+    But my teacher told me, “Mistakes are part of learning.”
+    So I decided to join the English speech contest.
+    At first, I was really nervous, but I didn’t give up.
+    When I finished, I felt proud of myself.
+    That experience taught me to be brave.
+    Now I know every challenge helps me grow.
+    Thank you for listening.
+    """)
+    }
+    
     var body: some View {
         VStack(spacing: 20) {
             HStack{
@@ -276,7 +291,7 @@ func parseGeminiJSONToScriptData(_ jsonText: String, fallbackTitle: String) -> S
 }
 
 #Preview {
-    ScriptInputView()
+    ScriptInputView(initialText: nil)
         .environment(DatabaseContainer.getForPreview())
         .environment(NavigationRouter())
 }

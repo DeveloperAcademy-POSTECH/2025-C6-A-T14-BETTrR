@@ -1,9 +1,14 @@
 import SwiftUI
+import PhotosUI
 
 struct ScriptsSectionView: View {
     let scripts: [Script]
     
     @Environment(NavigationRouter.self) var router
+    
+    @State private var selectedPhoto: PhotosPickerItem? = nil
+    @State private var showingPhotoPicker = false
+    private let textRecognitionService = TextRecognitionService()
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -29,10 +34,17 @@ struct ScriptsSectionView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 16) {
-                    // 새 스크립트 추가 버튼
-                    Button(action: {
-                        router.push(Route.scriptInput)
-                    }) {
+                    Menu {
+                        Button(action: { showingPhotoPicker = true }) {
+                            Label("사진 보관함", systemImage: "photo")
+                        }
+                        Button(action: {}) {
+                            Label("사진 찍기", systemImage: "camera")
+                        }.disabled(true)
+                        Button(action: {}) {
+                            Label("파일 선택", systemImage: "doc")
+                        }.disabled(true)
+                    } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
@@ -62,6 +74,18 @@ struct ScriptsSectionView: View {
                     }
                 }
                 .padding(.horizontal, 20)
+            }
+        }
+        .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhoto, matching: .images)
+        .onChange(of: selectedPhoto) { oldValue, newValue in
+            guard let item = newValue else { return }
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    textRecognitionService.recognizeText(from: uiImage) { text in
+                        router.push(Route.scriptInput(initialText: text))
+                    }
+                }
             }
         }
     }
