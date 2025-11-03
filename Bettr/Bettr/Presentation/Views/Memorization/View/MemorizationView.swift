@@ -11,7 +11,7 @@ struct MemorizationView: View {
     
     private var audioService: AudioPlaybackServiceProtocol
     
-    init(scriptId: Int64, container: DatabaseContainer, audioService: AudioPlaybackService) {
+    init(scriptId: Int64, container: DatabaseContainer, audioService: AudioPlaybackServiceProtocol) {
         _viewModel = State(wrappedValue: MemorizationViewModel(
             scriptId: scriptId,
             scriptService: container.scriptManagementService,
