@@ -154,46 +154,48 @@ struct MemorizationView: View {
                                         }
                                     }
                                     
-                                    // 3. 한국어 청크 라인
-                                    CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
-                                        ForEach(sentence.chunks, id: \.orderIndex) { chunk in
-                                            
-                                            // 고유 ID 생성
-                                            let chunkID = ChunkIdentifier(
-                                                sentenceIndex: sentence.orderIndex,
-                                                chunkIndex: chunk.orderIndex
-                                            )
-                                            
-                                            // 고유 ID로 숨김 상태 확인
-                                            let isKorChunkHidden = hiddenKorChunks.contains(chunkID)
-                                            
-                                            Text(chunk.koreanText)
-                                                .font(.system(size: 20))
-                                                .opacity(isKorChunkHidden ? 0 : 1)
-                                                .background(
-                                                    RoundedRectangle(cornerRadius: 2)
-                                                        .fill(isKorChunkHidden ? Color.primary.opacity(0.05) : Color.clear)
+                                    if langMode == .engKor {
+                                        // 3. 한국어 청크 라인
+                                        CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
+                                            ForEach(sentence.chunks, id: \.orderIndex) { chunk in
+                                                
+                                                // 고유 ID 생성
+                                                let chunkID = ChunkIdentifier(
+                                                    sentenceIndex: sentence.orderIndex,
+                                                    chunkIndex: chunk.orderIndex
                                                 )
-                                                .onTapGesture {
-                                                    // 가리기 모드
-                                                    if funcMode == .hide  {
-                                                        withAnimation(.easeInOut(duration: 0.02)) {
-                                                            if isKorChunkHidden {
-                                                                hiddenKorChunks.remove(chunkID)
-                                                            } else {
-                                                                hiddenKorChunks.insert(chunkID)
-                                                            }
-                                                        }
-                                                    } else { // 재생모드
-                                                        print("재생모드!")
-                                                    }
-                                                }
-                                            
-                                            // 마지막 청크가 아니면 구분 기호 추가
-                                            if chunk.orderIndex != lastChunkIndex {
-                                                Text(" / ")
+                                                
+                                                // 고유 ID로 숨김 상태 확인
+                                                let isKorChunkHidden = hiddenKorChunks.contains(chunkID)
+                                                
+                                                Text(chunk.koreanText)
                                                     .font(.system(size: 20))
-                                                    .foregroundColor(.gray.opacity(0.7))
+                                                    .opacity(isKorChunkHidden ? 0 : 1)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 2)
+                                                            .fill(isKorChunkHidden ? Color.primary.opacity(0.05) : Color.clear)
+                                                    )
+                                                    .onTapGesture {
+                                                        // 가리기 모드
+                                                        if funcMode == .hide  {
+                                                            withAnimation(.easeInOut(duration: 0.02)) {
+                                                                if isKorChunkHidden {
+                                                                    hiddenKorChunks.remove(chunkID)
+                                                                } else {
+                                                                    hiddenKorChunks.insert(chunkID)
+                                                                }
+                                                            }
+                                                        } else { // 재생모드
+                                                            print("재생모드!")
+                                                        }
+                                                    }
+                                                
+                                                // 마지막 청크가 아니면 구분 기호 추가
+                                                if chunk.orderIndex != lastChunkIndex {
+                                                    Text(" / ")
+                                                        .font(.system(size: 20))
+                                                        .foregroundColor(.gray.opacity(0.7))
+                                                }
                                             }
                                         }
                                     }
@@ -233,28 +235,31 @@ struct MemorizationView: View {
                                     // 현재 숨김 상태인지 확인하는 변수
                                     let isKorSentenceHidden = hiddenKorSentences.contains(sentence.orderIndex)
                                     
-                                    // 2. 한국어 텍스트
-                                    Text(sentence.koreanText)
-                                        .font(.system(size: 20))
-                                        .opacity(isKorSentenceHidden ? 0 : 1)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 2)
-                                                .fill(isKorSentenceHidden ? Color.primary.opacity(0.05) : Color.clear)
-                                        )
-                                        .onTapGesture {
-                                            // 가리기 모드
-                                            if funcMode == .hide  {
-                                                withAnimation(.easeInOut(duration: 0.02)) {
-                                                    if isKorSentenceHidden {
-                                                        hiddenKorSentences.remove(sentence.orderIndex)
-                                                    } else {
-                                                        hiddenKorSentences.insert(sentence.orderIndex)
+                                    if langMode == .engKor {
+                                        
+                                        // 2. 한국어 텍스트
+                                        Text(sentence.koreanText)
+                                            .font(.system(size: 20))
+                                            .opacity(isKorSentenceHidden ? 0 : 1)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 2)
+                                                    .fill(isKorSentenceHidden ? Color.primary.opacity(0.05) : Color.clear)
+                                            )
+                                            .onTapGesture {
+                                                // 가리기 모드
+                                                if funcMode == .hide  {
+                                                    withAnimation(.easeInOut(duration: 0.02)) {
+                                                        if isKorSentenceHidden {
+                                                            hiddenKorSentences.remove(sentence.orderIndex)
+                                                        } else {
+                                                            hiddenKorSentences.insert(sentence.orderIndex)
+                                                        }
                                                     }
+                                                } else { // 재생모드
+                                                    print("재생모드!")
                                                 }
-                                            } else { // 재생모드
-                                                print("재생모드!")
                                             }
-                                        }
+                                    }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading) // 왼쪽 정렬
                             }
@@ -300,6 +305,9 @@ struct MemorizationView: View {
             }
         }
         .onChange(of: isChunkMode)  {
+            clearAllHiddenStates()
+        }
+        .onChange(of: langMode)  {
             clearAllHiddenStates()
         }
         .memorizationToolbar(
