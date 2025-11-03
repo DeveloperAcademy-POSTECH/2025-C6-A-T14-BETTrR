@@ -82,22 +82,20 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack(path: $router.path) {
-            VStack {
-                Button("암기뷰로 이동") {
-                    router.push(Route.memorization(title: "스크립트.pdf"))
+            HomeView()
+                .navigationTitle("Bettr")
+                .navigationDestination(for: Route.self) { route in
+                    switch route {
+                    case .memorization(let scriptId):
+                        MemorizationView(scriptId: scriptId)
+                    case .scriptInput:
+                        ScriptInputView()
+                    case .home:
+                        HomeView()
+                    }
                 }
-            }
-            .navigationTitle("Home")
-            .navigationDestination(for: Route.self) { route in
-                switch route {
-                case .memorization(let title):
-                    MemorizationView(title: title)
-                case .recording(let sentences):
-                    RecordingView(sentences: sentences)
-                }
-            }
-            .environment(router)
         }
+        .environment(router)
     }
 }
 

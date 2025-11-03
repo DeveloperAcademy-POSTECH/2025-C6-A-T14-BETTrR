@@ -67,6 +67,35 @@ class ScriptManagementService {
         }
     }
     
+    // MARK: - Script Read with Relations
+    func fetchScriptWithSentences(id: Int64) throws -> (script: Script, sentences: [Sentence])? {
+        return try dbQueue.read { db in
+            guard let script = try scriptRepository.fetchScript(id: id, in: db) else {
+                return nil
+            }
+            let sentences = try scriptRepository.fetchSentences(forScriptId: script.id!, in: db)
+            return (script, sentences)
+        }
+    }
+
+    func fetchScriptWithSentencesAndChunks(id: Int64) throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])])? {
+        return try dbQueue.read { db in
+            guard let script = try scriptRepository.fetchScript(id: id, in: db) else {
+                return nil
+            }
+            
+            let sentences = try scriptRepository.fetchSentences(forScriptId: script.id!, in: db)
+            var sentencesWithChunks: [(sentence: Sentence, chunks: [Chunk])] = []
+            
+            for sentence in sentences {
+                let chunks = try scriptRepository.fetchChunks(forSentenceId: sentence.id!, in: db)
+                sentencesWithChunks.append((sentence: sentence, chunks: chunks))
+            }
+            
+            return (script, sentencesWithChunks)
+        }
+    }
+
     // MARK: - Script Update
     func updateLastViewedAt(forScriptId scriptId: Int64) throws {
         try dbQueue.write { db in
