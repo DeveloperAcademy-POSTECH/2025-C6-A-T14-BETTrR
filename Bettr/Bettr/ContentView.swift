@@ -88,8 +88,8 @@ struct ContentView: View {
                     switch route {
                     case .memorization(let scriptId):
                         MemorizationView(scriptId: scriptId)
-                    case .scriptInput:
-                        ScriptInputView()
+                    case .scriptInput(let initialText):
+                        ScriptInputView(initialText: initialText)
                     case .home:
                         HomeView()
                     }
@@ -101,4 +101,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environment(DatabaseContainer.getForPreview())
 }
