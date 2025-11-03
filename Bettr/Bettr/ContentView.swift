@@ -81,6 +81,8 @@ struct ContentView: View {
     @State private var router = NavigationRouter()
     @State private var audioService = AudioPlaybackService()
     
+    @Environment(DatabaseContainer.self) private var container
+    
     var body: some View {
         NavigationStack(path: $router.path) {
             HomeView()
@@ -88,7 +90,11 @@ struct ContentView: View {
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .memorization(let scriptId):
-                        MemorizationView(scriptId: scriptId)
+                        MemorizationView(
+                            scriptId: scriptId,
+                            container: container,
+                            audioService: audioService
+                        )
                     case .scriptInput:
                         ScriptInputView()
                     case .home:
