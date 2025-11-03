@@ -284,7 +284,7 @@ struct MemorizationView: View {
                     }
                 
                 HStack {
-                    WordkListView()
+                    WordkListView(scriptId: scriptId)
                 }
                 .frame(maxWidth: .infinity, alignment: .topTrailing)
                 .padding(.trailing, 16)

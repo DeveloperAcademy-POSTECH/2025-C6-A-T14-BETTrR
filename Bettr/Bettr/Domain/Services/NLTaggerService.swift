@@ -60,14 +60,14 @@ class NLTaggerService {
     static func koreanPOS(from tag: NLTag?) -> String {
         guard let tag = tag else { return "기타" }
         switch tag {
-        case .noun: return "명사"
-        case .verb: return "동사"
-        case .adjective: return "형용사"
-        case .adverb: return "부사"
-        case .pronoun: return "대명사"
-        case .determiner: return "한정사"
-        case .preposition: return "전치사"
-        case .conjunction: return "접속사"
+        case .noun: return "명"
+        case .verb: return "동"
+        case .adjective: return "형"
+        case .adverb: return "부"
+        case .pronoun: return "대명"
+        case .determiner: return "한정"
+        case .preposition: return "전"
+        case .conjunction: return "접"
         default: return tag.rawValue
         }
     }
