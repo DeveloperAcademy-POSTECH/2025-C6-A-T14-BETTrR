@@ -12,7 +12,7 @@ struct MemorizationView: View {
     
     let scriptId: Int64
     
-    // 스크립트 패치를 위해 필요한 프로퍼티
+    // 스크립트 fetch를 위해 필요한 프로퍼티
     @Environment(DatabaseContainer.self) var container
     @State private var showingError = false
     @State private var errorMessage = ""
@@ -32,13 +32,13 @@ struct MemorizationView: View {
         let chunkIndex: Int
     }
     
-    // 숨김 상태 추적용 @State 변수
+    // 가리기 상태 추적용 @State 변수
     @State private var hiddenEngChunks: Set<ChunkIdentifier> = []
     @State private var hiddenKorChunks: Set<ChunkIdentifier> = []
     @State private var hiddenEngSentences: Set<Int> = []
     @State private var hiddenKorSentences: Set<Int> = []
     
-    // 숨김 상태를 모두 초기화 하는 함수
+    // 가리기 상태를 모두 초기화 하는 함수
     private func clearAllHiddenStates() {
         hiddenEngChunks.removeAll()
         hiddenKorChunks.removeAll()
@@ -48,54 +48,54 @@ struct MemorizationView: View {
     
     // 아이디로 스크립트 정보를 가져오는 함수
     private func loadScriptById() {
-            do {
-                guard let fetchedData = try container.scriptManagementService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
-                    // nil 반환 시 (스크립트 없음)
-                    errorMessage = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
-                    showingError = true
-                    return
-                }
+        do {
+            guard let fetchedData = try container.scriptManagementService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
+                // nil 반환 시 (스크립트 없음)
+                errorMessage = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
+                showingError = true
+                return
+            }
+            
+            // 아래는 (Script, [(Sentence, [Chunk])]) 튜플을 ScriptData 뷰 모델로 변환하는 로직
+            
+            // 1. [(sentence: Sentence, chunks: [Chunk])] -> [SentenceData]
+            let sentenceDataList: [SentenceData] = fetchedData.sentences.map { (sentence, chunks) in
                 
-                // 아래는 (Script, [(Sentence, [Chunk])]) 튜플을 ScriptData 뷰 모델로 변환하는 로직
-                
-                // 1. [(sentence: Sentence, chunks: [Chunk])] -> [SentenceData]
-                let sentenceDataList: [SentenceData] = fetchedData.sentences.map { (sentence, chunks) in
-                    
-                    // 2. [Chunk] -> [ChunkData]
-                    // (DB의 Chunk 모델 속성을 ChunkData 뷰 모델 속성으로 매핑)
-                    let chunkDataList: [ChunkData] = chunks.map { chunk in
-                        return ChunkData(
-                            orderIndex: chunk.orderIndex,
-                            englishText: chunk.englishText,
-                            koreanText: chunk.koreanText
-                        )
-                    }
-                    
-                    // 3. Sentence + [ChunkData] -> SentenceData
-                    return SentenceData(
-                        orderIndex: sentence.orderIndex,
-                        englishText: sentence.englishText,
-                        koreanText: sentence.koreanText,
-                        chunks: chunkDataList
+                // 2. [Chunk] -> [ChunkData]
+                // (DB의 Chunk 모델 속성을 ChunkData 뷰 모델 속성으로 매핑)
+                let chunkDataList: [ChunkData] = chunks.map { chunk in
+                    return ChunkData(
+                        orderIndex: chunk.orderIndex,
+                        englishText: chunk.englishText,
+                        koreanText: chunk.koreanText
                     )
                 }
                 
-                // 최종 ScriptData 뷰 모델 생성
-                let transformedScriptData = ScriptData(
-                    title: fetchedData.script.title,
-                    sentences: sentenceDataList
+                // 3. Sentence + [ChunkData] -> SentenceData
+                return SentenceData(
+                    orderIndex: sentence.orderIndex,
+                    englishText: sentence.englishText,
+                    koreanText: sentence.koreanText,
+                    chunks: chunkDataList
                 )
-                
-                self.scriptData = transformedScriptData
-                
-            } catch {
-                // try가 실패한 경우 (DB 에러 등)
-                errorMessage = "스크립트 로딩 중 오류 발생: \(error.localizedDescription)"
-                showingError = true
             }
+            
+            // 4. 최종 ScriptData 뷰 모델 생성
+            let transformedScriptData = ScriptData(
+                title: fetchedData.script.title,
+                sentences: sentenceDataList
+            )
+            self.scriptData = transformedScriptData
+            
+        } catch {
+            // try가 실패한 경우 (DB 에러 등)
+            errorMessage = "스크립트 로딩 중 오류 발생: \(error.localizedDescription)"
+            showingError = true
         }
+    }
     
     var body: some View {
+        // 스크립트 데이터가 없으면 피드백(녹음)을 할 수 없게 하기 위한 변수 선언
         let isRecordingDisabled = (scriptData == nil)
         
         ZStack {
@@ -154,46 +154,48 @@ struct MemorizationView: View {
                                         }
                                     }
                                     
-                                    // 3. 한국어 청크 라인
-                                    CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
-                                        ForEach(sentence.chunks, id: \.orderIndex) { chunk in
-                                            
-                                            // 고유 ID 생성
-                                            let chunkID = ChunkIdentifier(
-                                                sentenceIndex: sentence.orderIndex,
-                                                chunkIndex: chunk.orderIndex
-                                            )
-                                            
-                                            // 고유 ID로 숨김 상태 확인
-                                            let isKorChunkHidden = hiddenKorChunks.contains(chunkID)
-                                            
-                                            Text(chunk.koreanText)
-                                                .font(.system(size: 20))
-                                                .opacity(isKorChunkHidden ? 0 : 1)
-                                                .background(
-                                                    RoundedRectangle(cornerRadius: 2)
-                                                        .fill(isKorChunkHidden ? Color.primary.opacity(0.05) : Color.clear)
+                                    if langMode == .engKor {
+                                        // 3. 한국어 청크 라인
+                                        CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
+                                            ForEach(sentence.chunks, id: \.orderIndex) { chunk in
+                                                
+                                                // 고유 ID 생성
+                                                let chunkID = ChunkIdentifier(
+                                                    sentenceIndex: sentence.orderIndex,
+                                                    chunkIndex: chunk.orderIndex
                                                 )
-                                                .onTapGesture {
-                                                    // 가리기 모드
-                                                    if funcMode == .hide  {
-                                                        withAnimation(.easeInOut(duration: 0.02)) {
-                                                            if isKorChunkHidden {
-                                                                hiddenKorChunks.remove(chunkID)
-                                                            } else {
-                                                                hiddenKorChunks.insert(chunkID)
-                                                            }
-                                                        }
-                                                    } else { // 재생모드
-                                                        print("재생모드!")
-                                                    }
-                                                }
-                                            
-                                            // 마지막 청크가 아니면 구분 기호 추가
-                                            if chunk.orderIndex != lastChunkIndex {
-                                                Text(" / ")
+                                                
+                                                // 고유 ID로 숨김 상태 확인
+                                                let isKorChunkHidden = hiddenKorChunks.contains(chunkID)
+                                                
+                                                Text(chunk.koreanText)
                                                     .font(.system(size: 20))
-                                                    .foregroundColor(.gray.opacity(0.7))
+                                                    .opacity(isKorChunkHidden ? 0 : 1)
+                                                    .background(
+                                                        RoundedRectangle(cornerRadius: 2)
+                                                            .fill(isKorChunkHidden ? Color.primary.opacity(0.05) : Color.clear)
+                                                    )
+                                                    .onTapGesture {
+                                                        // 가리기 모드
+                                                        if funcMode == .hide  {
+                                                            withAnimation(.easeInOut(duration: 0.02)) {
+                                                                if isKorChunkHidden {
+                                                                    hiddenKorChunks.remove(chunkID)
+                                                                } else {
+                                                                    hiddenKorChunks.insert(chunkID)
+                                                                }
+                                                            }
+                                                        } else { // 재생모드
+                                                            print("재생모드!")
+                                                        }
+                                                    }
+                                                
+                                                // 마지막 청크가 아니면 구분 기호 추가
+                                                if chunk.orderIndex != lastChunkIndex {
+                                                    Text(" / ")
+                                                        .font(.system(size: 20))
+                                                        .foregroundColor(.gray.opacity(0.7))
+                                                }
                                             }
                                         }
                                     }
@@ -233,28 +235,31 @@ struct MemorizationView: View {
                                     // 현재 숨김 상태인지 확인하는 변수
                                     let isKorSentenceHidden = hiddenKorSentences.contains(sentence.orderIndex)
                                     
-                                    // 2. 한국어 텍스트
-                                    Text(sentence.koreanText)
-                                        .font(.system(size: 20))
-                                        .opacity(isKorSentenceHidden ? 0 : 1)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 2)
-                                                .fill(isKorSentenceHidden ? Color.primary.opacity(0.05) : Color.clear)
-                                        )
-                                        .onTapGesture {
-                                            // 가리기 모드
-                                            if funcMode == .hide  {
-                                                withAnimation(.easeInOut(duration: 0.02)) {
-                                                    if isKorSentenceHidden {
-                                                        hiddenKorSentences.remove(sentence.orderIndex)
-                                                    } else {
-                                                        hiddenKorSentences.insert(sentence.orderIndex)
+                                    if langMode == .engKor {
+                                        
+                                        // 2. 한국어 텍스트
+                                        Text(sentence.koreanText)
+                                            .font(.system(size: 20))
+                                            .opacity(isKorSentenceHidden ? 0 : 1)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 2)
+                                                    .fill(isKorSentenceHidden ? Color.primary.opacity(0.05) : Color.clear)
+                                            )
+                                            .onTapGesture {
+                                                // 가리기 모드
+                                                if funcMode == .hide  {
+                                                    withAnimation(.easeInOut(duration: 0.02)) {
+                                                        if isKorSentenceHidden {
+                                                            hiddenKorSentences.remove(sentence.orderIndex)
+                                                        } else {
+                                                            hiddenKorSentences.insert(sentence.orderIndex)
+                                                        }
                                                     }
+                                                } else { // 재생모드
+                                                    print("재생모드!")
                                                 }
-                                            } else { // 재생모드
-                                                print("재생모드!")
                                             }
-                                        }
+                                    }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading) // 왼쪽 정렬
                             }
@@ -264,8 +269,8 @@ struct MemorizationView: View {
                     .padding(.vertical, 40)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }            else {
-                // 4. [추가] scriptData가 nil일 때 (로딩 중이거나 에러 발생 시)
+            } else {
+                // scriptData가 nil일 때 (로딩 중이거나 에러 발생 시)
                 if showingError {
                     Text(errorMessage)
                         .foregroundColor(.red)
@@ -274,6 +279,7 @@ struct MemorizationView: View {
                 }
             }
             
+            // 단어장
             if showWordList {
                 Color.black.opacity(0.001) // 시각적으로는 안 보이지만 탭 감지 가능
                     .ignoresSafeArea()
@@ -298,6 +304,12 @@ struct MemorizationView: View {
                 clearAllHiddenStates()
             }
         }
+        .onChange(of: isChunkMode)  {
+            clearAllHiddenStates()
+        }
+        .onChange(of: langMode)  {
+            clearAllHiddenStates()
+        }
         .memorizationToolbar(
             title: scriptData?.title ?? "Loading...",
             isChunkMode: $isChunkMode,
@@ -309,14 +321,12 @@ struct MemorizationView: View {
             isRecordingDisabled: isRecordingDisabled
         )
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(isPresented: $showFeedbackModal) {
+        .fullScreenCover(isPresented: $showFeedbackModal) { // 피드백 모달
             let referenceSentences = scriptData?.sentences.map { $0.englishText } ?? []
-                RecordingView(sentences: referenceSentences)
+            RecordingView(sentences: referenceSentences)
         }
-        .onAppear {
+        .onAppear { // 뷰가 나타날 때 스크립트 정보를 가져옴
             loadScriptById()
         }
     }
 }
-
-
