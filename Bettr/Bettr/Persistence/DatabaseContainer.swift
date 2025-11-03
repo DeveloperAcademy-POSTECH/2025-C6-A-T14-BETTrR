@@ -14,6 +14,7 @@ class DatabaseContainer {
     let scriptManagementService: ScriptManagementService
     let practiceSessionService: PracticeSessionService
     let wordExtractionService: WordExtractionService
+    var scripts: [Script] = []
     
     init(database: AppDatabase) {
         self.scriptRepository = ScriptRepository()
@@ -30,5 +31,25 @@ class DatabaseContainer {
             scriptRepository: scriptRepository,
             scriptManagementService: scriptManagementService
         )
+    }
+    
+    func refreshScripts() {
+        do {
+            self.scripts = try self.scriptManagementService.fetchAllScripts()
+        } catch {
+            print("Failed to fetch scripts: \(error)")
+        }
+    }
+    
+    static func getForPreview() -> DatabaseContainer {
+        do {
+            let db = try AppDatabase.makeInMemory()
+            let container = DatabaseContainer(database: db)
+            try DemoDataGenerator.generate(into: db)
+            container.refreshScripts()
+            return container
+        } catch {
+            fatalError("Failed to create container for preview: \(error)")
+        }
     }
 }

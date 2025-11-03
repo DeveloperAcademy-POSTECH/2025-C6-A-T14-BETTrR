@@ -1,110 +1,5 @@
 import SwiftUI
 
-struct HomeView: View {
-    @Environment(DatabaseContainer.self) var container
-    
-    @State private var scripts: [Script] = []
-    @State private var showingError = false
-    @State private var errorMessage = ""
-    
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 32) {
-                ScriptsSectionView(scripts: scripts)
-                
-                FeedbackHistorySectionView()
-                
-                Spacer(minLength: 40)
-            }
-            .padding(.top, 20)
-        }
-        .onAppear {
-            loadScripts()
-        }
-        .alert("오류", isPresented: $showingError) {
-            Button("확인", role: .cancel) {}
-        } message: {
-            Text(errorMessage)
-        }
-    }
-    
-    private func loadScripts() {
-        do {
-            scripts = try container.scriptManagementService.fetchAllScripts()
-        } catch {
-            errorMessage = "스크립트를 불러오는데 실패했습니다: \(error.localizedDescription)"
-            showingError = true
-        }
-    }
-}
-
-struct ScriptsSectionView: View {
-    let scripts: [Script]
-    
-    @Environment(NavigationRouter.self) var router
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Scripts")
-                    .font(.system(size: 25, weight: .semibold))
-                
-                Spacer()
-                
-                Button(action: {
-                    // TODO: Navigate to all scripts
-                }) {
-                    HStack(spacing: 4) {
-                        Text("더보기")
-                            .font(.system(size: 15))
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                    }
-                    .foregroundColor(.gray)
-                }
-            }
-            .padding(.horizontal, 20)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 16) {
-                    // 새 스크립트 추가 버튼
-                    Button(action: {
-                        router.push(Route.scriptInput)
-                    }) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
-                                .foregroundColor(Color.gray.opacity(0.3))
-                                .frame(width: 200, height: 150)
-                                .overlay(
-                                    Circle()
-                                        .fill(Color.blue)
-                                        .frame(width: 56, height: 56)
-                                        .overlay(
-                                            Image(systemName: "plus")
-                                                .font(.system(size: 24, weight: .medium))
-                                                .foregroundColor(.white)
-                                        )
-                                )
-                            Text("새 스크립트 추가")
-                                .font(.system(size: 15))
-                                .lineLimit(2)
-                                .frame(width: 200, alignment: .leading)
-                                .foregroundColor(.primary)
-                        }
-                    }
-                    
-                    // Script Cards
-                    ForEach(scripts.prefix(5)) { script in
-                        ScriptCard(script: script)
-                    }
-                }
-                .padding(.horizontal, 20)
-            }
-        }
-    }
-}
-
 struct FeedbackHistorySectionView: View {
     @Environment(DatabaseContainer.self) var container
     @State private var feedbackSummaries: [FeedbackSummary] = []
@@ -174,36 +69,6 @@ struct FeedbackHistorySectionView: View {
             errorMessage = "피드백 요약을 불러오는데 실패했습니다: \(error.localizedDescription)"
             showingError = true
         }
-    }
-}
-
-// MARK: - Script Card Component
-
-struct ScriptCard: View {
-    @Environment(NavigationRouter.self) var router
-    
-    let script: Script
-    
-    var body: some View {
-        Button(action: {
-            if let scriptId = script.id {
-                router.push(Route.memorization(scriptId: scriptId))
-            } else {
-                // id가 nil인 경우
-                print("Error: script.id가 nil이어서 네비게이션할 수 없습니다.")
-            }        }){
-                VStack(alignment: .leading, spacing: 8) {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.gray)
-                        .frame(width: 200, height: 150)
-                    
-                    Text(script.title)
-                        .foregroundStyle(Color.primary)
-                        .font(.system(size: 15))
-                        .lineLimit(2)
-                        .frame(width: 200, alignment: .leading)
-                }
-            }
     }
 }
 
@@ -281,4 +146,9 @@ struct FeedbackItemView: View {
         formatter.dateFormat = "yyyy/MM/dd"
         return formatter.string(from: date)
     }
+}
+
+#Preview {
+    FeedbackHistorySectionView()
+        .environment(DatabaseContainer.getForPreview())
 }

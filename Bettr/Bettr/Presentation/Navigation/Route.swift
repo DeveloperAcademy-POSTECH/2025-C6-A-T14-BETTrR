@@ -9,7 +9,7 @@ import SwiftUI
 
 enum Route: Hashable {
     case memorization(scriptId: Int64)
-    case scriptInput
+    case scriptInput(initialText: String?)
     case home
 }
 
