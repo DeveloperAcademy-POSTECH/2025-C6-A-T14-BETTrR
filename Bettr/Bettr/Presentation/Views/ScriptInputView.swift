@@ -158,7 +158,7 @@ struct ScriptInputView: View {
         
         do {
             let ai = FirebaseAI.firebaseAI(backend: .googleAI())
-            let model = ai.generativeModel(modelName: "gemini-2.5-flash")
+            let model = ai.generativeModel(modelName: "gemini-2.5-flash-lite")
             
             // 새로운 JSON 전용 프롬프트 추가
             let prompt = """
