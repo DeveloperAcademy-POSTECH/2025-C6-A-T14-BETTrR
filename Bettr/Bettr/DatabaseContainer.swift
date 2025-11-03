@@ -13,6 +13,7 @@ class DatabaseContainer {
     let scriptRepository: ScriptRepository
     let scriptManagementService: ScriptManagementService
     let practiceSessionService: PracticeSessionService
+    let wordExtractionService: WordExtractionService
     
     init(database: AppDatabase) {
         self.scriptRepository = ScriptRepository()
@@ -23,6 +24,11 @@ class DatabaseContainer {
         self.practiceSessionService = PracticeSessionService(
             dbQueue: database.dbQueue,
             scriptRepository: scriptRepository
+        )
+        self.wordExtractionService = WordExtractionService(
+            dbQueue: database.dbQueue,
+            scriptRepository: scriptRepository,
+            scriptManagementService: scriptManagementService
         )
     }
 }
