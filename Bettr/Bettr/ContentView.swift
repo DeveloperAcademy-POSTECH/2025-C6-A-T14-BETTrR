@@ -90,13 +90,9 @@ struct ContentView: View {
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .memorization(let scriptId):
-                        MemorizationView(
-                            scriptId: scriptId,
-                            container: container,
-                            audioService: audioService
-                        )
-                    case .scriptInput:
-                        ScriptInputView()
+                        MemorizationView(scriptId: scriptId)
+                    case .scriptInput(let initialText):
+                        ScriptInputView(initialText: initialText)
                     case .home:
                         HomeView()
                     }
@@ -109,4 +105,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environment(DatabaseContainer.getForPreview())
 }
