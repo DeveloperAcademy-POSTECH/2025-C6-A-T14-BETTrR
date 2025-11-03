@@ -8,6 +8,7 @@ struct ScriptsSectionView: View {
     
     @State private var selectedPhoto: PhotosPickerItem? = nil
     @State private var showingPhotoPicker = false
+    @State private var showingOptions = false
     private let textRecognitionService = TextRecognitionService()
     
     var body: some View {
@@ -34,17 +35,7 @@ struct ScriptsSectionView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 16) {
-                    Menu {
-                        Button(action: { showingPhotoPicker = true }) {
-                            Label("사진 보관함", systemImage: "photo")
-                        }
-                        Button(action: {}) {
-                            Label("사진 찍기", systemImage: "camera")
-                        }.disabled(true)
-                        Button(action: {}) {
-                            Label("파일 선택", systemImage: "doc")
-                        }.disabled(true)
-                    } label: {
+                    Button(action: { showingOptions = true }) {
                         VStack(alignment: .leading, spacing: 8) {
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
@@ -66,6 +57,30 @@ struct ScriptsSectionView: View {
                                 .frame(width: 200, alignment: .leading)
                                 .foregroundColor(.primary)
                         }
+                    }
+                    .popover(isPresented: $showingOptions, attachmentAnchor: .point(.bottom)) {
+                        VStack {
+                            Button(action: {
+                                showingOptions = false
+                                showingPhotoPicker = true
+                            }) {
+                                Label("사진 보관함", systemImage: "photo")
+                            }
+                            .padding()
+                            
+                            Button(action: {}) {
+                                Label("사진 찍기", systemImage: "camera")
+                            }
+                            .disabled(true)
+                            .padding()
+                            
+                            Button(action: {}) {
+                                Label("파일 선택", systemImage: "doc")
+                            }
+                            .disabled(true)
+                            .padding()
+                        }
+                        .padding()
                     }
                     
                     // Script Cards
