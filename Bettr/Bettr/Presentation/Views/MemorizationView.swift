@@ -328,7 +328,7 @@ struct MemorizationView: View {
         }
         .onChange(of: isPlaying) { _, isNowPlaying in
             if isNowPlaying {
-                // "재생" 버튼을 누름 (Stopped -> Playing)
+                // 재생
                 guard let scriptData = scriptData else {
                     isPlaying = false // 데이터 없으면 다시 끔
                     return
@@ -338,7 +338,6 @@ struct MemorizationView: View {
                 tappedPlaybackText = nil
             } else {
                 // "정지" 버튼을 누름 (Playing/Paused -> Stopped)
-                // (툴바에서 isPause = false도 같이 호출해줌)
                 audioService.stop()
                 tappedPlaybackText = nil
             }
@@ -348,23 +347,20 @@ struct MemorizationView: View {
             guard isPlaying else { return }
             
             if isNowPaused {
-                // "일시정지" 버튼을 누름
+                // 일시정지
                 audioService.pause()
             } else {
-                // "이어하기" 버튼을 누름
+                // 이어하기
                 audioService.resume()
             }
         }
         .onChange(of: audioService.isPlaying) { _, serviceIsPlaying in
-            // 이 로직은 오디오 서비스가 *스스로* 멈췄을 때만(재생이 끝나서)
-            // 뷰의 상태를 업데이트하기 위함입니다.
-            
+            // 오디오서지스의 상태가 스스로 바꼈을 때 (ex. 재생이 끝났을 때)
             if !serviceIsPlaying && !audioService.isPaused {
                 // 재생이 끝까지 완료됨
                 isPlaying = false
                 isPause = false
             }
-            
         }
         .onDisappear {
             audioService.stop()
