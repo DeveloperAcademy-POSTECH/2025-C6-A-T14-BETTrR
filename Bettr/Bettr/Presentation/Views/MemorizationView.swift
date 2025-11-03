@@ -6,14 +6,15 @@
 //
 
 import SwiftUI
-
+import AVFoundation
 
 struct MemorizationView: View {
     
     let scriptId: Int64
     
-    // 스크립트 fetch를 위해 필요한 프로퍼티
     @Environment(DatabaseContainer.self) var container
+    @Environment(AudioPlaybackService.self) private var audioService
+    
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var scriptData: ScriptData?
@@ -24,7 +25,11 @@ struct MemorizationView: View {
     @State private var langMode: LanguageMode = .engKor
     @State private var showWordList: Bool = false
     @State private var isPlaying: Bool = false
+    @State private var isPause: Bool = false
     @State private var showFeedbackModal: Bool = false
+    
+    // 탭해서 재생시킨 텍스트를 저장하는 변수
+    @State private var tappedPlaybackText: String? = nil
     
     // 청크 고유 식별자
     private struct ChunkIdentifier: Hashable {
@@ -122,6 +127,7 @@ struct MemorizationView: View {
                                             
                                             // 고유 ID로 숨김 상태 확인
                                             let isEngChunkHidden = hiddenEngChunks.contains(chunkID)
+                                            let isThisTapped = (tappedPlaybackText == chunk.englishText)
                                             
                                             Text(chunk.englishText)
                                                 .font(.system(size: 30))
@@ -129,6 +135,10 @@ struct MemorizationView: View {
                                                 .background(
                                                     RoundedRectangle(cornerRadius: 2)
                                                         .fill(isEngChunkHidden ? Color.primary.opacity(0.05) : Color.clear)
+                                                        .overlay(
+                                                            RoundedRectangle(cornerRadius: 2)
+                                                                .stroke(isThisTapped ? Color.primary : Color.clear, lineWidth: 1)
+                                                        )
                                                 )
                                                 .onTapGesture {
                                                     // 가리기 모드
@@ -141,7 +151,8 @@ struct MemorizationView: View {
                                                             }
                                                         }
                                                     } else { // 재생모드
-                                                        print("재생모드!")
+                                                        audioService.play(text: chunk.englishText)
+                                                        tappedPlaybackText = chunk.englishText
                                                     }
                                                 }
                                             
@@ -185,8 +196,6 @@ struct MemorizationView: View {
                                                                     hiddenKorChunks.insert(chunkID)
                                                                 }
                                                             }
-                                                        } else { // 재생모드
-                                                            print("재생모드!")
                                                         }
                                                     }
                                                 
@@ -208,6 +217,7 @@ struct MemorizationView: View {
                                 VStack(alignment: .leading, spacing: 12) {
                                     // 현재 숨김 상태인지 확인하는 변수
                                     let isEngSentenceHidden = hiddenEngSentences.contains(sentence.orderIndex)
+                                    let isThisTapped = (tappedPlaybackText == sentence.englishText)
                                     
                                     // 1. 영어 텍스트
                                     Text(sentence.englishText)
@@ -216,6 +226,10 @@ struct MemorizationView: View {
                                         .background(
                                             RoundedRectangle(cornerRadius: 2)
                                                 .fill(isEngSentenceHidden ? Color.primary.opacity(0.05) : Color.clear)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 2)
+                                                        .stroke(isThisTapped ? Color.primary : Color.clear, lineWidth: 1)
+                                                )
                                         )
                                         .onTapGesture {
                                             // 가리기 모드
@@ -228,7 +242,8 @@ struct MemorizationView: View {
                                                     }
                                                 }
                                             } else { // 재생모드
-                                                print("재생모드!")
+                                                audioService.play(text: sentence.englishText)
+                                                tappedPlaybackText = sentence.englishText
                                             }
                                         }
                                     
@@ -255,8 +270,6 @@ struct MemorizationView: View {
                                                             hiddenKorSentences.insert(sentence.orderIndex)
                                                         }
                                                     }
-                                                } else { // 재생모드
-                                                    print("재생모드!")
                                                 }
                                             }
                                     }
@@ -303,12 +316,58 @@ struct MemorizationView: View {
             if funcMode == .read {
                 clearAllHiddenStates()
             }
+            tappedPlaybackText = nil
         }
         .onChange(of: isChunkMode)  {
             clearAllHiddenStates()
+            tappedPlaybackText = nil
         }
         .onChange(of: langMode)  {
             clearAllHiddenStates()
+            tappedPlaybackText = nil
+        }
+        .onChange(of: isPlaying) { _, isNowPlaying in
+            if isNowPlaying {
+                // "재생" 버튼을 누름 (Stopped -> Playing)
+                guard let scriptData = scriptData else {
+                    isPlaying = false // 데이터 없으면 다시 끔
+                    return
+                }
+                audioService.playAll(sentences: scriptData.sentences)
+                isPause = false // 재생 시작 시 '일시정지' 상태는 해제
+                tappedPlaybackText = nil
+            } else {
+                // "정지" 버튼을 누름 (Playing/Paused -> Stopped)
+                // (툴바에서 isPause = false도 같이 호출해줌)
+                audioService.stop()
+                tappedPlaybackText = nil
+            }
+        }
+        .onChange(of: isPause) { _, isNowPaused in
+            // isPlaying이 false(정지 상태)일 때는 이 토글이 작동하면 안 됨
+            guard isPlaying else { return }
+            
+            if isNowPaused {
+                // "일시정지" 버튼을 누름
+                audioService.pause()
+            } else {
+                // "이어하기" 버튼을 누름
+                audioService.resume()
+            }
+        }
+        .onChange(of: audioService.isPlaying) { _, serviceIsPlaying in
+            // 이 로직은 오디오 서비스가 *스스로* 멈췄을 때만(재생이 끝나서)
+            // 뷰의 상태를 업데이트하기 위함입니다.
+            
+            if !serviceIsPlaying && !audioService.isPaused {
+                // 재생이 끝까지 완료됨
+                isPlaying = false
+                isPause = false
+            }
+            
+        }
+        .onDisappear {
+            audioService.stop()
         }
         .memorizationToolbar(
             title: scriptData?.title ?? "Loading...",
@@ -317,6 +376,7 @@ struct MemorizationView: View {
             languageMode: $langMode,
             isWordListOpen: $showWordList,
             isPlaying: $isPlaying,
+            isPause: $isPause,
             isFeedbackModalOpen: $showFeedbackModal,
             isRecordingDisabled: isRecordingDisabled
         )
@@ -325,7 +385,7 @@ struct MemorizationView: View {
             let referenceSentences = scriptData?.sentences.map { $0.englishText } ?? []
             RecordingView(sentences: referenceSentences)
         }
-        .onAppear { // 뷰가 나타날 때 스크립트 정보를 가져옴
+        .onAppear {
             loadScriptById()
         }
     }

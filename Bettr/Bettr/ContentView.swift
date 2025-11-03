@@ -79,6 +79,7 @@ import FirebaseAI
 
 struct ContentView: View {
     @State private var router = NavigationRouter()
+    @State private var audioService = AudioPlaybackService()
     
     var body: some View {
         NavigationStack(path: $router.path) {
@@ -96,6 +97,7 @@ struct ContentView: View {
                 }
         }
         .environment(router)
+        .environment(audioService)
     }
 }
 
