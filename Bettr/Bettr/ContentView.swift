@@ -101,4 +101,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environment(DatabaseContainer.getForPreview())
 }
