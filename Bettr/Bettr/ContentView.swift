@@ -90,7 +90,11 @@ struct ContentView: View {
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .memorization(let scriptId):
-                        MemorizationView(scriptId: scriptId)
+                        MemorizationView(
+                            scriptId: scriptId,
+                            container: container,
+                            audioService: audioService
+                        )
                     case .scriptInput(let initialText):
                         ScriptInputView(initialText: initialText)
                     case .home:
