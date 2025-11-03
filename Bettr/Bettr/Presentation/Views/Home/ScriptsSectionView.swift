@@ -108,7 +108,7 @@ struct ScriptsSectionView: View {
 
 // MARK: - Script Card Component
 
-struct ScriptCard: View {
+private struct ScriptCard: View {
     @Environment(NavigationRouter.self) var router
     
     let script: Script
