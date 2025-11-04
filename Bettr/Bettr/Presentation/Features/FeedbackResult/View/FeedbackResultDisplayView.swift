@@ -20,7 +20,7 @@ struct FeedbackResultDisplayView: View {
     
     // '완벽합니다' 메시지를 표시할지 여부를 결정
     let hasSentences: Bool
-
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -100,7 +100,7 @@ struct FeedbackResultDisplayView: View {
                                 .font(.headline)
                                 .foregroundColor(.gray)
                             
-                            buildHighlightText(from: sentenceData.diffs)
+                            HighlightedTextView(diffs: sentenceData.diffs)
                                 .font(.title3)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .multilineTextAlignment(.leading)
