@@ -9,6 +9,7 @@ import SwiftUI
 
 struct WordListOverlay: View {
     @Binding var showWordList: Bool
+    let scriptId: Int64
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -20,7 +21,7 @@ struct WordListOverlay: View {
                     }
                 }
             
-            WordkListView()
+            WordkListView(scriptId: scriptId)
                 .padding(.trailing, 16)
                 .padding(.bottom, 13)
                 .transition(.move(edge: .trailing).combined(with: .opacity))

@@ -12,11 +12,17 @@ import Combine
 class DatabaseContainer {
     let scriptRepository: ScriptRepository
     let scriptManagementService: ScriptManagementService
+    let wordExtractionService: WordExtractionService
     var scripts: [Script] = []
     
     init(database: AppDatabase) {
         self.scriptRepository = ScriptRepository(dbQueue: database.dbQueue)
         self.scriptManagementService = ScriptManagementService(scriptRepository: self.scriptRepository)
+        self.wordExtractionService = WordExtractionService(
+            dbQueue: database.dbQueue,
+            scriptRepository: scriptRepository,
+            scriptManagementService: scriptManagementService
+        )
     }
     
     func refreshScripts() {

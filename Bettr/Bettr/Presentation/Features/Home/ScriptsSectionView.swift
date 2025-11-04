@@ -83,7 +83,7 @@ struct ScriptsSectionView: View {
                     }
                     
                     // Script Cards
-                    ForEach(scripts.prefix(5)) { script in
+                    ForEach(scripts) { script in
                         ScriptCard(script: script, onDelete: {
                             requestDelete(script: script)
                         })

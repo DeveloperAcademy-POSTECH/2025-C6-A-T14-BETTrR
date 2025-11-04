@@ -6,7 +6,7 @@ import AVFoundation
 final class MemorizationViewModel {
     
     // MARK: - Dependencies (의존성)
-    private let scriptId: Int64
+    let scriptId: Int64
     private let scriptService: ScriptManagementServiceProtocol
     private let audioService: AudioPlaybackServiceProtocol
     
