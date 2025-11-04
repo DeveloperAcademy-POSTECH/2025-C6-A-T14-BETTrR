@@ -9,7 +9,6 @@ struct ScriptsSectionView: View {
     
     @State private var selectedPhoto: PhotosPickerItem? = nil
     @State private var showingPhotoPicker = false
-    @State private var showingOptions = false
     @State private var scriptToDelete: Script? = nil
     @State private var showingDeleteConfirm = false
     private let textRecognitionService = TextRecognitionService()
@@ -38,52 +37,48 @@ struct ScriptsSectionView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 16) {
-                    Button(action: { showingOptions = true }) {
-                        VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        // The complete visual look of the card
+                        ZStack {
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
                                 .foregroundColor(Color.gray.opacity(0.3))
-                                .frame(width: 200, height: 150)
+                            
+                            // Visual-only plus button
+                            Circle()
+                                .fill(Color.blue)
+                                .frame(width: 56, height: 56)
                                 .overlay(
-                                    Circle()
-                                        .fill(Color.blue)
-                                        .frame(width: 56, height: 56)
-                                        .overlay(
-                                            Image(systemName: "plus")
-                                                .font(.system(size: 24, weight: .medium))
-                                                .foregroundColor(.white)
-                                        )
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 24, weight: .medium))
+                                        .foregroundColor(.white)
                                 )
-                            Text("새 스크립트 추가")
-                                .font(.system(size: 15))
-                                .lineLimit(2)
-                                .frame(width: 200, alignment: .leading)
-                                .foregroundColor(.primary)
                         }
+                        .frame(width: 200, height: 150)
+                        
+                        Text("새 스크립트 추가")
+                            .font(.system(size: 15))
+                            .lineLimit(2)
+                            .frame(width: 200, alignment: .leading)
+                            .foregroundColor(.primary)
                     }
-                    .popover(isPresented: $showingOptions, attachmentAnchor: .point(.bottom)) {
-                        VStack {
-                            Button(action: {
-                                showingOptions = false
-                                showingPhotoPicker = true
-                            }) {
+                    .overlay(alignment: .center) {
+                        Menu {
+                            Button(action: { showingPhotoPicker = true }) {
                                 Label("사진 보관함", systemImage: "photo")
                             }
-                            .padding()
-                            
                             Button(action: {}) {
                                 Label("사진 찍기", systemImage: "camera")
-                            }
-                            .disabled(true)
-                            .padding()
-                            
+                            }.disabled(true)
                             Button(action: {}) {
                                 Label("파일 선택", systemImage: "doc")
-                            }
-                            .disabled(true)
-                            .padding()
+                            }.disabled(true)
+                        } label: {
+                            // The invisible tappable area for the menu
+                            Color.clear
+                                .frame(width: 56, height: 56)
                         }
-                        .padding()
+                        .offset(y: -28) // Position the invisible menu trigger over the visual plus button
                     }
                     
                     // Script Cards
