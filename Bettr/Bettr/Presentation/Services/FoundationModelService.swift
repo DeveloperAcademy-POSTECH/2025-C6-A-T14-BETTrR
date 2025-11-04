@@ -1,4 +1,3 @@
-
 import Foundation
 import FoundationModels
 
@@ -45,17 +44,22 @@ private let AFM_INSTRUCTIONS = """
 - 모든 lemma는 **소문자**. 최대 20개.
 """
 
+private func shouldIncludeToken(_ token: TaggedToken, seen: inout Set<String>, dropPOS: Set<String>) -> Bool {
+    if token.isNamedEntity { return false }
+    let pos = NLTaggerService.afmPOS(from: token.pos)
+    if dropPOS.contains(pos) { return false }
+    let key = token.lemma.lowercased()
+    if !seen.insert(key).inserted { return false }
+    return true
+}
+
 private func prefilterForAFM(_ tokens: [TaggedToken]) -> [TaggedToken] {
     let dropPOS: Set<String> = ["determiner","pronoun","number","interjection"]
     var seen = Set<String>()
     var out: [TaggedToken] = []
-    for t in tokens {
-        if t.isNamedEntity { continue }
-        let pos = NLTaggerService.afmPOS(from: t.pos)
-        if dropPOS.contains(pos) { continue }
-        let key = t.lemma.lowercased()
-        if seen.insert(key).inserted {
-            out.append(t)
+    for token in tokens {
+        if shouldIncludeToken(token, seen: &seen, dropPOS: dropPOS) {
+            out.append(token)
         }
         if out.count >= 120 { break }
     }

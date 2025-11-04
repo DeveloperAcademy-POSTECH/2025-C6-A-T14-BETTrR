@@ -351,7 +351,6 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = RAXCR9X83K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "텍스트 스크립트 생성을 위해 카메라 접근이 필요합니다.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "“App needs access to the microphone.”";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "스크립트 생성을 위해 사진 보관함에서 이미지를 가져오려면 권한이 필요합니다.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "“App needs access to Speech Recognition.”";
@@ -392,7 +391,6 @@
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = RAXCR9X83K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "텍스트 스크립트 생성을 위해 카메라 접근이 필요합니다.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "“App needs access to the microphone.”";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "스크립트 생성을 위해 사진 보관함에서 이미지를 가져오려면 권한이 필요합니다.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "“App needs access to Speech Recognition.”";

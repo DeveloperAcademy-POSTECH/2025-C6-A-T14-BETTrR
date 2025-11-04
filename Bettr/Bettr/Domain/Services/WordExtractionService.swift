@@ -98,19 +98,13 @@ class WordExtractionService {
         wordsToInsert: [(lemma: String, pos: String, orderIndex: Int)]
     ) throws -> Int {
         return try dbQueue.write { db in
-            // 기존 단어 확인 및 삭제 (원자적으로 처리)
-            let existingCount = try Word
-                .filter(Column("scriptId") == scriptId)
-                .fetchCount(db)
-            
-            if existingCount > 0 {
-                // 기존 단어 삭제 (중복 방지)
-                try Word
-                    .filter(Column("scriptId") == scriptId)
-                    .deleteAll(db)
+            // 기존 단어 확인 (레포지토리 활용)
+            let existing = try scriptRepository.fetchWords(forScriptId: scriptId, in: db)
+            if !existing.isEmpty {
+                try scriptRepository.deleteWords(forScriptId: scriptId, in: db)
             }
-            
-            // 새 단어 저장
+
+            // 새 단어 저장 (레포지토리 활용)
             for wordData in wordsToInsert {
                 var word = Word(
                     scriptId: scriptId,
@@ -119,9 +113,9 @@ class WordExtractionService {
                     meaning: "",
                     orderIndex: wordData.orderIndex
                 )
-                try word.save(db)
+                _ = try scriptRepository.save(word: &word, in: db)
             }
-            
+
             return wordsToInsert.count
         }
     }
@@ -129,10 +123,7 @@ class WordExtractionService {
     // 저장된 단어 가져오기 (orderIndex 오름차순)
     func fetchWords(for scriptId: Int64) throws -> [Word] {
         return try dbQueue.read { db in
-            try Word
-                .filter(Column("scriptId") == scriptId)
-                .order(Column("orderIndex"))
-                .fetchAll(db)
+            try scriptRepository.fetchWords(forScriptId: scriptId, in: db)
         }
     }
     
