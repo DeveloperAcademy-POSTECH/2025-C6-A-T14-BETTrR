@@ -10,13 +10,20 @@ import Speech
 
 struct RecordingView: View {
     @Environment(\.dismiss) var modalDismiss
+    @Environment(DatabaseContainer.self) private var container
     
     @State private var modalRouter = NavigationRouter()
     
     @StateObject private var speechRecognizer: SpeechRecognizer
     @State private var showEmptyTranscriptAlert = false
     
-    init(sentences: [String]) {
+    private let scriptId: Int64
+    
+    init(
+        scriptId: Int64,
+        sentences: [String],
+    ) {
+        self.scriptId = scriptId
         _speechRecognizer = StateObject(wrappedValue: SpeechRecognizer(sentences: sentences))
     }
     
@@ -127,17 +134,17 @@ struct RecordingView: View {
             .navigationDestination(for: ModalRoute.self) { route in
                 switch route {
                 case .feedbackResult(let result, let sentences):
-                    FeedbackResultView(feedback: result, sentences: sentences)
+                    let viewModel = FeedbackViewModel(
+                        scriptId: self.scriptId,
+                        feedbackResult: result,
+                        sentences: sentences,
+                        scriptManagementService: container.scriptManagementService
+                    )
+                    
+                    FeedbackResultView(viewModel: viewModel)
                         .environment(\.modalDismiss, modalDismiss)
                 }
             }
         }
     }
-}
-
-#Preview {
-    RecordingView(sentences: [
-        "I'm testing now.", "This is Test."
-    ])
-    .environment(NavigationRouter())
 }

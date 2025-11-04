@@ -12,6 +12,22 @@ protocol ScriptManagementServiceProtocol {
     func fetchScriptWithSentencesAndChunks(id: Int64) throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])])?
     
     func fetchScriptWithSentences(id: Int64) throws -> (script: Script, sentences: [Sentence])?
+    
+    func createFeedbackSummary(
+        scriptId: Int64,
+        totalScore: Double,
+        missingWordCount: Int,
+        addedWordCount: Int,
+        replacedWordCount: Int,
+        practiceDuration: Double,
+        feedbackDetailsData: [(
+            errorType: FeedbackErrorType,
+            originalText: String?,
+            spokenText: String?,
+            startTime: Double,
+            endTime: Double
+        )]
+    ) throws -> FeedbackSummary
 }
 
 extension ScriptManagementService: ScriptManagementServiceProtocol { }
