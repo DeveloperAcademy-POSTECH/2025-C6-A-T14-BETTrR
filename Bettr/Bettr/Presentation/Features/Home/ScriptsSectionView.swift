@@ -152,7 +152,7 @@ private struct ScriptCard: View {
     var body: some View {
         Button(action: {
             if let scriptId = script.id {
-                router.push(Route.memorization(scriptId: scriptId))
+                router.push(Route.scriptDashboard(scriptId: scriptId))
             } else {
                 // id가 nil인 경우
                 print("Error: script.id가 nil이어서 네비게이션할 수 없습니다.")

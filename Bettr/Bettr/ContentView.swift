@@ -99,6 +99,12 @@ struct ContentView: View {
                         ScriptInputView(initialText: initialText)
                     case .home:
                         HomeView()
+                    case .scriptDashboard(let scriptId):
+                        let viewModel = ScriptDashboardViewModel(
+                            scriptId: scriptId,
+                            scriptService: container.scriptManagementService
+                        )
+                        ScriptDashboardView(viewModel: viewModel)
                     }
                 }
         }
