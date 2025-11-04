@@ -11,9 +11,9 @@ final class ScriptManagementServiceTests: XCTestCase {
         super.setUp()
         
         dbQueue = try! DatabaseQueue()
-        try! setupDatabase(dbQueue)
-        scriptRepository = ScriptRepository()
-        sut = ScriptManagementService(dbQueue: dbQueue, scriptRepository: scriptRepository)
+        try! DatabaseMigrator.setupDatabase(dbQueue)
+        scriptRepository = ScriptRepository(dbQueue: dbQueue)
+        sut = ScriptManagementService(scriptRepository: scriptRepository)
     }
     
     override func tearDown() {
@@ -22,66 +22,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         dbQueue = nil
         super.tearDown()
     }
-    
-    // MARK: - Helper Methods
-    
-    private func setupDatabase(_ db: DatabaseQueue) throws {
-        try db.write { db in
-            try db.create(table: "script") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("title", .text).notNull()
-                t.column("createdAt", .datetime).notNull()
-                t.column("lastViewedAt", .datetime).notNull()
-            }
-            
-            try db.create(table: "sentence") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("scriptId", .integer).notNull()
-                    .references("script", onDelete: .cascade)
-                t.column("orderIndex", .integer).notNull()
-                t.column("englishText", .text).notNull()
-                t.column("koreanText", .text).notNull()
-            }
-            
-            try db.create(table: "chunk") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("sentenceId", .integer).notNull()
-                    .references("sentence", onDelete: .cascade)
-                t.column("orderIndex", .integer).notNull()
-                t.column("englishText", .text).notNull()
-                t.column("koreanText", .text).notNull()
-            }
 
-            try db.create(table: "practice_session") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("scriptId", .integer).notNull().references("script", onDelete: .cascade)
-                t.column("recordingPath", .text).notNull()
-                t.column("totalPresentationTime", .double).notNull()
-                t.column("createdAt", .datetime).notNull()
-            }
-
-            try db.create(table: "feedback_summary") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("practiceSessionId", .integer).notNull().references("practice_session", onDelete: .cascade).unique()
-                t.column("totalScore", .double).notNull()
-                t.column("missingWordCount", .integer).notNull()
-                t.column("addedWordCount", .integer).notNull()
-                t.column("replacedWordCount", .integer).notNull()
-                t.column("analyzedAt", .datetime).notNull()
-            }
-
-            try db.create(table: "feedback_detail") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("feedbackSummaryId", .integer).notNull().references("feedback_summary", onDelete: .cascade)
-                t.column("errorType", .text).notNull()
-                t.column("originalText", .text)
-                t.column("spokenText", .text)
-                t.column("startTime", .double).notNull()
-                t.column("endTime", .double).notNull()
-            }
-        }
-    }
-    
     // MARK: - Script Create Tests
     
     func test_createScript_whenValidScriptDataProvided_thenScriptIsCreatedSuccessfully() throws {

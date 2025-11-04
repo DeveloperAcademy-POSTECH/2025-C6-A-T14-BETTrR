@@ -12,19 +12,11 @@ import Combine
 class DatabaseContainer {
     let scriptRepository: ScriptRepository
     let scriptManagementService: ScriptManagementService
-    let practiceSessionService: PracticeSessionService
     var scripts: [Script] = []
     
     init(database: AppDatabase) {
-        self.scriptRepository = ScriptRepository()
-        self.scriptManagementService = ScriptManagementService(
-            dbQueue: database.dbQueue,
-            scriptRepository: scriptRepository
-        )
-        self.practiceSessionService = PracticeSessionService(
-            dbQueue: database.dbQueue,
-            scriptRepository: scriptRepository
-        )
+        self.scriptRepository = ScriptRepository(dbQueue: database.dbQueue)
+        self.scriptManagementService = ScriptManagementService(scriptRepository: self.scriptRepository)
     }
     
     func refreshScripts() {
