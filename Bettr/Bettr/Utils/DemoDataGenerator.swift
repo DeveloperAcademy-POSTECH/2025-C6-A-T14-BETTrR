@@ -4,9 +4,8 @@ import GRDB
 
 struct DemoDataGenerator {
     static func generate(into database: AppDatabase) throws {
-        let scriptRepository = ScriptRepository()
-        let scriptManagementService = ScriptManagementService(dbQueue: database.dbQueue, scriptRepository: scriptRepository)
-        let practiceSessionService = PracticeSessionService(dbQueue: database.dbQueue, scriptRepository: scriptRepository)
+        let scriptRepository = ScriptRepository(dbQueue: database.dbQueue)
+        let scriptManagementService = ScriptManagementService(scriptRepository: scriptRepository)
         
         // Check if demo data already exists to prevent duplicates
         let existingScripts = try scriptManagementService.fetchAllScripts()
@@ -219,25 +218,18 @@ struct DemoDataGenerator {
             let script = try scriptManagementService.createScript(scriptData: scriptData)
             guard let scriptId = script.id else { continue }
             
-            let practiceSession = try practiceSessionService.createPracticeSession(
-                scriptId: scriptId,
-                recordingPath: "/path/to/preview_recording_\(scriptId).m4a",
-                totalPresentationTime: 30.0 + Double(index * 10),
-            )
-            
-            guard let practiceSessionId = practiceSession.id else { continue }
-            
             let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
                 (errorType: .missingWord, originalText: "preview", spokenText: nil, startTime: 1.0, endTime: 1.5),
                 (errorType: .addedWord, originalText: nil, spokenText: "extra", startTime: 2.0, endTime: 2.5)
             ]
             
-            _ = try practiceSessionService.createFeedbackSummary(
-                practiceSessionId: practiceSessionId,
+            _ = try scriptManagementService.createFeedbackSummary(
+                scriptId: scriptId,
                 totalScore: 60.0 + Double(index * 10),
                 missingWordCount: 1,
                 addedWordCount: 1,
                 replacedWordCount: 0,
+                practiceDuration: 30.0 + Double(index * 10),
                 feedbackDetailsData: feedbackDetailsData
             )
         }
