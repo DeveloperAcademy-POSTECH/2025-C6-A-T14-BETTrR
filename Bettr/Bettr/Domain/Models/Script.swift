@@ -9,7 +9,7 @@ struct Script: Identifiable, Codable, FetchableRecord, MutablePersistableRecord 
     var lastViewedAt: Date
 
     static let sentences = hasMany(Sentence.self)
-    static let practiceSessions = hasMany(PracticeSession.self)
+    static let feedbackSummaries = hasMany(FeedbackSummary.self)
 
     static var databaseTableName: String = "script"
 
@@ -23,5 +23,10 @@ extension Script {
     // Script의 모든 Sentence 가져오기
     var sentencesRequest: QueryInterfaceRequest<Sentence> {
         request(for: Script.sentences)
+    }
+    
+    // Script의 모든 FeedbackSummary 가져오기
+    var feedbackSummariesRequest: QueryInterfaceRequest<FeedbackSummary> {
+        request(for: Script.feedbackSummaries)
     }
 }

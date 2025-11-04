@@ -1,83 +1,137 @@
+
 import Foundation
 import GRDB
 
 class ScriptRepository {
-    // MARK: - Script
-    func save(script: inout Script, in db: Database) throws -> Script {
-        try script.save(db)
-        return script
-    }
-    
-    func fetchScript(id: Int64, in db: Database) throws -> Script? {
-        try Script.fetchOne(db, key: id)
+    private let dbQueue: DatabaseQueue
+
+    init(dbQueue: DatabaseQueue) {
+        self.dbQueue = dbQueue
     }
 
-    func fetchAllScripts(in db: Database) throws -> [Script] {
-        try Script.fetchAll(db)
+    // MARK: - Public Methods
+
+    // MARK: Script
+    func save(script: inout Script) throws -> Script {
+        try dbQueue.write { db in
+            try script.save(db)
+            return script
+        }
     }
 
-    func deleteScript(id: Int64, in db: Database) throws {
-        let _ = try Script.deleteOne(db, key: id)
-    }
-    
-    // MARK: - Sentence
-    func save(sentence: inout Sentence, in db: Database) throws -> Sentence {
-        try sentence.save(db)
-        return sentence
-    }
-    
-    func fetchSentences(forScriptId scriptId: Int64, in db: Database) throws -> [Sentence] {
-        try Sentence
-            .filter(Column("scriptId") == scriptId)
-            .order(Column("orderIndex"))
-            .fetchAll(db)
-    }
-    
-    // MARK: - Chunk
-    func save(chunk: inout Chunk, in db: Database) throws -> Chunk {
-        try chunk.save(db)
-        return chunk
-    }
-    
-    func fetchChunks(forSentenceId sentenceId: Int64, in db: Database) throws -> [Chunk] {
-        try Chunk
-            .filter(Column("sentenceId") == sentenceId)
-            .order(Column("orderIndex"))
-            .fetchAll(db)
-    }
-    
-    // MARK: - PracticeSession
-    func save(practiceSession: inout PracticeSession, in db: Database) throws -> PracticeSession {
-        try practiceSession.save(db)
-        return practiceSession
-    }
-    
-    func fetchPracticeSession(id: Int64, in db: Database) throws -> PracticeSession? {
-        try PracticeSession.fetchOne(db, key: id)
+    func fetchScript(id: Int64) throws -> Script? {
+        try dbQueue.read { db in
+            try Script.fetchOne(db, key: id)
+        }
     }
 
-    func fetchPracticeSessions(forScriptId scriptId: Int64, in db: Database) throws -> [PracticeSession] {
-        try PracticeSession.filter(Column("scriptId") == scriptId).fetchAll(db)
+    func fetchAllScripts() throws -> [Script] {
+        try dbQueue.read { db in
+            try Script.fetchAll(db)
+        }
     }
 
-    // MARK: - FeedbackSummary
-    func save(feedbackSummary: inout FeedbackSummary, in db: Database) throws -> FeedbackSummary {
-        try feedbackSummary.save(db)
-        return feedbackSummary
+    func deleteScript(id: Int64) throws {
+        try dbQueue.write { db in
+            if try Script.deleteOne(db, key: id) == false {
+                throw ScriptRepositoryError.notFound(message: "Script with ID \(id) not found.")
+            }
+        }
+    }
+
+    // MARK: Sentence
+    func save(sentence: inout Sentence) throws -> Sentence {
+        try dbQueue.write { db in
+            try sentence.save(db)
+            return sentence
+        }
+    }
+
+    func fetchSentences(forScriptId scriptId: Int64) throws -> [Sentence] {
+        try dbQueue.read { db in
+            try Sentence
+                .filter(Column("scriptId") == scriptId)
+                .order(Column("orderIndex"))
+                .fetchAll(db)
+        }
+    }
+
+    // MARK: Chunk
+    func save(chunk: inout Chunk) throws -> Chunk {
+        try dbQueue.write { db in
+            try chunk.save(db)
+            return chunk
+        }
+    }
+
+    func fetchChunks(forSentenceId sentenceId: Int64) throws -> [Chunk] {
+        try dbQueue.read { db in
+            try Chunk
+                .filter(Column("sentenceId") == sentenceId)
+                .order(Column("orderIndex"))
+                .fetchAll(db)
+        }
+    }
+
+    // MARK: FeedbackSummary
+    func fetchAllFeedbackSummaries() throws -> [FeedbackSummary] {
+        try dbQueue.read { db in
+            try FeedbackSummary.fetchAll(db)
+        }
+    }
+
+    func fetchFeedbackSummaries(forScriptId scriptId: Int64) throws -> [FeedbackSummary] {
+        try dbQueue.read { db in
+            try FeedbackSummary.filter(Column("scriptId") == scriptId).fetchAll(db)
+        }
     }
     
-    func fetchFeedbackSummary(forPracticeSessionId practiceSessionId: Int64, in db: Database) throws -> FeedbackSummary? {
-        try FeedbackSummary.filter(Column("practiceSessionId") == practiceSessionId).fetchOne(db)
+    func createFeedbackSummaryWithDetails(
+        scriptId: Int64,
+        totalScore: Double,
+        missingWordCount: Int,
+        addedWordCount: Int,
+        replacedWordCount: Int,
+        practiceDuration: Double,
+        feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]
+    ) throws -> FeedbackSummary {
+        try dbQueue.write { db in
+            var summary = FeedbackSummary(
+                scriptId: scriptId,
+                totalScore: totalScore,
+                missingWordCount: missingWordCount,
+                addedWordCount: addedWordCount,
+                replacedWordCount: replacedWordCount,
+                practiceDuration: practiceDuration,
+                createdAt: Date()
+            )
+            try summary.save(db)
+            
+            guard let summaryId = summary.id else {
+                throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created FeedbackSummary")
+            }
+            
+            for detailData in feedbackDetailsData {
+                var detail = FeedbackDetail(
+                    feedbackSummaryId: summaryId,
+                    errorType: detailData.errorType,
+                    originalText: detailData.originalText,
+                    spokenText: detailData.spokenText,
+                    startTime: detailData.startTime,
+                    endTime: detailData.endTime
+                )
+                try detail.save(db)
+            }
+            
+            return summary
+        }
     }
 
     // MARK: - FeedbackDetail
-    func save(feedbackDetail: inout FeedbackDetail, in db: Database) throws -> FeedbackDetail {
-        try feedbackDetail.save(db)
-        return feedbackDetail
-    }
-    
-    func fetchFeedbackDetails(forFeedbackSummaryId feedbackSummaryId: Int64, in db: Database) throws -> [FeedbackDetail] {
-        try FeedbackDetail.filter(Column("feedbackSummaryId") == feedbackSummaryId).fetchAll(db)
+    func fetchFeedbackDetails(forFeedbackSummaryId feedbackSummaryId: Int64) throws -> [FeedbackDetail] {
+        try dbQueue.read { db in
+            try FeedbackDetail.filter(Column("feedbackSummaryId") == feedbackSummaryId).fetchAll(db)
+        }
     }
     
     // MARK: - Word

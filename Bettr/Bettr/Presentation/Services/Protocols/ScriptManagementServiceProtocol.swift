@@ -10,6 +10,8 @@ import GRDB
 
 protocol ScriptManagementServiceProtocol {
     func fetchScriptWithSentencesAndChunks(id: Int64) throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])])?
+    
+    func fetchScriptWithSentences(id: Int64) throws -> (script: Script, sentences: [Sentence])?
 }
 
 extension ScriptManagementService: ScriptManagementServiceProtocol { }

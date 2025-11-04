@@ -1,120 +1,126 @@
-
 import Foundation
 import GRDB
 
 class ScriptManagementService {
-    private let dbQueue: DatabaseQueue
     private let scriptRepository: ScriptRepository
 
-    init(dbQueue: DatabaseQueue, scriptRepository: ScriptRepository) {
-        self.dbQueue = dbQueue
+    init(scriptRepository: ScriptRepository) {
         self.scriptRepository = scriptRepository
     }
 
     // MARK: - Script Create
     func createScript(scriptData: ScriptData) throws -> Script {
-        try dbQueue.write { db in
-            try validateScriptData(scriptData)
+        try validateScriptData(scriptData)
 
-            var script = Script(
-                title: scriptData.title,
-                createdAt: Date(),
-                lastViewedAt: Date()
-            )
-            _ = try scriptRepository.save(script: &script, in: db)
-            
-            guard let scriptId = script.id else {
-                throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Script")
-            }
-
-            for (sentenceOrderIndex, sentenceData) in scriptData.sentences.enumerated() {
-                var sentence = Sentence(
-                    scriptId: scriptId,
-                    orderIndex: sentenceOrderIndex,
-                    englishText: sentenceData.englishText,
-                    koreanText: sentenceData.koreanText
-                )
-                _ = try scriptRepository.save(sentence: &sentence, in: db)
-                
-                guard let sentenceId = sentence.id else {
-                    throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Sentence")
-                }
-
-                for (chunkOrderIndex, chunkData) in sentenceData.chunks.enumerated() {
-                    var chunk = Chunk(
-                        sentenceId: sentenceId,
-                        orderIndex: chunkOrderIndex,
-                        englishText: chunkData.englishText,
-                        koreanText: chunkData.koreanText
-                    )
-                    _ = try scriptRepository.save(chunk: &chunk, in: db)
-                }
-            }
-            return script
+        var script = Script(
+            title: scriptData.title,
+            createdAt: Date(),
+            lastViewedAt: Date()
+        )
+        script = try scriptRepository.save(script: &script)
+        
+        guard let scriptId = script.id else {
+            throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Script")
         }
+
+        for (sentenceOrderIndex, sentenceData) in scriptData.sentences.enumerated() {
+            var sentence = Sentence(
+                scriptId: scriptId,
+                orderIndex: sentenceOrderIndex,
+                englishText: sentenceData.englishText,
+                koreanText: sentenceData.koreanText
+            )
+            sentence = try scriptRepository.save(sentence: &sentence)
+            
+            guard let sentenceId = sentence.id else {
+                throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Sentence")
+            }
+
+            for (chunkOrderIndex, chunkData) in sentenceData.chunks.enumerated() {
+                var chunk = Chunk(
+                    sentenceId: sentenceId,
+                    orderIndex: chunkOrderIndex,
+                    englishText: chunkData.englishText,
+                    koreanText: chunkData.koreanText
+                )
+                _ = try scriptRepository.save(chunk: &chunk)
+            }
+        }
+        return script
     }
     
     // MARK: - Script Read
     func fetchScript(id: Int64) throws -> Script? {
-        return try dbQueue.read { db in
-            try scriptRepository.fetchScript(id: id, in: db)
-        }
+        return try scriptRepository.fetchScript(id: id)
     }
 
     func fetchAllScripts() throws -> [Script] {
-        return try dbQueue.read { db in
-            try scriptRepository.fetchAllScripts(in: db)
-        }
+        return try scriptRepository.fetchAllScripts()
     }
     
     // MARK: - Script Read with Relations
     func fetchScriptWithSentences(id: Int64) throws -> (script: Script, sentences: [Sentence])? {
-        return try dbQueue.read { db in
-            guard let script = try scriptRepository.fetchScript(id: id, in: db) else {
-                return nil
-            }
-            let sentences = try scriptRepository.fetchSentences(forScriptId: script.id!, in: db)
-            return (script, sentences)
+        guard let script = try scriptRepository.fetchScript(id: id) else {
+            return nil
         }
+        let sentences = try scriptRepository.fetchSentences(forScriptId: script.id!)
+        return (script, sentences)
     }
 
     func fetchScriptWithSentencesAndChunks(id: Int64) throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])])? {
-        return try dbQueue.read { db in
-            guard let script = try scriptRepository.fetchScript(id: id, in: db) else {
-                return nil
-            }
-            
-            let sentences = try scriptRepository.fetchSentences(forScriptId: script.id!, in: db)
-            var sentencesWithChunks: [(sentence: Sentence, chunks: [Chunk])] = []
-            
-            for sentence in sentences {
-                let chunks = try scriptRepository.fetchChunks(forSentenceId: sentence.id!, in: db)
-                sentencesWithChunks.append((sentence: sentence, chunks: chunks))
-            }
-            
-            return (script, sentencesWithChunks)
+        guard let script = try scriptRepository.fetchScript(id: id) else {
+            return nil
         }
+        
+        let sentences = try scriptRepository.fetchSentences(forScriptId: script.id!)
+        var sentencesWithChunks: [(sentence: Sentence, chunks: [Chunk])] = []
+        
+        for sentence in sentences {
+            let chunks = try scriptRepository.fetchChunks(forSentenceId: sentence.id!)
+            sentencesWithChunks.append((sentence: sentence, chunks: chunks))
+        }
+        
+        return (script, sentencesWithChunks)
     }
 
     // MARK: - Script Update
     func updateLastViewedAt(forScriptId scriptId: Int64) throws {
-        try dbQueue.write { db in
-            guard var script = try scriptRepository.fetchScript(id: scriptId, in: db) else {
-                throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
-            }
-            script.lastViewedAt = Date()
-            try script.update(db) // Direct update for now, can be moved to repo if needed
+        guard var script = try scriptRepository.fetchScript(id: scriptId) else {
+            throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
         }
+        script.lastViewedAt = Date()
+        _ = try scriptRepository.save(script: &script)
     }
 
     // MARK: - Script Delete
     func deleteScript(id: Int64) throws {
-        try dbQueue.write { db in
-            guard let script = try scriptRepository.fetchScript(id: id, in: db) else {
-                throw ScriptRepositoryError.notFound(message: "Script with ID \(id) not found.")
-            }
-            _ = try script.delete(db)
-        }
+        try scriptRepository.deleteScript(id: id)
+    }
+
+    // MARK: - Feedback Read
+    func fetchAllFeedbackSummaries() throws -> [FeedbackSummary] {
+        try scriptRepository.fetchAllFeedbackSummaries()
+    }
+
+    // MARK: - Feedback Create
+    func createFeedbackSummary(
+        scriptId: Int64,
+        totalScore: Double,
+        missingWordCount: Int,
+        addedWordCount: Int,
+        replacedWordCount: Int,
+        practiceDuration: Double,
+        feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]
+    ) throws -> FeedbackSummary {
+        try scriptRepository.createFeedbackSummaryWithDetails(
+            scriptId: scriptId,
+            totalScore: totalScore,
+            missingWordCount: missingWordCount,
+            addedWordCount: addedWordCount,
+            replacedWordCount: replacedWordCount,
+            practiceDuration: practiceDuration,
+            feedbackDetailsData: feedbackDetailsData
+        )
     }
 
     // MARK: - Private Methods (Validation)

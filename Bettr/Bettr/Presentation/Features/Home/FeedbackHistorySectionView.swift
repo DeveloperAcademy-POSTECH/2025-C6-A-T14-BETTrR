@@ -47,24 +47,8 @@ struct FeedbackHistorySectionView: View {
     
     private func loadFeedbackSummaries() {
         do {
-            // Fetch all scripts to get their IDs, then fetch practice sessions for each script
-            let allScripts = try container.scriptManagementService.fetchAllScripts()
-            var allFeedbackSummaries: [FeedbackSummary] = []
-            
-            for script in allScripts {
-                if let scriptId = script.id {
-                    let practiceSessions = try container.practiceSessionService.fetchPracticeSessions(forScriptId: scriptId)
-                    for session in practiceSessions {
-                        if let sessionId = session.id {
-                            if let summary = try container.practiceSessionService.fetchFeedbackSummary(forPracticeSessionId: sessionId) {
-                                allFeedbackSummaries.append(summary)
-                            }
-                        }
-                    }
-                }
-            }
-            // Sort by analyzedAt in descending order to show recent feedback
-            feedbackSummaries = allFeedbackSummaries.sorted { $0.analyzedAt > $1.analyzedAt }
+            let allSummaries = try container.scriptManagementService.fetchAllFeedbackSummaries()
+            feedbackSummaries = allSummaries.sorted { $0.createdAt > $1.createdAt }
         } catch {
             errorMessage = "피드백 요약을 불러오는데 실패했습니다: \(error.localizedDescription)"
             showingError = true
@@ -76,7 +60,6 @@ struct FeedbackItemView: View {
     @Environment(DatabaseContainer.self) var container
     let feedbackSummary: FeedbackSummary
     @State private var scriptTitle: String = ""
-    @State private var practiceSessionDuration: Double = 0.0
     @State private var showingError = false
     @State private var errorMessage = ""
     
@@ -94,7 +77,7 @@ struct FeedbackItemView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(scriptTitle)
                     .font(.system(size: 16, weight: .semibold))
-                Text(formatDuration(practiceSessionDuration))
+                Text(formatDuration(feedbackSummary.practiceDuration))
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
                 Text("추가된 단어 \(feedbackSummary.addedWordCount) | 누락된 단어 \(feedbackSummary.missingWordCount) | 대체된 단어 \(feedbackSummary.replacedWordCount)")
@@ -104,7 +87,7 @@ struct FeedbackItemView: View {
             
             Spacer()
             
-            Text(formatDate(feedbackSummary.analyzedAt))
+            Text(formatDate(feedbackSummary.createdAt))
                 .font(.system(size: 14))
                 .foregroundColor(.gray)
         }
@@ -123,11 +106,8 @@ struct FeedbackItemView: View {
     
     private func loadRelatedData() {
         do {
-            if let practiceSession = try container.practiceSessionService.fetchPracticeSession(id: feedbackSummary.practiceSessionId) {
-                practiceSessionDuration = practiceSession.totalPresentationTime
-                if let script = try container.scriptManagementService.fetchScript(id: practiceSession.scriptId) {
-                    scriptTitle = script.title
-                }
+            if let script = try container.scriptManagementService.fetchScript(id: feedbackSummary.scriptId) {
+                scriptTitle = script.title
             }
         } catch {
             errorMessage = "관련 데이터를 불러오는데 실패했습니다: \(error.localizedDescription)"

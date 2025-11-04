@@ -1,9 +1,3 @@
-//
-//  DatabaseMigrator.swift
-//  Bettr
-//
-//  Created by oliver on 10/30/25.
-//
 
 import Foundation
 import GRDB
@@ -24,7 +18,6 @@ class DatabaseMigrator {
                 t.autoIncrementedPrimaryKey("id")
                 t.column("scriptId", .integer)
                     .notNull()
-                    .indexed()
                     .references(Script.databaseTableName, onDelete: .cascade)
                 t.column("orderIndex", .integer).notNull()
                 t.column("englishText", .text).notNull()
@@ -36,38 +29,24 @@ class DatabaseMigrator {
                 t.autoIncrementedPrimaryKey("id")
                 t.column("sentenceId", .integer)
                     .notNull()
-                    .indexed()
                     .references(Sentence.databaseTableName, onDelete: .cascade)
                 t.column("orderIndex", .integer).notNull()
                 t.column("englishText", .text).notNull()
                 t.column("koreanText", .text).notNull()
             }
             
-            // PracticeSession 테이블
-            try db.create(table: PracticeSession.databaseTableName, ifNotExists: true) { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("scriptId", .integer)
-                    .notNull()
-                    .indexed()
-                    .references(Script.databaseTableName, onDelete: .cascade)
-                t.column("recordingPath", .text).notNull()
-                t.column("totalPresentationTime", .double).notNull()
-                t.column("createdAt", .datetime).notNull()
-            }
-            
             // FeedbackSummary 테이블
             try db.create(table: FeedbackSummary.databaseTableName, ifNotExists: true) { t in
                 t.autoIncrementedPrimaryKey("id")
-                t.column("practiceSessionId", .integer)
+                t.column("scriptId", .integer)
                     .notNull()
-                    .unique()
-                    .indexed()
-                    .references(PracticeSession.databaseTableName, onDelete: .cascade)
+                    .references(Script.databaseTableName, onDelete: .cascade)
                 t.column("totalScore", .double).notNull()
                 t.column("missingWordCount", .integer).notNull()
                 t.column("addedWordCount", .integer).notNull()
                 t.column("replacedWordCount", .integer).notNull()
-                t.column("analyzedAt", .datetime).notNull()
+                t.column("practiceDuration", .double).notNull()
+                t.column("createdAt", .datetime).notNull()
             }
             
             // FeedbackDetail 테이블
@@ -75,7 +54,6 @@ class DatabaseMigrator {
                 t.autoIncrementedPrimaryKey("id")
                 t.column("feedbackSummaryId", .integer)
                     .notNull()
-                    .indexed()
                     .references(FeedbackSummary.databaseTableName, onDelete: .cascade)
                 t.column("errorType", .text).notNull()
                 t.column("originalText", .text)
