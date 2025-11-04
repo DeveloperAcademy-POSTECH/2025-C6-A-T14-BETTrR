@@ -4,14 +4,15 @@ import GRDB
 
 struct FeedbackSummary: Identifiable, Codable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
-    var practiceSessionId: Int64
+    var scriptId: Int64
     var totalScore: Double
     var missingWordCount: Int
     var addedWordCount: Int
     var replacedWordCount: Int
-    var analyzedAt: Date
+    var practiceDuration: Double
+    var createdAt: Date
 
-    static let practiceSession = belongsTo(PracticeSession.self)
+    static let script = belongsTo(Script.self)
     static let feedbackDetails = hasMany(FeedbackDetail.self)
 
     static var databaseTableName: String = "feedback_summary"
