@@ -10,15 +10,19 @@ struct MemorizationView: View {
     @State private var viewModel: MemorizationViewModel
     
     private var audioService: AudioPlaybackServiceProtocol
+    private let scriptManagementService: ScriptManagementServiceProtocol
     
     init(scriptId: Int64, container: DatabaseContainer, audioService: AudioPlaybackServiceProtocol) {
+        let concreteService = container.scriptManagementService
+        
         _viewModel = State(wrappedValue: MemorizationViewModel(
             scriptId: scriptId,
-            scriptService: container.scriptManagementService,
+            scriptService: concreteService,
             audioService: audioService
         ))
         
         self.audioService = audioService
+        self.scriptManagementService = concreteService
     }
     
     var body: some View {
@@ -73,7 +77,11 @@ struct MemorizationView: View {
         )
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $viewModel.showFeedbackModal) {
-            RecordingView(sentences: viewModel.referenceSentences)
+            RecordingView(
+                scriptId: viewModel.scriptId,
+                sentences: viewModel.referenceSentences,
+                scriptManagementService: self.scriptManagementService
+            )
         }
         .onAppear {
             viewModel.onAppear()

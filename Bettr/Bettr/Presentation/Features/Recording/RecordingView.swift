@@ -16,7 +16,16 @@ struct RecordingView: View {
     @StateObject private var speechRecognizer: SpeechRecognizer
     @State private var showEmptyTranscriptAlert = false
     
-    init(sentences: [String]) {
+    private let scriptId: Int64
+    private let scriptManagementService: ScriptManagementServiceProtocol
+    
+    init(
+        scriptId: Int64,
+        sentences: [String],
+        scriptManagementService: ScriptManagementServiceProtocol
+    ) {
+        self.scriptId = scriptId
+        self.scriptManagementService = scriptManagementService
         _speechRecognizer = StateObject(wrappedValue: SpeechRecognizer(sentences: sentences))
     }
     
@@ -127,17 +136,17 @@ struct RecordingView: View {
             .navigationDestination(for: ModalRoute.self) { route in
                 switch route {
                 case .feedbackResult(let result, let sentences):
-                    FeedbackResultView(feedback: result, sentences: sentences)
+                    let viewModel = FeedbackViewModel(
+                        scriptId: self.scriptId,
+                        feedbackResult: result,
+                        sentences: sentences,
+                        scriptManagementService: self.scriptManagementService
+                    )
+                    
+                    FeedbackResultView(viewModel: viewModel)
                         .environment(\.modalDismiss, modalDismiss)
                 }
             }
         }
     }
-}
-
-#Preview {
-    RecordingView(sentences: [
-        "I'm testing now.", "This is Test."
-    ])
-    .environment(NavigationRouter())
 }
