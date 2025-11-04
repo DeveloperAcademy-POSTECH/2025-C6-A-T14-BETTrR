@@ -49,13 +49,13 @@ private func prefilterForAFM(_ tokens: [TaggedToken]) -> [TaggedToken] {
     let dropPOS: Set<String> = ["determiner","pronoun","number","interjection"]
     var seen = Set<String>()
     var out: [TaggedToken] = []
-    for t in tokens {
-        if t.isNamedEntity { continue }
-        let pos = NLTaggerService.afmPOS(from: t.pos)
+    for token in tokens {
+        if token.isNamedEntity { continue }
+        let pos = NLTaggerService.afmPOS(from: token.pos)
         if dropPOS.contains(pos) { continue }
-        let key = t.lemma.lowercased()
+        let key = token.lemma.lowercased()
         if seen.insert(key).inserted {
-            out.append(t)
+            out.append(token)
         }
         if out.count >= 120 { break }
     }
