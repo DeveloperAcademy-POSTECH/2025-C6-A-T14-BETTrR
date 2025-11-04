@@ -47,7 +47,7 @@ struct MemorizationView: View {
             
             // 단어장 뷰
             if viewModel.showWordList {
-                WordListOverlay(showWordList: $viewModel.showWordList)
+                WordListOverlay(showWordList: $viewModel.showWordList, scriptId: viewModel.scriptId)
             }
         }
         .animation(.easeInOut, value: viewModel.showWordList)

@@ -29,8 +29,7 @@ struct ScriptInputView: View {
     @FocusState private var editorFocused: Bool
 
     @State private var parsedScript: ScriptData?     // Gemini 분석 후 결과 저장(추가)
-    
-    
+
     
     init(initialText: String? = nil) {
         _scriptText = State(initialValue: initialText ?? """
@@ -233,8 +232,13 @@ struct ScriptInputView: View {
                 
                 // Oliver's "스크립트 자동 저장" 기능
                 do {
-                    _ = try databaseContainer.scriptManagementService.createScript(scriptData: jsonParsed)
+                    let script = try databaseContainer.scriptManagementService.createScript(scriptData: jsonParsed)
                     print("✅ 스크립트가 성공적으로 저장되었습니다.")
+                    
+                    if let scriptId = script.id {
+                        try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
+                    }
+                    
                 } catch {
                     print("🔥 스크립트 저장 오류:", error.localizedDescription)
                 }

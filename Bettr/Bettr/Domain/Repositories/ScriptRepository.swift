@@ -133,4 +133,21 @@ class ScriptRepository {
             try FeedbackDetail.filter(Column("feedbackSummaryId") == feedbackSummaryId).fetchAll(db)
         }
     }
+    
+    // MARK: - Word
+    func save(word: inout Word, in db: Database) throws -> Word {
+        try word.save(db)
+        return word
+    }
+
+    func fetchWords(forScriptId scriptId: Int64, in db: Database) throws -> [Word] {
+        try Word
+            .filter(Column("scriptId") == scriptId)
+            .order(Column("orderIndex"))
+            .fetchAll(db)
+    }
+
+    func deleteWords(forScriptId scriptId: Int64, in db: Database) throws {
+        try Word.filter(Column("scriptId") == scriptId).deleteAll(db)
+    }
 }
