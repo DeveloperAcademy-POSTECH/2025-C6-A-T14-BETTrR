@@ -9,6 +9,7 @@ struct ScriptsSectionView: View {
     
     @State private var selectedPhoto: PhotosPickerItem? = nil
     @State private var showingPhotoPicker = false
+    @State private var isShowingCamera = false
     @State private var scriptToDelete: Script? = nil
     @State private var showingDeleteConfirm = false
     private let textRecognitionService = TextRecognitionService()
@@ -67,9 +68,9 @@ struct ScriptsSectionView: View {
                             Button(action: { showingPhotoPicker = true }) {
                                 Label("사진 보관함", systemImage: "photo")
                             }
-                            Button(action: {}) {
+                            Button(action: { isShowingCamera = true }) {
                                 Label("사진 찍기", systemImage: "camera")
-                            }.disabled(true)
+                            }
                             Button(action: {}) {
                                 Label("파일 선택", systemImage: "doc")
                             }.disabled(true)
@@ -92,20 +93,18 @@ struct ScriptsSectionView: View {
             }
         }
         .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhoto, matching: .images)
-        .onChange(of: selectedPhoto) {
-            oldValue,
-            newValue in
+        .fullScreenCover(isPresented: $isShowingCamera) {
+            ImagePicker(sourceType: .camera) { image in
+                process(image: image)
+            }
+            .ignoresSafeArea() // Correctly apply ignoresSafeArea to the SwiftUI view
+        }
+        .onChange(of: selectedPhoto) { oldValue, newValue in
             guard let item = newValue else { return }
             Task {
                 if let data = try? await item.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
-                    textRecognitionService.recognizeText(from: uiImage) { text in
-                        router.push(
-                            Route.scriptInput(
-                                initialText: text
-                            )
-                        )
-                    }
+                    process(image: uiImage)
                 }
             }
         }
@@ -132,6 +131,12 @@ struct ScriptsSectionView: View {
         } catch {
             // TODO: Handle error properly
             print("Failed to delete script: \(error)")
+        }
+    }
+    
+    private func process(image: UIImage) {
+        textRecognitionService.recognizeText(from: image) { text in
+            router.push(Route.scriptInput(initialText: text))
         }
     }
 }
