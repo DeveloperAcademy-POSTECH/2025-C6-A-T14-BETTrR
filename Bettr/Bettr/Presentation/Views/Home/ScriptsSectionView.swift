@@ -84,7 +84,7 @@ struct ScriptsSectionView: View {
                     }
                     
                     // Script Cards
-                    ForEach(scripts.prefix(5)) { script in
+                    ForEach(scripts.prefix(20)) { script in
                         ScriptCard(script: script)
                     }
                 }
@@ -92,13 +92,19 @@ struct ScriptsSectionView: View {
             }
         }
         .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhoto, matching: .images)
-        .onChange(of: selectedPhoto) { oldValue, newValue in
+        .onChange(of: selectedPhoto) {
+            oldValue,
+            newValue in
             guard let item = newValue else { return }
             Task {
                 if let data = try? await item.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
                     textRecognitionService.recognizeText(from: uiImage) { text in
-                        router.push(Route.scriptInput(initialText: text))
+                        router.push(
+                            Route.scriptInput(
+                                initialText: text
+                            )
+                        )
                     }
                 }
             }

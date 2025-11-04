@@ -142,6 +142,7 @@ struct WordkListView: View {
         do {
             // DB에서 단어 불러오기
             let fetchedWords = try container.wordExtractionService.fetchWords(for: scriptId)
+            
             self.words = fetchedWords
             
             // 번역이 안 된 단어들 번역하기
