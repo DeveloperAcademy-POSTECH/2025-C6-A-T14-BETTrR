@@ -7,18 +7,6 @@
 
 import SwiftUI
 
-// 툴바 기능 모드
-enum FunctionMode {
-    case hide   // 가리기
-    case read   // 재생
-}
-
-// 툴바 언어 모드
-enum LanguageMode {
-    case engKor   // 한/영
-    case engOnly  // 영어만
-}
-
 struct MemorizationToolbar: ViewModifier {
     
     let title: String
@@ -27,6 +15,7 @@ struct MemorizationToolbar: ViewModifier {
     @Binding var languageMode: LanguageMode
     @Binding var isWordListOpen: Bool
     @Binding var isPlaying: Bool
+    @Binding var isPause: Bool
     @Binding var isFeedbackModalOpen: Bool
     let isRecordingDisabled: Bool
     
@@ -98,13 +87,14 @@ struct MemorizationToolbar: ViewModifier {
                     if isPlaying {
                         ControlGroup {
                             Button(action: {
-                                isPlaying = false
+                                isPause.toggle()
                             }) {
-                                Image(systemName: "pause.fill")
+                                Image(systemName: isPause ? "play.fill" : "pause.fill")
                             }
                             
                             Button(action: {
                                 isPlaying = false
+                                isPause = false
                             }) {
                                 Image(systemName: "stop.fill")
                             }
@@ -140,6 +130,7 @@ extension View {
         languageMode: Binding<LanguageMode>,
         isWordListOpen: Binding<Bool>,
         isPlaying: Binding<Bool>,
+        isPause: Binding<Bool>,
         isFeedbackModalOpen: Binding<Bool>,
         isRecordingDisabled: Bool
     ) -> some View {
@@ -150,6 +141,7 @@ extension View {
             languageMode: languageMode,
             isWordListOpen: isWordListOpen,
             isPlaying: isPlaying,
+            isPause: isPause,
             isFeedbackModalOpen: isFeedbackModalOpen,
             isRecordingDisabled: isRecordingDisabled
         ))
