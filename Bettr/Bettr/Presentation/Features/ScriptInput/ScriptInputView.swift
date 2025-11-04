@@ -79,20 +79,20 @@ struct ScriptInputView: View {
             
             
             // 텍스트 입력창 (편집 비허용 상태에서는 disabled)
-            TextEditor(text: $scriptText)
-                .focused($editorFocused)
-                .disabled(!isEditing)
-                .frame(height: 300)
-                .padding()
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.gray.opacity(0.5))
-                )
-            // 시각적 힌트: 편집 모드일 때 배경을 연하게 표시
-                .background(
-                    isEditing ? Color.yellow.opacity(0.08) : Color.white
-                )                .padding(.horizontal)
-                .opacity(isEditing ? 1.0 : 0.95)
+            ScrollView {
+                TextEditor(text: $scriptText)
+                    .focused($editorFocused)
+                    .disabled(!isEditing)
+                    .padding(4) // Add some inner padding for the text
+                    .background(isEditing ? Color.yellow.opacity(0.08) : Color.clear)
+            }
+            .frame(height: 300)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray.opacity(0.5))
+            )
+            .padding(.horizontal)
+            .opacity(isEditing ? 1.0 : 0.95)
             
             // Gemini 호출 버튼
             Button(action: {
