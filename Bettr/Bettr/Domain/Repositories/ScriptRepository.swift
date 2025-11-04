@@ -33,7 +33,9 @@ class ScriptRepository {
 
     func deleteScript(id: Int64) throws {
         try dbQueue.write { db in
-            _ = try Script.deleteOne(db, key: id)
+            if try Script.deleteOne(db, key: id) == false {
+                throw ScriptRepositoryError.notFound(message: "Script with ID \(id) not found.")
+            }
         }
     }
 
