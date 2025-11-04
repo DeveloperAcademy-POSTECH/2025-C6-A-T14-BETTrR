@@ -9,14 +9,13 @@ import SwiftUI
 
 // MARK: - 피드백 결과 뷰 (ViewModel 사용)
 struct FeedbackResultView: View {
-
+    
     @State private var viewModel: FeedbackViewModel
     
     init(viewModel: FeedbackViewModel) {
-        // _viewModel의 초기값을 설정
         _viewModel = State(initialValue: viewModel)
     }
-
+    
     var body: some View {
         // viewModel.feedbackResult가 nil일 경우(ex. 분석 실패)를 대비
         guard let feedback = viewModel.feedbackResult else {
@@ -129,20 +128,19 @@ struct FeedbackResultView: View {
                 }
                 .padding()
             }
-            .navigationBarBackButtonHidden()
-            .cancelToolbar()
-            .navigationTitle("분석 결과")
-            .navigationBarTitleDisplayMode(.inline)
-            .onAppear {
-                Task {
-                    await viewModel.saveFeedbackResult()
+                .navigationBarBackButtonHidden()
+                .cancelToolbar()
+                .navigationTitle("분석 결과")
+                .navigationBarTitleDisplayMode(.inline)
+                .onAppear {
+                    Task {
+                        await viewModel.saveFeedbackResult()
+                    }
                 }
-            }
         )
     }
     
     /// WordDiff 배열을 하이라이트된 SwiftUI Text로 변환하는 헬퍼 함수
-    /// (이 함수는 상태를 갖지 않으므로 뷰에 그대로 둬도 괜찮습니다.)
     func buildHighlightText(from diffs: [WordDiff]) -> Text {
         if diffs.isEmpty {
             return Text("(발화 내용 없음)")
@@ -174,14 +172,18 @@ struct FeedbackResultView: View {
                 }
             }
             
-            var result = Text("")
-            if let first = components.first {
-                result = first
-                for component in components.dropFirst() {
-                    result = result + Text(" ") + component
-                }
+            // 1. `components` 배열에 첫 번째 요소가 있는지 확인합니다.
+            guard let first = components.first else {
+                // `diffs`가 비어있지 않다면 `components`도 비어있지 않아야 하지만,
+                // 만약의 경우를 대비해 빈 Text를 반환합니다.
+                return Text("")
             }
-            return result
+            
+            // 2. `reduce`를 사용해 배열의 나머지 요소를 첫 번째 요소에 합칩니다.
+            //    `result`는 누적된 Text, `component`는 새로 더해질 Text입니다.
+            return components.dropFirst().reduce(first) { result, component in
+                Text("\(result) \(component)")
+            }
         }
     }
 }

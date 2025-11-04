@@ -7,22 +7,11 @@
 import SwiftUI
 
 struct MemorizationView: View {
-    @State private var viewModel: MemorizationViewModel
+    @State var viewModel: MemorizationViewModel
+    @Environment(AudioPlaybackService.self) private var audioService
     
-    private var audioService: AudioPlaybackServiceProtocol
-    private let scriptManagementService: ScriptManagementServiceProtocol
-    
-    init(scriptId: Int64, container: DatabaseContainer, audioService: AudioPlaybackServiceProtocol) {
-        let concreteService = container.scriptManagementService
-        
-        _viewModel = State(wrappedValue: MemorizationViewModel(
-            scriptId: scriptId,
-            scriptService: concreteService,
-            audioService: audioService
-        ))
-        
-        self.audioService = audioService
-        self.scriptManagementService = concreteService
+    init(viewModel: MemorizationViewModel) {
+            _viewModel = State(initialValue: viewModel)
     }
     
     var body: some View {
@@ -79,8 +68,7 @@ struct MemorizationView: View {
         .fullScreenCover(isPresented: $viewModel.showFeedbackModal) {
             RecordingView(
                 scriptId: viewModel.scriptId,
-                sentences: viewModel.referenceSentences,
-                scriptManagementService: self.scriptManagementService
+                sentences: viewModel.referenceSentences
             )
         }
         .onAppear {

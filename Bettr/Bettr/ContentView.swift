@@ -89,22 +89,23 @@ struct ContentView: View {
                 .navigationTitle("Bettr")
                 .navigationDestination(for: Route.self) { route in
                     switch route {
-                    case .memorization(let scriptId):
-                        MemorizationView(
-                            scriptId: scriptId,
-                            container: container,
-                            audioService: audioService
-                        )
-                    case .scriptInput(let initialText):
-                        ScriptInputView(initialText: initialText)
                     case .home:
                         HomeView()
+                    case .scriptInput(let initialText):
+                        ScriptInputView(initialText: initialText)
                     case .scriptDashboard(let scriptId):
                         let viewModel = ScriptDashboardViewModel(
                             scriptId: scriptId,
                             scriptService: container.scriptManagementService
                         )
                         ScriptDashboardView(viewModel: viewModel)
+                    case .memorization(let scriptId):
+                        let viewModel = MemorizationViewModel(
+                                scriptId: scriptId,
+                                scriptService: container.scriptManagementService,
+                                audioService: audioService
+                            )
+                        MemorizationView(viewModel: viewModel)
                     }
                 }
         }

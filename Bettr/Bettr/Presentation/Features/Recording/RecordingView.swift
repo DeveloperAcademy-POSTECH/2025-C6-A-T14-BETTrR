@@ -10,6 +10,7 @@ import Speech
 
 struct RecordingView: View {
     @Environment(\.dismiss) var modalDismiss
+    @Environment(DatabaseContainer.self) private var container
     
     @State private var modalRouter = NavigationRouter()
     
@@ -17,15 +18,12 @@ struct RecordingView: View {
     @State private var showEmptyTranscriptAlert = false
     
     private let scriptId: Int64
-    private let scriptManagementService: ScriptManagementServiceProtocol
     
     init(
         scriptId: Int64,
         sentences: [String],
-        scriptManagementService: ScriptManagementServiceProtocol
     ) {
         self.scriptId = scriptId
-        self.scriptManagementService = scriptManagementService
         _speechRecognizer = StateObject(wrappedValue: SpeechRecognizer(sentences: sentences))
     }
     
@@ -140,7 +138,7 @@ struct RecordingView: View {
                         scriptId: self.scriptId,
                         feedbackResult: result,
                         sentences: sentences,
-                        scriptManagementService: self.scriptManagementService
+                        scriptManagementService: container.scriptManagementService
                     )
                     
                     FeedbackResultView(viewModel: viewModel)
