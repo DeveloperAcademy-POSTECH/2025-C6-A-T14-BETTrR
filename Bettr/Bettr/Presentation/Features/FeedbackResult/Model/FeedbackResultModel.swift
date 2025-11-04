@@ -22,15 +22,15 @@ enum WordDiff: Hashable {
 
 // MARK: - 분석 결과 모델
 struct FeedbackResultModel: Hashable {
-    /// 전체 스크립트에 대한 WordDiff 배열 (순서 보장)
+    // 전체 스크립트에 대한 WordDiff 배열 (순서 보장)
     let diffs: [WordDiff]
     
-    /// 전체 정확도
+    // 전체 정확도
     let accuracy: Double
     
-    /// 원본 스크립트의 총 단어 수
+    // 원본 스크립트의 총 단어 수
     let totalOriginalWords: Int
     
-    /// 총 녹음 시간
+    // 총 녹음 시간
     var totalRecordingTime: TimeInterval = 0.0
 }
