@@ -1,5 +1,5 @@
 //
-//  ScriptInputParser.swift
+//  GeminiScriptParser.swift
 //  Bettr
 //
 //  Created by 서세린 on 11/5/25.

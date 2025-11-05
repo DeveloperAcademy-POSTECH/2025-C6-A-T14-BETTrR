@@ -56,15 +56,16 @@ struct HomeView: View {
         .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhoto, matching: .images)
         .fullScreenCover(isPresented: $isShowingCamera) {
             ImagePicker(sourceType: .camera) { image in
-                process(image: image)
+                process(image: image, title: "새로운 사진")
             }
             .ignoresSafeArea()
         }
         .fileImporter(isPresented: $isShowingDocumentPicker, allowedContentTypes: [.pdf]) { result in
             switch result {
             case .success(let url):
+                let title = url.deletingPathExtension().lastPathComponent
                 if let text = pdfTextExtractor.extractText(from: url) {
-                    router.push(Route.scriptInput(initialText: text))
+                    router.push(Route.scriptConfirm(initialText: text, initialTitle: title))
                 }
             case .failure(let error):
                 print("Failed to pick file: \(error.localizedDescription)")
@@ -75,7 +76,7 @@ struct HomeView: View {
             Task {
                 if let data = try? await item.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
-                    process(image: uiImage)
+                    process(image: uiImage, title: "사진 보관함에서 가져온 스크립트")
                 }
             }
         }
@@ -104,9 +105,9 @@ struct HomeView: View {
         }
     }
     
-    private func process(image: UIImage) {
+    private func process(image: UIImage, title: String) {
         textRecognitionService.recognizeText(from: image) { text in
-            router.push(Route.scriptInput(initialText: text))
+            router.push(Route.scriptConfirm(initialText: text, initialTitle: title))
         }
     }
 }
