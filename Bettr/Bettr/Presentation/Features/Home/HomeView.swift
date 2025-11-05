@@ -11,6 +11,8 @@ struct HomeView: View {
     @State private var isShowingDocumentPicker = false
     @State private var scriptToDelete: Script? = nil
     @State private var showingDeleteConfirm = false
+    @State private var showingFileErrorAlert = false
+    @State private var fileErrorMessage = ""
     
     private let textRecognitionService = TextRecognitionService()
     private let pdfTextExtractor = PDFTextExtractor()
@@ -66,9 +68,11 @@ struct HomeView: View {
                 let title = url.deletingPathExtension().lastPathComponent
                 if let text = pdfTextExtractor.extractText(from: url) {
                     router.push(Route.scriptConfirm(initialText: text, initialTitle: title))
+                } else {
+                    showFileError(message: "PDF 파일에서 텍스트를 추출할 수 없습니다.")
                 }
             case .failure(let error):
-                print("Failed to pick file: \(error.localizedDescription)")
+                showFileError(message: "파일을 불러오는 데 실패했습니다: \(error.localizedDescription)")
             }
         }
         .onChange(of: selectedPhoto) { oldValue, newValue in
@@ -88,6 +92,16 @@ struct HomeView: View {
         } message: { script in
             Text("'\(script.title)' 스크립트를 정말 삭제하시겠습니까? 이 동작은 되돌릴 수 없습니다.")
         }
+        .alert("오류", isPresented: $showingFileErrorAlert) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text(fileErrorMessage)
+        }
+    }
+    
+    private func showFileError(message: String) {
+        fileErrorMessage = message
+        showingFileErrorAlert = true
     }
     
     private func requestDelete(script: Script) {
