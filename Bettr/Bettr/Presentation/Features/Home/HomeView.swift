@@ -17,9 +17,9 @@ struct HomeView: View {
     
     // 4-column grid layout
     private let columns: [GridItem] = [
-        GridItem(.flexible(), spacing: 20),
-        GridItem(.flexible(), spacing: 20),
-        GridItem(.flexible(), spacing: 20),
+        GridItem(.flexible(), spacing: 50),
+        GridItem(.flexible(), spacing: 50),
+        GridItem(.flexible(), spacing: 50),
         GridItem(.flexible())
     ]
     
@@ -31,12 +31,11 @@ struct HomeView: View {
                     .padding(.horizontal, 20)
                 
                 VStack {
-                    LazyVGrid(columns: columns, spacing: 20) {
-                        AddNewScriptCard(
-                            onSelectPhoto: { showingPhotoPicker = true },
-                            onTakePhoto: { isShowingCamera = true },
-                            onSelectFile: { isShowingDocumentPicker = true }
-                        )
+                    LazyVGrid(columns: columns, spacing: 20) {                                    AddNewScriptCard(
+                        onSelectPhoto: { showingPhotoPicker = true },
+                        onTakePhoto: { isShowingCamera = true },
+                        onSelectFile: { isShowingDocumentPicker = true }
+                    )
                         
                         ForEach(container.scripts) { script in
                             ScriptCard(script: script, onDelete: {
@@ -44,11 +43,10 @@ struct HomeView: View {
                             })
                         }
                     }
-                }
-                .padding(30)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(16)
-                .padding(.horizontal, 40)
+                }                .padding(30)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(16)
+                    .padding(.horizontal, 40)
             }
             .padding(.vertical)
         }
