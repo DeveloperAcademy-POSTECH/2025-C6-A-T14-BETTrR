@@ -49,13 +49,15 @@ struct ScriptDashboardTopContents: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            VStack(alignment: .leading, spacing: 20) {
-                ForEach(viewModel.scriptDashboardData?.sentences ?? [], id: \.orderIndex) { sentence in
-                    Text(sentence.englishText)
-                        .font(.system(size: 20))
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    ForEach(viewModel.scriptDashboardData?.sentences ?? [], id: \.orderIndex) { sentence in
+                        Text(sentence.englishText)
+                            .font(.system(size: 20))
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .frame(maxHeight: .infinity, alignment: .top)
             
             Button(action: {
@@ -70,7 +72,6 @@ struct ScriptDashboardTopContents: View {
                             .fill(Color.blue)
                     )
                     .glassEffect()
-                    .clipped()
             }
         }
         .padding(.vertical, 25)
