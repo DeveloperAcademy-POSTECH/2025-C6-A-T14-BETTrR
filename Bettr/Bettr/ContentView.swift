@@ -91,8 +91,9 @@ struct ContentView: View {
                     switch route {
                     case .home:
                         HomeView()
-                                case .scriptConfirm(let initialText):
-                                    ScriptConfirmView(initialText: initialText)                    case .scriptDashboard(let scriptId):
+                    case .scriptConfirm(let initialText, let initialTitle):
+                        ScriptConfirmView(initialText: initialText, initialTitle: initialTitle)
+                    case .scriptDashboard(let scriptId):
                         let viewModel = ScriptDashboardViewModel(
                             scriptId: scriptId,
                             scriptService: container.scriptManagementService
@@ -100,10 +101,10 @@ struct ContentView: View {
                         ScriptDashboardView(viewModel: viewModel)
                     case .memorization(let scriptId):
                         let viewModel = MemorizationViewModel(
-                                scriptId: scriptId,
-                                scriptService: container.scriptManagementService,
-                                audioService: audioService
-                            )
+                            scriptId: scriptId,
+                            scriptService: container.scriptManagementService,
+                            audioService: audioService
+                        )
                         MemorizationView(viewModel: viewModel)
                     }
                 }

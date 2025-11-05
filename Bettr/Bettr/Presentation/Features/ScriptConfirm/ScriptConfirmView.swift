@@ -5,12 +5,10 @@ struct ScriptConfirmView: View {
     @Environment(DatabaseContainer.self) var databaseContainer
     @Environment(NavigationRouter.self) var router
     
-    @State var scriptTitle: String = ""
-    @State var scriptContent: String = ""
+    @State var scriptTitle: String
+    @State var scriptContent: String
     @State var isLoading: Bool = false
     @State private var isEditingContent = false
-    @State private var isEditingTitle = false
-    @FocusState private var isTitleFocused: Bool
     
     // Gemini 분석 결과 임시 저장
     @State var parsedScript: ScriptData?
@@ -18,35 +16,14 @@ struct ScriptConfirmView: View {
     @State var showErrorAlert: Bool = false
     @State var errorMessage: String = ""
     
-    init(initialText: String? = nil) {
+    init(initialText: String?, initialTitle: String?) {
         _scriptContent = State(initialValue: initialText ?? "")
+        _scriptTitle = State(initialValue: initialTitle ?? "")
     }
     
     var body: some View {
         VStack(spacing: 20) {
-            // 1. 제목 입력 필드 (메모 앱처럼 동작)
-            if isEditingTitle {
-                TextField("스크립트 제목", text: $scriptTitle)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .focused($isTitleFocused)
-                    .onSubmit {
-                        isEditingTitle = false
-                    }
-                    .padding(.horizontal)
-            } else {
-                Text(scriptTitle.isEmpty ? "스크립트 제목" : scriptTitle)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(scriptTitle.isEmpty ? .gray : .primary)
-                    .padding(.horizontal)
-                    .onTapGesture {
-                        isEditingTitle = true
-                        isTitleFocused = true
-                    }
-            }
-            
-            // 2. 스크립트 내용 (메모 앱처럼 동작)
+            // 스크립트 내용 (메모 앱처럼 동작)
             if isEditingContent {
                 TextEditor(text: $scriptContent)
                     .padding(4)
@@ -71,7 +48,7 @@ struct ScriptConfirmView: View {
                 }
             }
             
-            // 3. 분석 및 저장 버튼
+            // 분석 및 저장 버튼
             Button(action: {
                 Task {
                     await callGemini()
@@ -83,7 +60,7 @@ struct ScriptConfirmView: View {
             .padding(.horizontal)
         }
         .padding()
-        .navigationTitle("스크립트 확인")
+        .navigationTitle(scriptTitle.isEmpty ? "새 스크립트" : scriptTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -189,7 +166,7 @@ private struct AnalyzeButtonLabel: View {
         That experience taught me to be brave.
         Now I know every challenge helps me grow.
         Thank you for listening.
-        """)
+        """, initialTitle: "Dewy's Speech")
         .environment(DatabaseContainer.getForPreview())
         .environment(NavigationRouter())
     }
