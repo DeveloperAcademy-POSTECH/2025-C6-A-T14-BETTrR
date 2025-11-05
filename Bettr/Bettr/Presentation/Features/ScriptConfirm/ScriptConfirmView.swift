@@ -4,6 +4,7 @@ import SwiftUI
 struct ScriptConfirmView: View {
     @Environment(DatabaseContainer.self) var databaseContainer
     @Environment(NavigationRouter.self) var router
+    @Environment(\.dismiss) private var dismiss
     
     @State var scriptTitle: String
     @State var scriptContent: String
@@ -15,6 +16,10 @@ struct ScriptConfirmView: View {
     
     @State var showErrorAlert: Bool = false
     @State var errorMessage: String = ""
+    
+    // 뒤로가기 확인 알림
+    @State private var showBackAlert: Bool = false
+    @State private var isPendingDismiss: Bool = false
     
     init(initialText: String?, initialTitle: String?) {
         _scriptContent = State(initialValue: initialText ?? "")
@@ -62,7 +67,16 @@ struct ScriptConfirmView: View {
         .padding()
         .navigationTitle(scriptTitle.isEmpty ? "새 스크립트" : scriptTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: {
+                    showBackAlert = true
+                }) {
+                    Image(systemName: "chevron.left")
+                }
+            }
+            
             ToolbarItem(placement: .navigationBarTrailing) {
                 if isEditingContent {
                     Button(action: {
@@ -74,6 +88,14 @@ struct ScriptConfirmView: View {
                     }
                 }
             }
+        }
+        .alert("진행 상황을 잃게 됩니다", isPresented: $showBackAlert) {
+            Button("취소", role: .cancel) {}
+            Button("나가기", role: .destructive) {
+                dismiss()
+            }
+        } message: {
+            Text("이 화면을 나가면 작성 중인 내용이 저장되지 않습니다.")
         }
         .alert("오류", isPresented: $showErrorAlert) {
             Button("확인", role: .cancel) {}
@@ -159,9 +181,9 @@ private struct AnalyzeButtonLabel: View {
         Hello everyone, my name is Dewy.
         Today, I want to talk about the power of challenge.
         I used to be afraid of speaking English in front of others.
-        But my teacher told me, “Mistakes are part of learning.”
+        But my teacher told me, "Mistakes are part of learning."
         So I decided to join the English speech contest.
-        At first, I was really nervous, but I didn’t give up.
+        At first, I was really nervous, but I didn't give up.
         When I finished, I felt proud of myself.
         That experience taught me to be brave.
         Now I know every challenge helps me grow.
