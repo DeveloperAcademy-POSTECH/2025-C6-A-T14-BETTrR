@@ -9,7 +9,7 @@ import SwiftUI
 import FirebaseAI
 
 // MARK: - 화면 UI
-struct ScriptInputView: View {
+struct ScriptConfirmView: View {
     @Environment(DatabaseContainer.self) var databaseContainer
 
     @State var inputscriptText: String = """
@@ -174,7 +174,7 @@ struct ScriptInputView: View {
 }
 
 #Preview {
-    ScriptInputView(initialText: nil)
+    ScriptConfirmView(initialText: nil)
         .environment(DatabaseContainer.getForPreview())
         .environment(NavigationRouter())
 }

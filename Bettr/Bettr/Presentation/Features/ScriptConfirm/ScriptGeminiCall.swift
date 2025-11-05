@@ -8,7 +8,7 @@
 import SwiftUI
 import FirebaseAI
 
-extension ScriptInputView {
+extension ScriptConfirmView {
     // MARK: - 저장 + AI 호출 (에러 분류 및 재시도 추가)
     func callGemini() async {
         // 편집 모드일 때는 호출을 막음 (안전장치)

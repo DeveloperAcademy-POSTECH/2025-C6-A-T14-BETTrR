@@ -64,7 +64,7 @@ struct HomeView: View {
             switch result {
             case .success(let url):
                 if let text = pdfTextExtractor.extractText(from: url) {
-                    router.push(Route.scriptInput(initialText: text))
+                    router.push(Route.scriptConfirm(initialText: text))
                 }
             case .failure(let error):
                 print("Failed to pick file: \(error.localizedDescription)")
@@ -106,7 +106,7 @@ struct HomeView: View {
     
     private func process(image: UIImage) {
         textRecognitionService.recognizeText(from: image) { text in
-            router.push(Route.scriptInput(initialText: text))
+            router.push(Route.scriptConfirm(initialText: text))
         }
     }
 }

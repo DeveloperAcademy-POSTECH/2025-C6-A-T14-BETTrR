@@ -91,9 +91,8 @@ struct ContentView: View {
                     switch route {
                     case .home:
                         HomeView()
-                    case .scriptInput(let initialText):
-                        ScriptInputView(initialText: initialText)
-                    case .scriptDashboard(let scriptId):
+                                case .scriptConfirm(let initialText):
+                                    ScriptConfirmView(initialText: initialText)                    case .scriptDashboard(let scriptId):
                         let viewModel = ScriptDashboardViewModel(
                             scriptId: scriptId,
                             scriptService: container.scriptManagementService
