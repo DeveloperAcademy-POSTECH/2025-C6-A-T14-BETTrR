@@ -82,6 +82,8 @@ struct HomeView: View {
                    let uiImage = UIImage(data: data) {
                     process(image: uiImage, title: "사진 보관함에서 가져온 스크립트")
                 }
+                
+                selectedPhoto = nil
             }
         }
         .alert("스크립트 삭제", isPresented: $showingDeleteConfirm, presenting: scriptToDelete) { script in
