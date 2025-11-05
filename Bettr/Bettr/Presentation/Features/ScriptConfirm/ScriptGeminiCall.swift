@@ -15,7 +15,7 @@ extension ScriptConfirmView {
         defer { isLoading = false }
         
         let maxRetry = 2 // 공식문서 참조 두 번 이하 재시도
-
+        
         //모델 초기화는 루프 밖에서 진행.
         let ai = FirebaseAI.firebaseAI(backend: .googleAI())
         let model = ai.generativeModel(modelName: "gemini-2.5-flash-lite")
@@ -38,17 +38,17 @@ extension ScriptConfirmView {
                 // 새로운 JSON 전용 프롬프트 추가
                 let prompt = """
                            당신은 20년 경력의 영어-한국어 언어 코치입니다.
-
+                           
                            # 목표
                            입력된 영어 스크립트를 문장 단위로 분할하고, 각 문장을 의미 단위 청크로 나눈 뒤 1:1로 한국어 번역을 정렬합니다.
                            또한 각 문장의 자연스러운 전체 번역을 생성합니다.
-
+                           
                            # 출력 형식 (중요)
                            - 반드시 **순수 JSON 하나만** 출력합니다.
                            - 코드펜스(json,  등), 설명, 주석, 추가 텍스트 금지.
                            - 키 이름은 DTO(ScriptData, SentenceData, ChunkData)와 동일하게 유지:
                              title, sentences[].orderIndex, sentences[].englishText, sentences[].koreanText, sentences[].chunks[].orderIndex,sentences[].chunks[].englishText, sentences[].chunks[].koreanText
-
+                           
                            # JSON 스키마
                            {
                              "title": string,
@@ -66,30 +66,29 @@ extension ScriptConfirmView {
                            1. sentences[].orderIndex는 0부터 시작하여 각 문장 순서대로 1씩 증가합니다.
                            2. 각 문장 내부의 chunks[].orderIndex도 0부터 시작하여 순서대로 1씩 증가합니다.
                            3. 인덱스는 문장과 청크의 실제 순서를 반영해야 합니다.
-
+                           
                            # 청킹 규칙 (요약)
                            1) 의미 중심 (3~8단어 권장)
                            2) S+V 결속 / 5형식은 O+OC 결속
                            3) 전치사-보어 결속
                            4) 호흡/리듬 고려
                            5) 커버리지 100% (단어/구두점 누락 금지, 순서 보존)
-
+                           
                            # 입력 스크립트
                            \(scriptContent)
                            """
                 
                 let response = try await model.generateContent(prompt)
                 guard let text = response.text else {
-//                    print("⚠️ 응답 없음")
-//                    return
+                    //                    print("⚠️ 응답 없음")
+                    //                    return
                     throw URLError(.badServerResponse) // 에러 전달
                 }
-
+                
                 print("Gemini 응답:\n\(text)")
                 
                 //    ↓ JSON 디코딩 전용 함수로 교체
                 if let jsonParsed = parseGeminiJSONToScriptData(text, fallbackTitle: "사용자 입력 스크립트") {
-                    await MainActor.run { self.parsedScript = jsonParsed }
                     print("✅ JSON 파싱 성공: \(jsonParsed.sentences.count)문장")
                     
                     // Oliver's "스크립트 자동 저장" 기능
@@ -102,8 +101,16 @@ extension ScriptConfirmView {
                         print("✅ 스크립트가 성공적으로 저장되었습니다.")
                         
                         if let scriptId = script.id {
-                            try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
-                            print("✅ 단어 추출 및 저장이 완료되었습니다.")
+                            do {
+                                try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
+                                print("✅ 단어 추출 및 저장이 완료되었습니다.")
+                            } catch WordExtractionError.deviceNotSupported {
+                                // TODO: 이 부분은 임시방편이므로, 지원되지 않는 기기임을 사용자에게 알려주는 방식으로 변경 필요
+                                print("⚠️ 단어 추출 건너뜀: 기기가 지원되지 않습니다. (Word extraction skipped: Device not supported)")
+                            } catch {
+                                print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)
+                                // 다른 단어 추출 오류는 메인 catch 블록으로 전파되지 않고 여기서 처리
+                            }
                             
                             // MainActor를 사용하여 UI 업데이트 (화면 이동)
                             await MainActor.run {
@@ -122,10 +129,10 @@ extension ScriptConfirmView {
                 } else {
                     throw URLError(.cannotParseResponse)
                 }
-                    
-//                } else {
-//                    print("⚠️ JSON 디코딩 실패")
-//                }
+                
+                //                } else {
+                //                    print("⚠️ JSON 디코딩 실패")
+                //                }
             } catch {
                 //                print("🔥 FirebaseAI 오류:", error.localizedDescription)
                 // ✅ [개선] 에러 상세 정보 로깅 추가

@@ -4,18 +4,14 @@ import SwiftUI
 struct ScriptConfirmView: View {
     @Environment(DatabaseContainer.self) var databaseContainer
     @Environment(NavigationRouter.self) var router
-
+    
     @State var scriptTitle: String = ""
     @State var scriptContent: String = ""
     @State var isLoading: Bool = false
     @State private var isEditingContent = false
     @State private var isEditingTitle = false
     @FocusState private var isTitleFocused: Bool
-
-    // Gemini 분석 결과 임시 저장
-    // .onChange에서 이 값을 감지하여 저장 및 화면 이동
-    @State var parsedScript: ScriptData?
-
+    
     @State var showErrorAlert: Bool = false
     @State var errorMessage: String = ""
     
@@ -46,7 +42,7 @@ struct ScriptConfirmView: View {
                         isTitleFocused = true
                     }
             }
-
+            
             // 2. 스크립트 내용 (메모 앱처럼 동작)
             if isEditingContent {
                 TextEditor(text: $scriptContent)
@@ -104,44 +100,6 @@ struct ScriptConfirmView: View {
         } message: {
             Text(errorMessage)
         }
-        .onChange(of: parsedScript) { oldValue, newValue in
-            guard let scriptData = newValue else {
-                // Gemini 응답이 nil인 경우 (파싱 실패 등) 에러 처리
-                showErrorAlert("AI 응답을 처리할 수 없습니다.\n\n다시 시도해주세요.")
-                return
-            }
-            saveAndNavigate(with: scriptData)
-        }
-    }
-    
-    // MARK: - 저장 및 화면 이동
-    private func saveAndNavigate(with scriptData: ScriptData) {
-        Task {
-            do {
-                // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
-                let finalTitle = scriptTitle.isEmpty ? scriptData.title : scriptTitle
-                let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
-                
-                let script = try databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
-                print("✅ 스크립트가 성공적으로 저장되었습니다.")
-                
-                if let scriptId = script.id {
-                    try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
-                    print("✅ 단어 추출 및 저장이 완료되었습니다.")
-                    
-                    // MainActor를 사용하여 UI 업데이트 (화면 이동)
-                    await MainActor.run {
-                        router.push(Route.memorization(scriptId: scriptId))
-                    }
-                }
-            }
-            catch {
-                print("🔥 스크립트 저장 또는 화면 이동 오류:", error.localizedDescription)
-                await MainActor.run {
-                    showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
-                }
-            }
-        }
     }
     
     // MARK: - 사용자 알림 (UI Thread 전환)
@@ -189,7 +147,7 @@ private struct AnalyzeButtonLabel: View {
         Now I know every challenge helps me grow.
         Thank you for listening.
         """)
-            .environment(DatabaseContainer.getForPreview())
-            .environment(NavigationRouter())
+        .environment(DatabaseContainer.getForPreview())
+        .environment(NavigationRouter())
     }
 }
