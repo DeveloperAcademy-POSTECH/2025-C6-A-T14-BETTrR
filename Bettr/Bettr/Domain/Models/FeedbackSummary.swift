@@ -2,7 +2,7 @@
 import Foundation
 import GRDB
 
-struct FeedbackSummary: Identifiable, Codable, FetchableRecord, MutablePersistableRecord {
+struct FeedbackSummary: Identifiable, Codable, Equatable, Hashable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
     var scriptId: Int64
     var totalScore: Double

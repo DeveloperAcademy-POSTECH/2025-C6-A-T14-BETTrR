@@ -101,11 +101,17 @@ struct ContentView: View {
                         ScriptDashboardView(viewModel: viewModel)
                     case .memorization(let scriptId):
                         let viewModel = MemorizationViewModel(
-                                scriptId: scriptId,
-                                scriptService: container.scriptManagementService,
-                                audioService: audioService
-                            )
+                            scriptId: scriptId,
+                            scriptService: container.scriptManagementService,
+                            audioService: audioService
+                        )
                         MemorizationView(viewModel: viewModel)
+                    case .HistoricalFeedback(let summary):
+                        let viewModel = HistoricalFeedbackViewModel(
+                            summary: summary,
+                            scriptManagementService: container.scriptManagementService
+                        )
+                        HistoricalFeedbackView(viewModel: viewModel)
                     }
                 }
         }
