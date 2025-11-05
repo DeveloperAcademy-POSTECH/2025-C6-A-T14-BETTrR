@@ -10,9 +10,11 @@ struct ScriptsSectionView: View {
     @State private var selectedPhoto: PhotosPickerItem? = nil
     @State private var showingPhotoPicker = false
     @State private var isShowingCamera = false
+    @State private var isShowingDocumentPicker = false
     @State private var scriptToDelete: Script? = nil
     @State private var showingDeleteConfirm = false
     private let textRecognitionService = TextRecognitionService()
+    private let pdfTextExtractor = PDFTextExtractor()
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -71,9 +73,9 @@ struct ScriptsSectionView: View {
                             Button(action: { isShowingCamera = true }) {
                                 Label("사진 찍기", systemImage: "camera")
                             }
-                            Button(action: {}) {
+                            Button(action: { isShowingDocumentPicker = true }) {
                                 Label("파일 선택", systemImage: "doc")
-                            }.disabled(true)
+                            }
                         } label: {
                             // The invisible tappable area for the menu
                             Color.clear
@@ -98,6 +100,20 @@ struct ScriptsSectionView: View {
                 process(image: image)
             }
             .ignoresSafeArea() // Correctly apply ignoresSafeArea to the SwiftUI view
+        }
+        .fileImporter(
+            isPresented: $isShowingDocumentPicker,
+            allowedContentTypes: [.pdf]
+        ) { result in
+            switch result {
+            case .success(let url):
+                if let text = pdfTextExtractor.extractText(from: url) {
+                    router.push(Route.scriptInput(initialText: text))
+                }
+            case .failure(let error):
+                // TODO: Handle error properly
+                print("Failed to pick file: \(error.localizedDescription)")
+            }
         }
         .onChange(of: selectedPhoto) { oldValue, newValue in
             guard let item = newValue else { return }
