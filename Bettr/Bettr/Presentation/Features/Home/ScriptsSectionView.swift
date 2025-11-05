@@ -13,76 +13,32 @@ struct ScriptsSectionView: View {
     @State private var isShowingDocumentPicker = false
     @State private var scriptToDelete: Script? = nil
     @State private var showingDeleteConfirm = false
+    
     private let textRecognitionService = TextRecognitionService()
     private let pdfTextExtractor = PDFTextExtractor()
     
+    // 4-column grid layout
+    private let columns: [GridItem] = [
+        GridItem(.flexible(), spacing: 60),
+        GridItem(.flexible(), spacing: 60),
+        GridItem(.flexible(), spacing: 60),
+        GridItem(.flexible())
+    ]
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Scripts")
-                    .font(.system(size: 25, weight: .semibold))
-                
-                Spacer()
-                
-                Button(action: {
-                    // TODO: Navigate to all scripts
-                }) {
-                    HStack(spacing: 4) {
-                        Text("더보기")
-                            .font(.system(size: 15))
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 13, weight: .semibold))
-                    }
-                    .foregroundColor(.gray)
-                }
-            }
-            .padding(.horizontal, 20)
+            Text("Scripts")
+                .font(.system(size: 25, weight: .semibold))
+                .padding(.horizontal, 20)
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        // The complete visual look of the card
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
-                                .foregroundColor(Color.gray.opacity(0.3))
-                            
-                            // Visual-only plus button
-                            Circle()
-                                .fill(Color.blue)
-                                .frame(width: 56, height: 56)
-                                .overlay(
-                                    Image(systemName: "plus")
-                                        .font(.system(size: 24, weight: .medium))
-                                        .foregroundColor(.white)
-                                )
-                        }
-                        .frame(width: 200, height: 150)
-                        
-                        Text("새 스크립트 추가")
-                            .font(.system(size: 15))
-                            .lineLimit(2)
-                            .frame(width: 200, alignment: .leading)
-                            .foregroundColor(.primary)
-                    }
-                    .overlay(alignment: .center) {
-                        Menu {
-                            Button(action: { showingPhotoPicker = true }) {
-                                Label("사진 보관함", systemImage: "photo")
-                            }
-                            Button(action: { isShowingCamera = true }) {
-                                Label("사진 찍기", systemImage: "camera")
-                            }
-                            Button(action: { isShowingDocumentPicker = true }) {
-                                Label("파일 선택", systemImage: "doc")
-                            }
-                        } label: {
-                            // The invisible tappable area for the menu
-                            Color.clear
-                                .frame(width: 56, height: 56)
-                        }
-                        .offset(y: -28) // Position the invisible menu trigger over the visual plus button
-                    }
+            VStack {
+                LazyVGrid(columns: columns, spacing: 20) {
+                    // Add New Script Card
+                    AddNewScriptCard(
+                        onSelectPhoto: { showingPhotoPicker = true },
+                        onTakePhoto: { isShowingCamera = true },
+                        onSelectFile: { isShowingDocumentPicker = true }
+                    )
                     
                     // Script Cards
                     ForEach(scripts) { script in
@@ -91,27 +47,31 @@ struct ScriptsSectionView: View {
                         })
                     }
                 }
-                .padding(.horizontal, 20)
             }
+            .padding(.horizontal, 60)
+            .padding(.vertical, 30)
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            )
+            .padding(.horizontal, 40)
         }
         .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhoto, matching: .images)
         .fullScreenCover(isPresented: $isShowingCamera) {
             ImagePicker(sourceType: .camera) { image in
                 process(image: image)
             }
-            .ignoresSafeArea() // Correctly apply ignoresSafeArea to the SwiftUI view
+            .ignoresSafeArea()
         }
-        .fileImporter(
-            isPresented: $isShowingDocumentPicker,
-            allowedContentTypes: [.pdf]
-        ) { result in
+        .fileImporter(isPresented: $isShowingDocumentPicker, allowedContentTypes: [.pdf]) { result in
             switch result {
             case .success(let url):
                 if let text = pdfTextExtractor.extractText(from: url) {
                     router.push(Route.scriptInput(initialText: text))
                 }
             case .failure(let error):
-                // TODO: Handle error properly
                 print("Failed to pick file: \(error.localizedDescription)")
             }
         }
@@ -130,7 +90,7 @@ struct ScriptsSectionView: View {
             }
             Button("취소", role: .cancel) {}
         } message: { script in
-            Text("\'\(script.title)\' 스크립트를 정말 삭제하시겠습니까? 이 동작은 되돌릴 수 없습니다.")
+            Text("'\(script.title)' 스크립트를 정말 삭제하시겠습니까? 이 동작은 되돌릴 수 없습니다.")
         }
     }
     
@@ -145,7 +105,6 @@ struct ScriptsSectionView: View {
             try container.scriptManagementService.deleteScript(id: id)
             container.refreshScripts()
         } catch {
-            // TODO: Handle error properly
             print("Failed to delete script: \(error)")
         }
     }
@@ -157,8 +116,49 @@ struct ScriptsSectionView: View {
     }
 }
 
-// MARK: - Script Card Component
+// MARK: - AddNewScriptCard Component
+private struct AddNewScriptCard: View {
+    let onSelectPhoto: () -> Void
+    let onTakePhoto: () -> Void
+    let onSelectFile: () -> Void
+    
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
+                .foregroundColor(Color.gray.opacity(0.3))
+            
+            Circle()
+                .fill(Color.blue)
+                .frame(width: 56, height: 56)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundColor(.white)
+                )
+        }
+        .aspectRatio(1, contentMode: .fit) // Maintain aspect ratio
+        .contentShape(Rectangle()) // Make the whole ZStack tappable
+        .overlay {
+            Menu {
+                Button(action: onSelectPhoto) {
+                    Label("사진 보관함", systemImage: "photo")
+                }
+                Button(action: onTakePhoto) {
+                    Label("사진 찍기", systemImage: "camera")
+                }
+                Button(action: onSelectFile) {
+                    Label("파일 선택", systemImage: "doc")
+                }
+            } label: {
+                Color.clear
+            }
+        }
+    }
+}
 
+
+// MARK: - ScriptCard Component
 private struct ScriptCard: View {
     @Environment(NavigationRouter.self) var router
     
@@ -169,22 +169,18 @@ private struct ScriptCard: View {
         Button(action: {
             if let scriptId = script.id {
                 router.push(Route.scriptDashboard(scriptId: scriptId))
-            } else {
-                // id가 nil인 경우
-                print("Error: script.id가 nil이어서 네비게이션할 수 없습니다.")
             }
         }) {
             VStack(alignment: .leading, spacing: 8) {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray)
-                    .frame(width: 200, height: 150)
+                    .fill(Color.gray.opacity(0.2))
+                    .aspectRatio(1, contentMode: .fit) // Make the thumbnail square
                 
                 Text(script.title)
                     .foregroundStyle(Color.primary)
-                    .font(.system(size: 15))
+                    .font(.caption2)
                     .lineLimit(2)
-                    .frame(width: 200, alignment: .leading)
-                    .padding(.bottom, 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .contextMenu {
@@ -198,7 +194,9 @@ private struct ScriptCard: View {
 #Preview {
     let container = DatabaseContainer.getForPreview()
     
-    return ScriptsSectionView(scripts: container.scripts)
-        .environment(NavigationRouter())
-        .environment(container)
+    return ScrollView {
+        ScriptsSectionView(scripts: container.scripts)
+    }
+    .environment(NavigationRouter())
+    .environment(container)
 }

@@ -5,14 +5,9 @@ struct HomeView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 32) {
+            VStack(alignment: .leading, spacing: 24) {
                 ScriptsSectionView(scripts: container.scripts)
-                
-                FeedbackHistorySectionView()
-                
-                Spacer(minLength: 40)
             }
-            .padding(.top, 20)
         }
         .onAppear {
             container.refreshScripts()
