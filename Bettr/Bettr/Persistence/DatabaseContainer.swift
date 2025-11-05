@@ -27,7 +27,7 @@ class DatabaseContainer {
     
     func refreshScripts() {
         do {
-            self.scripts = try self.scriptManagementService.fetchAllScripts()
+            self.scripts = try self.scriptManagementService.fetchAllScripts().sorted { $0.lastViewedAt > $1.lastViewedAt }
         } catch {
             print("Failed to fetch scripts: \(error)")
         }
