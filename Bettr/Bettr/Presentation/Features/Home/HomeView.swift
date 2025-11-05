@@ -175,7 +175,7 @@ private struct ScriptCard: View {
                 Text(script.title)
                     .foregroundStyle(Color.primary)
                     .font(.caption2)
-                    .lineLimit(2)
+                    .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
