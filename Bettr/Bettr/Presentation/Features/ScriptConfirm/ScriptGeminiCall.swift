@@ -9,7 +9,6 @@ import SwiftUI
 import FirebaseAI
 
 extension ScriptConfirmView {
-    // MARK: - 저장 + AI 호출 (에러 분류 및 재시도 추가)
     func callGemini() async {
         isLoading = true
         defer { isLoading = false }
@@ -89,43 +88,8 @@ extension ScriptConfirmView {
                 
                 //    ↓ JSON 디코딩 전용 함수로 교체
                 if let jsonParsed = parseGeminiJSONToScriptData(text, fallbackTitle: "사용자 입력 스크립트") {
-                    print("✅ JSON 파싱 성공: \(jsonParsed.sentences.count)문장")
-                    
-                    // Oliver's "스크립트 자동 저장" 기능
-                    do {
-                        // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
-                        let finalTitle = self.scriptTitle.isEmpty ? jsonParsed.title : self.scriptTitle
-                        let scriptToSave = ScriptData(title: finalTitle, sentences: jsonParsed.sentences)
-                        
-                        let script = try databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
-                        print("✅ 스크립트가 성공적으로 저장되었습니다.")
-                        
-                        if let scriptId = script.id {
-                            do {
-                                try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
-                                print("✅ 단어 추출 및 저장이 완료되었습니다.")
-                            } catch WordExtractionError.deviceNotSupported {
-                                // TODO: 이 부분은 임시방편이므로, 지원되지 않는 기기임을 사용자에게 알려주는 방식으로 변경 필요
-                                print("⚠️ 단어 추출 건너뜀: 기기가 지원되지 않습니다. (Word extraction skipped: Device not supported)")
-                            } catch {
-                                print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)
-                                // 다른 단어 추출 오류는 메인 catch 블록으로 전파되지 않고 여기서 처리
-                            }
-                            
-                            // MainActor를 사용하여 UI 업데이트 (화면 이동)
-                            await MainActor.run {
-                                self.router.push(Route.memorization(scriptId: scriptId))
-                            }
-                        }
-                        
-                    } catch {
-                        print("🔥 스크립트 저장 오류:", error.localizedDescription)
-                        await MainActor.run {
-                            self.showErrorAlert("스크립트 저장에 실패했습니다.\n\n다시 시도해주세요.")
-                        }
-                    }
-                    
-                    return
+                    await MainActor.run { self.parsedScript = jsonParsed }
+                    return // 성공 시 함수 종료
                 } else {
                     throw URLError(.cannotParseResponse)
                 }

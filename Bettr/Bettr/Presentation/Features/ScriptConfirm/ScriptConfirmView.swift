@@ -12,6 +12,9 @@ struct ScriptConfirmView: View {
     @State private var isEditingTitle = false
     @FocusState private var isTitleFocused: Bool
     
+    // Gemini 분석 결과 임시 저장
+    @State var parsedScript: ScriptData?
+    
     @State var showErrorAlert: Bool = false
     @State var errorMessage: String = ""
     
@@ -99,6 +102,46 @@ struct ScriptConfirmView: View {
             Button("확인", role: .cancel) {}
         } message: {
             Text(errorMessage)
+        }
+        .onChange(of: parsedScript) { oldValue, newValue in
+            guard let scriptData = newValue else { return }
+            saveAndNavigate(with: scriptData)
+        }
+    }
+    
+    // MARK: - 저장 및 화면 이동
+    private func saveAndNavigate(with scriptData: ScriptData) {
+        Task {
+            do {
+                // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
+                let finalTitle = scriptTitle.isEmpty ? scriptData.title : scriptTitle
+                let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
+                
+                let script = try databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
+                print("✅ 스크립트가 성공적으로 저장되었습니다.")
+                
+                if let scriptId = script.id {
+                    do {
+                        try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
+                        print("✅ 단어 추출 및 저장이 완료되었습니다.")
+                    } catch WordExtractionError.deviceNotSupported {
+                        // TODO: 이 부분은 임시방편이므로, 더 나은 아키텍처로 개선 필요.
+                        print("⚠️ 단어 추출 건너뜀: 기기가 지원되지 않습니다.")
+                    } catch {
+                        print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)
+                    }
+                    
+                    // MainActor를 사용하여 UI 업데이트 (화면 이동)
+                    await MainActor.run {
+                        router.push(Route.memorization(scriptId: scriptId))
+                    }
+                }
+            } catch {
+                print("🔥 스크립트 저장 오류:", error.localizedDescription)
+                await MainActor.run {
+                    showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
+                }
+            }
         }
     }
     
