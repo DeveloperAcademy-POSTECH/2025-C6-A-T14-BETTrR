@@ -18,7 +18,7 @@ class ScriptDashboardViewModel {
     
     // 원본 데이터 (새로운 모델 타입으로 정확히 지정됨)
     var scriptDashboardData: ScriptDashboardModel?
-    
+
     // 로딩 상태
     var isLoading = false
     
@@ -42,27 +42,32 @@ class ScriptDashboardViewModel {
     func onAppear() {
         // 뷰가 나타날 때 데이터를 비동기로 로드
         Task {
-            await loadScriptWithSentencesById()
+            self.isLoading = true
+            await loadDashboardData()
         }
     }
     
     // MARK: - Private Methods (Internal Logic)
     
     @MainActor
-    private func loadScriptWithSentencesById() async {
+    private func loadDashboardData() async {
         defer {
             isLoading = false
         }
         
         do {
-            guard let fetchedData = try scriptService.fetchScriptWithSentences(id: scriptId) else {
-                errorMessage = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
-                showingError = true
-                return
-            }
+            async let scriptDataResult = scriptService.fetchScriptWithSentences(id: scriptId)
+            async let feedbackDataResult = scriptService.fetchFeedbackSummaries(forScriptId: scriptId)
             
-
-            let sentenceModelList = fetchedData.sentences.map { sentence in
+            guard let fetchedScriptData = try await scriptDataResult else {
+                            errorMessage = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
+                            showingError = true
+                            return
+                        }
+            
+            let fetchedFeedbackData = try await feedbackDataResult
+            
+            let sentenceModelList = fetchedScriptData.sentences.map { sentence in
                 ScriptDashboardSentenceModel(
                     id: sentence.id,
                     orderIndex: sentence.orderIndex,
@@ -70,9 +75,22 @@ class ScriptDashboardViewModel {
                 )
             }
             
+            let feedbackModelList = fetchedFeedbackData.map { summary in
+                ScriptDashboardFeedbackModel(
+                    id: summary.id,
+                    totalScore: summary.totalScore,
+                    missingWordCount: summary.missingWordCount,
+                    addedWordCount: summary.addedWordCount,
+                    replacedWordCount: summary.replacedWordCount,
+                    practiceDuration: summary.practiceDuration,
+                    createdAt: summary.createdAt
+                )
+            }
+            
             self.scriptDashboardData = ScriptDashboardModel(
-                title: fetchedData.script.title,
-                sentences: sentenceModelList
+                title: fetchedScriptData.script.title,
+                sentences: sentenceModelList,
+                feedbacks: feedbackModelList
             )
             
         } catch {
