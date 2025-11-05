@@ -11,12 +11,6 @@ import FirebaseAI
 extension ScriptConfirmView {
     // MARK: - 저장 + AI 호출 (에러 분류 및 재시도 추가)
     func callGemini() async {
-        // 편집 모드일 때는 호출을 막음 (안전장치)
-        if isEditing {
-            print("편집 중에는 Gemini 호출이 비활성화되어 있습니다.")
-            return
-        }
-        
         isLoading = true
         defer { isLoading = false }
         
@@ -100,15 +94,28 @@ extension ScriptConfirmView {
                     
                     // Oliver's "스크립트 자동 저장" 기능
                     do {
-                        let script = try databaseContainer.scriptManagementService.createScript(scriptData: jsonParsed)
+                        // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
+                        let finalTitle = self.scriptTitle.isEmpty ? jsonParsed.title : self.scriptTitle
+                        let scriptToSave = ScriptData(title: finalTitle, sentences: jsonParsed.sentences)
+                        
+                        let script = try databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
                         print("✅ 스크립트가 성공적으로 저장되었습니다.")
                         
                         if let scriptId = script.id {
                             try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
+                            print("✅ 단어 추출 및 저장이 완료되었습니다.")
+                            
+                            // MainActor를 사용하여 UI 업데이트 (화면 이동)
+                            await MainActor.run {
+                                self.router.push(Route.memorization(scriptId: scriptId))
+                            }
                         }
                         
                     } catch {
                         print("🔥 스크립트 저장 오류:", error.localizedDescription)
+                        await MainActor.run {
+                            self.showErrorAlert("스크립트 저장에 실패했습니다.\n\n다시 시도해주세요.")
+                        }
                     }
                     
                     return

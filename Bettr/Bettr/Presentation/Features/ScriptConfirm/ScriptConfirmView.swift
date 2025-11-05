@@ -1,25 +1,23 @@
-//
-//  ScriptInputView.swift
-//  Bettr
-//
-//  Created by 서세린 on 10/28/25.
-//
-
 import SwiftUI
-import FirebaseAI
 
 // MARK: - 화면 UI
 struct ScriptConfirmView: View {
     @Environment(DatabaseContainer.self) var databaseContainer
+    @Environment(NavigationRouter.self) var router
 
+    @State var scriptTitle: String = ""
     @State var scriptContent: String = ""
-    @State var isLoading: Bool = false              // FirebaseAI 호출 중 로딩 상태
-    @State  var isEditing: Bool = false
-    @FocusState var editorFocused: Bool
+    @State var isLoading: Bool = false
+    @State private var isEditingContent = false
+    @State private var isEditingTitle = false
+    @FocusState private var isTitleFocused: Bool
 
-    @State var parsedScript: ScriptData?     // Gemini 분석 후 결과 저장(추가)
-    @State var showErrorAlert: Bool = false         // 🆕 추가: 사용자 에러 알림
-    @State var errorMessage: String = ""            // 🆕 추가: Alert에 표시될 메시지
+    // Gemini 분석 결과 임시 저장
+    // .onChange에서 이 값을 감지하여 저장 및 화면 이동
+    @State var parsedScript: ScriptData?
+
+    @State var showErrorAlert: Bool = false
+    @State var errorMessage: String = ""
     
     init(initialText: String? = nil) {
         _scriptContent = State(initialValue: initialText ?? "")
@@ -27,119 +25,122 @@ struct ScriptConfirmView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            HStack{
-                Text("영어 스크립트를 입력하세요")
-                    .font(.headline)
-                Button(action: {
-                    // 편집 모드 토글
-                    withAnimation {
-                        isEditing.toggle()
-                        // 편집 모드 전환 시 포커스 제어
-                        editorFocused = isEditing
+            // 1. 제목 입력 필드 (메모 앱처럼 동작)
+            if isEditingTitle {
+                TextField("스크립트 제목", text: $scriptTitle)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .focused($isTitleFocused)
+                    .onSubmit {
+                        isEditingTitle = false
                     }
-                }) {
-                    Text(isEditing ? "편집 완료" : "편집")
-                        .bold()
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 16)
-                        .frame(minWidth: 90)
-                        .background(isEditing ? Color.blue : Color.gray.opacity(0.2))
-                        .foregroundColor(isEditing ? .white : .primary)
-                        .cornerRadius(8)
-                }
-                // 편집 중이면 간단 안내 텍스트
-                if isEditing {
-                    Text("편집 중..")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                    .padding(.horizontal)
+            } else {
+                Text(scriptTitle.isEmpty ? "스크립트 제목" : scriptTitle)
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(scriptTitle.isEmpty ? .gray : .primary)
+                    .padding(.horizontal)
+                    .onTapGesture {
+                        isEditingTitle = true
+                        isTitleFocused = true
+                    }
             }
-            
-            
-            // 텍스트 입력창 (편집 비허용 상태에서는 disabled)
-            ScrollView {
+
+            // 2. 스크립트 내용 (메모 앱처럼 동작)
+            if isEditingContent {
                 TextEditor(text: $scriptContent)
-                    .focused($editorFocused)
-                    .disabled(!isEditing)
-                    .padding(4) // Add some inner padding for the text
-                    .background(isEditing ? Color.yellow.opacity(0.08) : Color.clear)
+                    .padding(4)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.gray.opacity(0.5))
+                    )
+                    .padding(.horizontal)
+            } else {
+                ScrollView {
+                    Text(scriptContent)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(10)
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.gray.opacity(0.5))
+                )
+                .padding(.horizontal)
+                .onTapGesture {
+                    isEditingContent = true
+                }
             }
-            .frame(height: 300)
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color.gray.opacity(0.5))
-            )
-            .padding(.horizontal)
-            .opacity(isEditing ? 1.0 : 0.95)
             
-            // Gemini 호출 버튼
+            // 3. 분석 및 저장 버튼
             Button(action: {
                 Task {
                     await callGemini()
                 }
             }) {
-                if isLoading {
-                    ProgressView("Gemini가 분석 중...")
-                        .tint(.white)
-                } else {
-                    Text("Gemini에게 분석 요청")
-                        .bold()
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            (isEditing || isLoading || scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                            ? Color.gray
-                            : Color.blue
-                        )
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
+                AnalyzeButtonLabel(isLoading: isLoading)
             }
-            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading || isEditing)
+            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading || isEditingContent)
             .padding(.horizontal)
-            
-            // 결과 표시 (파싱 버전 삽입용)
-            if let script = parsedScript {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        ForEach(script.sentences, id: \.orderIndex) { sentence in
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("🗣️ Sentence \(sentence.orderIndex + 1)")
-                                    .font(.headline)
-                                
-                                GroupBox(label: Text("영문 문장")) {
-                                    Text(sentence.englishText)
-                                }
-                                GroupBox(label: Text("자연스러운 번역")) {
-                                    Text(sentence.koreanText)
-                                }
-                                
-                                GroupBox(label: Text("청크 매칭")) {
-                                    ForEach(sentence.chunks, id: \.orderIndex) { chunk in
-                                        VStack(alignment: .leading) {
-                                            Text("EN: \(chunk.englishText)")
-                                            Text("KR: \(chunk.koreanText)")
-                                                .foregroundColor(.secondary)
-                                        }
-                                        .padding(.vertical, 2)
-                                    }
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
-                    }
-                }
-            } else {
-                Text("아직 분석 결과가 없습니다.")
-                    .foregroundColor(.gray)
-            }
         }
         .padding()
-        // 🆕 Alert 추가
+        .navigationTitle("스크립트 확인")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if isEditingContent {
+                    Button(action: {
+                        isEditingContent = false
+                    }) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.blue)
+                    }
+                }
+            }
+        }
         .alert("오류", isPresented: $showErrorAlert) {
             Button("확인", role: .cancel) {}
         } message: {
             Text(errorMessage)
+        }
+        .onChange(of: parsedScript) { oldValue, newValue in
+            guard let scriptData = newValue else {
+                // Gemini 응답이 nil인 경우 (파싱 실패 등) 에러 처리
+                showErrorAlert("AI 응답을 처리할 수 없습니다.\n\n다시 시도해주세요.")
+                return
+            }
+            saveAndNavigate(with: scriptData)
+        }
+    }
+    
+    // MARK: - 저장 및 화면 이동
+    private func saveAndNavigate(with scriptData: ScriptData) {
+        Task {
+            do {
+                // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
+                let finalTitle = scriptTitle.isEmpty ? scriptData.title : scriptTitle
+                let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
+                
+                let script = try databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
+                print("✅ 스크립트가 성공적으로 저장되었습니다.")
+                
+                if let scriptId = script.id {
+                    try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
+                    print("✅ 단어 추출 및 저장이 완료되었습니다.")
+                    
+                    // MainActor를 사용하여 UI 업데이트 (화면 이동)
+                    await MainActor.run {
+                        router.push(Route.memorization(scriptId: scriptId))
+                    }
+                }
+            }
+            catch {
+                print("🔥 스크립트 저장 또는 화면 이동 오류:", error.localizedDescription)
+                await MainActor.run {
+                    showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
+                }
+            }
         }
     }
     
@@ -151,19 +152,44 @@ struct ScriptConfirmView: View {
     }
 }
 
+// MARK: - AnalyzeButtonLabel Component
+private struct AnalyzeButtonLabel: View {
+    @Environment(\.isEnabled) private var isEnabled
+    let isLoading: Bool
+    
+    var body: some View {
+        Group {
+            if isLoading {
+                ProgressView("Gemini가 분석 중...")
+                    .tint(.white)
+            } else {
+                Text("분석 및 암기 시작")
+                    .bold()
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(isEnabled ? Color.blue : Color.gray)
+        .foregroundColor(.white)
+        .cornerRadius(10)
+    }
+}
+
 #Preview {
-    ScriptConfirmView(initialText: """
-    Hello everyone, my name is Dewy.
-    Today, I want to talk about the power of challenge.
-    I used to be afraid of speaking English in front of others.
-    But my teacher told me, “Mistakes are part of learning.”
-    So I decided to join the English speech contest.
-    At first, I was really nervous, but I didn’t give up.
-    When I finished, I felt proud of myself.
-    That experience taught me to be brave.
-    Now I know every challenge helps me grow.
-    Thank you for listening.
-    """)
-        .environment(DatabaseContainer.getForPreview())
-        .environment(NavigationRouter())
+    NavigationStack {
+        ScriptConfirmView(initialText: """
+        Hello everyone, my name is Dewy.
+        Today, I want to talk about the power of challenge.
+        I used to be afraid of speaking English in front of others.
+        But my teacher told me, “Mistakes are part of learning.”
+        So I decided to join the English speech contest.
+        At first, I was really nervous, but I didn’t give up.
+        When I finished, I felt proud of myself.
+        That experience taught me to be brave.
+        Now I know every challenge helps me grow.
+        Thank you for listening.
+        """)
+            .environment(DatabaseContainer.getForPreview())
+            .environment(NavigationRouter())
+    }
 }
