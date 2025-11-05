@@ -100,43 +100,7 @@ struct ScriptDashboardBottomContents: View {
                         let recentFeedbacks = sortedFeedbacks.prefix(4)
                         
                         // 왼쪽 섹션
-                        VStack(spacing: 16) {
-                            Text("누적 피드백")
-                                .padding(.vertical, 25)
-                                .padding(.horizontal, 40)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.primary.opacity(0.05))
-                                )
-                                
-                            
-                            HStack(spacing: 16) {
-                                VStack(spacing: 16) {
-                                    Text("총점 변화")
-                                    Text("0")
-                                }
-                                .padding(.vertical, 25)
-                                .padding(.horizontal, 40)
-                                .frame(maxWidth: .infinity)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.primary.opacity(0.05))
-                                )
-                                
-                                VStack(spacing: 16) {
-                                    Text("누적 피드백")
-                                    Text("0")
-                                }
-                                .padding(.vertical, 25)
-                                .padding(.horizontal, 40)
-                                .frame(maxWidth: .infinity)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .fill(Color.primary.opacity(0.05))
-                                )
-                            }
-                        }
+                        FeedbackHistoryGraphAndStatistics(feedback: sortedFeedbacks)
                         .padding(.horizontal, 20)
                         .frame(width: geometry.size.width * 0.5)
                         
@@ -170,6 +134,50 @@ struct ScriptDashboardBottomContents: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.primary.opacity(0.05))
                         .strokeBorder(Color.primary.opacity(0.5), lineWidth: 1)
+                )
+            }
+        }
+    }
+}
+
+struct FeedbackHistoryGraphAndStatistics: View {
+    let feedback: [FeedbackSummary]
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("그래프")
+                .padding(.vertical, 25)
+                .padding(.horizontal, 40)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.05))
+                )
+                
+            
+            HStack(spacing: 16) {
+                VStack(spacing: 16) {
+                    Text("많이 틀린 단어")
+                    Text("단어")
+                }
+                .padding(.vertical, 25)
+                .padding(.horizontal, 40)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.05))
+                )
+                
+                VStack(spacing: 16) {
+                    Text("누적 피드백")
+                    Text("\(feedback.count)")
+                }
+                .padding(.vertical, 25)
+                .padding(.horizontal, 40)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.05))
                 )
             }
         }
