@@ -11,7 +11,7 @@ import Foundation
 struct ScriptDashboardModel: Hashable {
     let title: String
     let sentences: [ScriptDashboardSentenceModel]
-    let feedbacks: [ScriptDashboardFeedbackModel]
+    let feedbacks: [FeedbackSummary]
 }
 
 /// 대시보드 뷰에서 사용할 문장 데이터 모델
@@ -19,15 +19,4 @@ struct ScriptDashboardSentenceModel: Hashable, Identifiable {
     let id: Int64?
     let orderIndex: Int
     let englishText: String
-}
-
-/// 대시보드 뷰에서 사용할 피드백 히스토리 데이터 모델
-struct ScriptDashboardFeedbackModel: Hashable, Identifiable {
-    var id: Int64?
-    var totalScore: Double
-    var missingWordCount: Int
-    var addedWordCount: Int
-    var replacedWordCount: Int
-    var practiceDuration: Double
-    var createdAt: Date
 }

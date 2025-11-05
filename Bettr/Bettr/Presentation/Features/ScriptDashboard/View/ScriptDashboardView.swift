@@ -84,6 +84,7 @@ struct ScriptDashboardTopContents: View {
 }
 
 struct ScriptDashboardBottomContents: View {
+    @Environment(NavigationRouter.self) var router
     var viewModel: ScriptDashboardViewModel
     
     var body: some View {
@@ -141,7 +142,12 @@ struct ScriptDashboardBottomContents: View {
                         // 오른쪽 섹션
                         VStack(alignment: .leading, spacing: 20) {
                             ForEach(recentFeedbacks, id: \.createdAt) { feedback in
-                                FeedbackSummaryCard(feedback: feedback)
+                                Button(action: {
+                                   router.push(Route.HistoricalFeedback(summary: feedback))
+                                }) {
+                                    FeedbackSummaryCard(feedback: feedback)
+                                }
+                                .foregroundStyle(Color.primary)
                             }
                         }
                         .padding(.horizontal, 20)
@@ -170,7 +176,7 @@ struct ScriptDashboardBottomContents: View {
 }
 
 struct FeedbackSummaryCard: View {
-    let feedback: ScriptDashboardFeedbackModel
+    let feedback: FeedbackSummary
     
     private static var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -196,13 +202,13 @@ struct FeedbackSummaryCard: View {
         HStack(spacing: 10) {
             ZStack {
                 Circle().fill(Color.gray.opacity(0.5))
-                Text("\(feedback.totalScore, specifier: "%.0f")%")
+                Text("\(Int(feedback.totalScore * 100))%")
             }
             .frame(width: 60, height: 60)
             
             VStack(alignment: .leading, spacing: 5) {
                 Text(formatPracticeDuration(duration: feedback.practiceDuration))
-                Text("추가된 단어 \(feedback.addedWordCount) | 누락된 단어 \(feedback.missingWordCount) | 대체된 단어 \(feedback.replacedWordCount)")
+                Text("누락된 단어 \(feedback.missingWordCount) | 추가된 단어 \(feedback.addedWordCount) | 대체된 단어 \(feedback.replacedWordCount)")
             }
             
             Spacer()

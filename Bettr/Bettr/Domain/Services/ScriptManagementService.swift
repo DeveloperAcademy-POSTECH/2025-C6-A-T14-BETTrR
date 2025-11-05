@@ -105,6 +105,10 @@ class ScriptManagementService {
     func fetchFeedbackSummaries(forScriptId scriptId: Int64) throws -> [FeedbackSummary] {
         try scriptRepository.fetchFeedbackSummaries(forScriptId: scriptId)
     }
+    
+    func fetchFeedbackDetails(forFeedbackSummaryId feedbackSummaryId: Int64) throws -> [FeedbackDetail] {
+        try scriptRepository.fetchFeedbackDetails(forFeedbackSummaryId: feedbackSummaryId)
+    }
 
     // MARK: - Feedback Create
     func createFeedbackSummary(

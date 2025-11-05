@@ -30,6 +30,8 @@ protocol ScriptManagementServiceProtocol {
     ) throws -> FeedbackSummary
     
     func fetchFeedbackSummaries(forScriptId: Int64) throws -> [FeedbackSummary]
+    
+    func fetchFeedbackDetails(forFeedbackSummaryId feedbackSummaryId: Int64) throws -> [FeedbackDetail]
 }
 
 extension ScriptManagementService: ScriptManagementServiceProtocol { }

@@ -76,8 +76,9 @@ class ScriptDashboardViewModel {
             }
             
             let feedbackModelList = fetchedFeedbackData.map { summary in
-                ScriptDashboardFeedbackModel(
+                FeedbackSummary(
                     id: summary.id,
+                    scriptId: summary.scriptId,
                     totalScore: summary.totalScore,
                     missingWordCount: summary.missingWordCount,
                     addedWordCount: summary.addedWordCount,
