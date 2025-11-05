@@ -13,12 +13,13 @@ struct ScriptDashboardView: View {
     var body: some View {
         Group {
             if viewModel.scriptDashboardData != nil {
-                GeometryReader { geo in
+                GeometryReader { geometry in
                     VStack(alignment: .leading, spacing: 30) {
                         ScriptDashboardTopContents(viewModel: viewModel)
-                            .frame(height: geo.size.height * 0.4)
+                            .frame(height: geometry.size.height * 0.4)
+
                         ScriptDashboardBottomContents(viewModel: viewModel)
-                            .frame(height: geo.size.height * 0.6)
+                            .frame(height: geometry.size.height * 0.6)
                     }
                 }
                 .padding(.horizontal, 60)
@@ -48,13 +49,15 @@ struct ScriptDashboardTopContents: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            VStack(alignment: .leading, spacing: 20) {
-                ForEach(viewModel.scriptDashboardData?.sentences ?? [], id: \.orderIndex) { sentence in
-                    Text(sentence.englishText)
-                        .font(.system(size: 20))
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    ForEach(viewModel.scriptDashboardData?.sentences ?? [], id: \.orderIndex) { sentence in
+                        Text(sentence.englishText)
+                            .font(.system(size: 20))
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .frame(maxHeight: .infinity, alignment: .top)
             
             Button(action: {
@@ -78,25 +81,148 @@ struct ScriptDashboardTopContents: View {
                 .fill(Color.primary.opacity(0.05))
                 .strokeBorder(Color.primary.opacity(0.5), lineWidth: 1)
         )
-        .clipped()
     }
 }
 
 struct ScriptDashboardBottomContents: View {
+    @Environment(NavigationRouter.self) var router
     var viewModel: ScriptDashboardViewModel
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            
+        VStack(alignment: .leading, spacing: 16) {
+            Text("피드백 히스토리")
+                .font(.system(size: 30, weight: .bold))
+            if let feedbacks = viewModel.scriptDashboardData?.feedbacks, !feedbacks.isEmpty {
+                
+                GeometryReader { geometry in
+                    HStack(spacing: 0) {
+                        let sortedFeedbacks = feedbacks.sorted { $0.createdAt > $1.createdAt }
+                        let recentFeedbacks = sortedFeedbacks.prefix(4)
+                        
+                        // 왼쪽 섹션
+                        FeedbackHistoryGraphAndStatistics(feedback: sortedFeedbacks)
+                        .padding(.horizontal, 20)
+                        .frame(width: geometry.size.width * 0.5)
+                        
+                        // 오른쪽 섹션
+                        VStack(alignment: .leading, spacing: 20) {
+                            ForEach(recentFeedbacks, id: \.createdAt) { feedback in
+                                Button(action: {
+                                   router.push(Route.HistoricalFeedback(summary: feedback))
+                                }) {
+                                    FeedbackSummaryCard(feedback: feedback)
+                                }
+                                .foregroundStyle(Color.primary)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .frame(width: geometry.size.width * 0.5, alignment: .leading)
+                        .frame(maxHeight: .infinity, alignment: .top)
+                    }
+                }
+            }
+            else {
+                VStack {
+                    Spacer() // 텍스트를 세로 중앙에 배치
+                    Text("아직 피드백이 없습니다")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.05))
+                        .strokeBorder(Color.primary.opacity(0.5), lineWidth: 1)
+                )
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 25)
-        .padding(.horizontal, 50)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.primary.opacity(0.05))
-                .strokeBorder(Color.primary.opacity(0.5), lineWidth: 1)
-        )
+    }
+}
+
+struct FeedbackHistoryGraphAndStatistics: View {
+    let feedback: [FeedbackSummary]
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("그래프")
+                .padding(.vertical, 25)
+                .padding(.horizontal, 40)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.05))
+                )
+                
+            
+            HStack(spacing: 16) {
+                VStack(spacing: 16) {
+                    Text("많이 틀린 단어")
+                    Text("단어")
+                }
+                .padding(.vertical, 25)
+                .padding(.horizontal, 40)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.05))
+                )
+                
+                VStack(spacing: 16) {
+                    Text("누적 피드백")
+                    Text("\(feedback.count)")
+                }
+                .padding(.vertical, 25)
+                .padding(.horizontal, 40)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.05))
+                )
+            }
+        }
+    }
+}
+
+struct FeedbackSummaryCard: View {
+    let feedback: FeedbackSummary
+    
+    private static var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd"
+        formatter.locale = Locale(identifier: "ko_KR")
+        return formatter
+    }()
+    
+    private func formatPracticeDuration(duration: Double) -> String {
+        let totalSeconds = duration
+        
+        let minutes = Int(totalSeconds) / 60
+        let seconds = Int(totalSeconds) % 60
+        
+        // 밀리초 계산
+        let milliseconds = Int((totalSeconds - floor(totalSeconds)) * 100)
+        
+        // "dd:dd.dd" (mm:ss.SS) 포맷
+        return String(format: "%02d:%02d.%02d", minutes, seconds, milliseconds)
+    }
+    
+    var body: some View {
+        HStack(spacing: 10) {
+            ZStack {
+                Circle().fill(Color.gray.opacity(0.5))
+                Text("\(Int(feedback.totalScore * 100))%")
+            }
+            .frame(width: 60, height: 60)
+            
+            VStack(alignment: .leading, spacing: 5) {
+                Text(formatPracticeDuration(duration: feedback.practiceDuration))
+                Text("누락된 단어 \(feedback.missingWordCount) | 추가된 단어 \(feedback.addedWordCount) | 대체된 단어 \(feedback.replacedWordCount)")
+            }
+            
+            Spacer()
+            
+            Text(Self.dateFormatter.string(from: feedback.createdAt))
+        }
     }
 }

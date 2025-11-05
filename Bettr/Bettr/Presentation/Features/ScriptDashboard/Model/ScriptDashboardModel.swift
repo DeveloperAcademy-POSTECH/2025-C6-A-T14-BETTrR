@@ -11,6 +11,7 @@ import Foundation
 struct ScriptDashboardModel: Hashable {
     let title: String
     let sentences: [ScriptDashboardSentenceModel]
+    let feedbacks: [FeedbackSummary]
 }
 
 /// 대시보드 뷰에서 사용할 문장 데이터 모델

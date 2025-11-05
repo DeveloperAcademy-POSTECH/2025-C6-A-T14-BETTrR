@@ -59,10 +59,9 @@ class FeedbackViewModel {
     
     // MARK: - Private Properties
     private let scriptId: Int64
-    private let sentences: [String] // 청크 로직을 위해 'sentences'도 VM이 소유
+    private let sentences: [String]
     private let scriptManagementService: ScriptManagementServiceProtocol
-    private let analyzer = SpeechAnalyzer() // 청크 로직을 위해 인스턴스 소유
-    
+    private let analyzer = SpeechAnalyzer()
     
     // MARK: - Initializer
     

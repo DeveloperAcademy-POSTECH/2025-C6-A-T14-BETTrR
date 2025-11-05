@@ -106,6 +106,12 @@ struct ContentView: View {
                             audioService: audioService
                         )
                         MemorizationView(viewModel: viewModel)
+                    case .HistoricalFeedback(let summary):
+                        let viewModel = HistoricalFeedbackViewModel(
+                            summary: summary,
+                            scriptManagementService: container.scriptManagementService
+                        )
+                        HistoricalFeedbackView(viewModel: viewModel)
                     }
                 }
         }
