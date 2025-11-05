@@ -12,18 +12,7 @@ import FirebaseAI
 struct ScriptConfirmView: View {
     @Environment(DatabaseContainer.self) var databaseContainer
 
-    @State var inputscriptText: String = """
-    Hello everyone, my name is Dewy.
-    Today, I want to talk about the power of challenge.
-    I used to be afraid of speaking English in front of others.
-    But my teacher told me, “Mistakes are part of learning.”
-    So I decided to join the English speech contest.
-    At first, I was really nervous, but I didn’t give up.
-    When I finished, I felt proud of myself.
-    That experience taught me to be brave.
-    Now I know every challenge helps me grow.
-    Thank you for listening.
-    """
+    @State var scriptContent: String = ""
     @State var isLoading: Bool = false              // FirebaseAI 호출 중 로딩 상태
     @State  var isEditing: Bool = false
     @FocusState var editorFocused: Bool
@@ -33,18 +22,7 @@ struct ScriptConfirmView: View {
     @State var errorMessage: String = ""            // 🆕 추가: Alert에 표시될 메시지
     
     init(initialText: String? = nil) {
-        _inputscriptText = State(initialValue: initialText ?? """
-    Hello everyone, my name is Dewy.
-    Today, I want to talk about the power of challenge.
-    I used to be afraid of speaking English in front of others.
-    But my teacher told me, “Mistakes are part of learning.”
-    So I decided to join the English speech contest.
-    At first, I was really nervous, but I didn’t give up.
-    When I finished, I felt proud of myself.
-    That experience taught me to be brave.
-    Now I know every challenge helps me grow.
-    Thank you for listening.
-    """)
+        _scriptContent = State(initialValue: initialText ?? "")
     }
     
     var body: some View {
@@ -80,7 +58,7 @@ struct ScriptConfirmView: View {
             
             // 텍스트 입력창 (편집 비허용 상태에서는 disabled)
             ScrollView {
-                TextEditor(text: $inputscriptText)
+                TextEditor(text: $scriptContent)
                     .focused($editorFocused)
                     .disabled(!isEditing)
                     .padding(4) // Add some inner padding for the text
@@ -109,7 +87,7 @@ struct ScriptConfirmView: View {
                         .padding()
                         .frame(maxWidth: .infinity)
                         .background(
-                            (isEditing || isLoading || inputscriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            (isEditing || isLoading || scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                             ? Color.gray
                             : Color.blue
                         )
@@ -117,7 +95,7 @@ struct ScriptConfirmView: View {
                         .cornerRadius(10)
                 }
             }
-            .disabled(inputscriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading || isEditing)
+            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading || isEditing)
             .padding(.horizontal)
             
             // 결과 표시 (파싱 버전 삽입용)
@@ -174,7 +152,18 @@ struct ScriptConfirmView: View {
 }
 
 #Preview {
-    ScriptConfirmView(initialText: nil)
+    ScriptConfirmView(initialText: """
+    Hello everyone, my name is Dewy.
+    Today, I want to talk about the power of challenge.
+    I used to be afraid of speaking English in front of others.
+    But my teacher told me, “Mistakes are part of learning.”
+    So I decided to join the English speech contest.
+    At first, I was really nervous, but I didn’t give up.
+    When I finished, I felt proud of myself.
+    That experience taught me to be brave.
+    Now I know every challenge helps me grow.
+    Thank you for listening.
+    """)
         .environment(DatabaseContainer.getForPreview())
         .environment(NavigationRouter())
 }

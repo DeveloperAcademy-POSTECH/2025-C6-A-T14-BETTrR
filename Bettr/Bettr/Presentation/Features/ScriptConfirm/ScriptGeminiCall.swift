@@ -81,7 +81,7 @@ extension ScriptConfirmView {
                            5) 커버리지 100% (단어/구두점 누락 금지, 순서 보존)
 
                            # 입력 스크립트
-                           \(inputscriptText)
+                           \(scriptContent)
                            """
                 
                 let response = try await model.generateContent(prompt)
