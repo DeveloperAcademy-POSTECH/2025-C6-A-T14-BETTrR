@@ -29,7 +29,8 @@ struct ScriptInputView: View {
     @FocusState private var editorFocused: Bool
 
     @State private var parsedScript: ScriptData?     // Gemini 분석 후 결과 저장(추가)
-
+    @State private var showErrorAlert: Bool = false         // 🆕 추가: 사용자 에러 알림
+    @State private var errorMessage: String = ""            // 🆕 추가: Alert에 표시될 메시지
     
     init(initialText: String? = nil) {
         _scriptText = State(initialValue: initialText ?? """
@@ -157,9 +158,15 @@ struct ScriptInputView: View {
             }
         }
         .padding()
+        // 🆕 Alert 추가
+        .alert("오류", isPresented: $showErrorAlert) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
+        }
     }
     
-    // MARK: - 저장 + AI 호출
+    // MARK: - 저장 + AI 호출 (에러 분류 및 재시도 추가)
     func callGemini() async {
         // 편집 모드일 때는 호출을 막음 (안전장치)
         if isEditing {
@@ -170,100 +177,165 @@ struct ScriptInputView: View {
         isLoading = true
         defer { isLoading = false }
         
-        do {
-            let ai = FirebaseAI.firebaseAI(backend: .googleAI())
-            let model = ai.generativeModel(modelName: "gemini-2.5-flash-lite")
-            
-            // 새로운 JSON 전용 프롬프트 추가
-            let prompt = """
-                       당신은 20년 경력의 영어-한국어 언어 코치입니다.
+        let maxRetry = 2 // 공식문서 참조 두 번 이하 재시도
 
-                       # 목표
-                       입력된 영어 스크립트를 문장 단위로 분할하고, 각 문장을 의미 단위 청크로 나눈 뒤 1:1로 한국어 번역을 정렬합니다.
-                       또한 각 문장의 자연스러운 전체 번역을 생성합니다.
+        //모델 초기화는 루프 밖에서 진행.
+        let ai = FirebaseAI.firebaseAI(backend: .googleAI())
+        let model = ai.generativeModel(modelName: "gemini-2.5-flash-lite")
+        
+        for attempt in 1...maxRetry {
+            do {
+                // 새로운 JSON 전용 프롬프트 추가
+                let prompt = """
+                           당신은 20년 경력의 영어-한국어 언어 코치입니다.
 
-                       # 출력 형식 (중요)
-                       - 반드시 **순수 JSON 하나만** 출력합니다.
-                       - 코드펜스(json,  등), 설명, 주석, 추가 텍스트 금지.
-                       - 키 이름은 DTO(ScriptData, SentenceData, ChunkData)와 동일하게 유지:
-                         title, sentences[].orderIndex, sentences[].englishText, sentences[].koreanText, sentences[].chunks[].orderIndex,sentences[].chunks[].englishText, sentences[].chunks[].koreanText
+                           # 목표
+                           입력된 영어 스크립트를 문장 단위로 분할하고, 각 문장을 의미 단위 청크로 나눈 뒤 1:1로 한국어 번역을 정렬합니다.
+                           또한 각 문장의 자연스러운 전체 번역을 생성합니다.
 
-                       # JSON 스키마
-                       {
-                         "title": string,
-                         "sentences": [
+                           # 출력 형식 (중요)
+                           - 반드시 **순수 JSON 하나만** 출력합니다.
+                           - 코드펜스(json,  등), 설명, 주석, 추가 텍스트 금지.
+                           - 키 이름은 DTO(ScriptData, SentenceData, ChunkData)와 동일하게 유지:
+                             title, sentences[].orderIndex, sentences[].englishText, sentences[].koreanText, sentences[].chunks[].orderIndex,sentences[].chunks[].englishText, sentences[].chunks[].koreanText
+
+                           # JSON 스키마
                            {
-                             "orderIndex": number,
-                             "englishText": string,
-                             "koreanText": string,
-                             "chunks": [ { "orderIndex": number, "englishText": string, "koreanText": string } ]
+                             "title": string,
+                             "sentences": [
+                               {
+                                 "orderIndex": number,
+                                 "englishText": string,
+                                 "koreanText": string,
+                                 "chunks": [ { "orderIndex": number, "englishText": string, "koreanText": string } ]
+                               }
+                             ]
                            }
-                         ]
-                       }
-                       
-                       # 인덱싱 규칙
-                       1. sentences[].orderIndex는 0부터 시작하여 각 문장 순서대로 1씩 증가합니다.
-                       2. 각 문장 내부의 chunks[].orderIndex도 0부터 시작하여 순서대로 1씩 증가합니다.
-                       3. 인덱스는 문장과 청크의 실제 순서를 반영해야 합니다.
+                           
+                           # 인덱싱 규칙
+                           1. sentences[].orderIndex는 0부터 시작하여 각 문장 순서대로 1씩 증가합니다.
+                           2. 각 문장 내부의 chunks[].orderIndex도 0부터 시작하여 순서대로 1씩 증가합니다.
+                           3. 인덱스는 문장과 청크의 실제 순서를 반영해야 합니다.
 
-                       # 청킹 규칙 (요약)
-                       1) 의미 중심 (3~8단어 권장)
-                       2) S+V 결속 / 5형식은 O+OC 결속
-                       3) 전치사-보어 결속
-                       4) 호흡/리듬 고려
-                       5) 커버리지 100% (단어/구두점 누락 금지, 순서 보존)
+                           # 청킹 규칙 (요약)
+                           1) 의미 중심 (3~8단어 권장)
+                           2) S+V 결속 / 5형식은 O+OC 결속
+                           3) 전치사-보어 결속
+                           4) 호흡/리듬 고려
+                           5) 커버리지 100% (단어/구두점 누락 금지, 순서 보존)
 
-                       # 입력 스크립트
-                       \(scriptText)
-                       """
-            
-            let response = try await model.generateContent(prompt)
-            guard let text = response.text else {
-                print("⚠️ 응답 없음")
-                return
-            }
-
-            print("Gemini 응답:\n\(text)")
-            
-            //    ↓ JSON 디코딩 전용 함수로 교체
-            if let jsonParsed = parseGeminiJSONToScriptData(text, fallbackTitle: "사용자 입력 스크립트") {
-                await MainActor.run { self.parsedScript = jsonParsed }
-                print("✅ JSON 파싱 성공: \(jsonParsed.sentences.count)문장")
+                           # 입력 스크립트
+                           \(scriptText)
+                           """
                 
-                // Oliver's "스크립트 자동 저장" 기능
-                do {
-                    let script = try databaseContainer.scriptManagementService.createScript(scriptData: jsonParsed)
-                    print("✅ 스크립트가 성공적으로 저장되었습니다.")
+                let response = try await model.generateContent(prompt)
+                guard let text = response.text else {
+//                    print("⚠️ 응답 없음")
+//                    return
+                    throw URLError(.badServerResponse) // 에러 전달
+                }
+
+                print("Gemini 응답:\n\(text)")
+                
+                //    ↓ JSON 디코딩 전용 함수로 교체
+                if let jsonParsed = parseGeminiJSONToScriptData(text, fallbackTitle: "사용자 입력 스크립트") {
+                    await MainActor.run { self.parsedScript = jsonParsed }
+                    print("✅ JSON 파싱 성공: \(jsonParsed.sentences.count)문장")
                     
-                    if let scriptId = script.id {
-                        try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
+                    // Oliver's "스크립트 자동 저장" 기능
+                    do {
+                        let script = try databaseContainer.scriptManagementService.createScript(scriptData: jsonParsed)
+                        print("✅ 스크립트가 성공적으로 저장되었습니다.")
+                        
+                        if let scriptId = script.id {
+                            try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
+                        }
+                        
+                    } catch {
+                        print("🔥 스크립트 저장 오류:", error.localizedDescription)
                     }
                     
-                } catch {
-                    print("🔥 스크립트 저장 오류:", error.localizedDescription)
+                    return
+                } else {
+                    throw URLError(.cannotParseResponse)
                 }
-                
-            } else {
-                print("⚠️ JSON 디코딩 실패")
-            }
+                    
+//                } else {
+//                    print("⚠️ JSON 디코딩 실패")
+//                }
+            } catch {
+//                print("🔥 FirebaseAI 오류:", error.localizedDescription)
+                // 🆕 에러 분류
+                let category = classifyGeminiCallError(error)
 
-//<<<<<<< HEAD
-//=======
-//            print("✅ 총 문장 수: \(parsed.sentences.count)")
-//
-//            // ✅ 스크립트 저장
-//            do {
-//                _ = try databaseContainer.scriptManagementService.createScript(scriptData: parsed)
-//                print("✅ 스크립트가 성공적으로 저장되었습니다.")
-//            } catch {
-//                print("🔥 스크립트 저장 오류:", error.localizedDescription)
-//            }
-//
-//>>>>>>> dev
-        } catch {
-            print("🔥 FirebaseAI 오류:", error.localizedDescription)
+                switch category {
+                case .clientInput:
+                    let msg = (error as NSError).localizedDescription.lowercased()
+                    if msg.contains("permission_denied") || msg.contains("unauthorized") {
+                        //인증 오류 영역 (api 문제, 사용자 잘못 x)
+                        await showErrorAlert("서비스에 일시적인 접근 문제가 발생했습니다.\n잠시 후 다시 시도해주세요.")
+                    } else {
+                        //사용자 입력 오류 영역
+                        await showErrorAlert("입력이 너무 길거나 형식이 잘못되었습니다.\n스크립트를 나눠서 다시 시도해주세요.")
+                    }
+                    return
+
+                case .transient:
+                    if attempt < maxRetry {
+                        let delay = UInt64(pow(2.0, Double(attempt - 1))) * 1_000_000_000
+                        print("⚠️ 서버 불안정 - \(delay / 1_000_000_000)초 후 재시도 (\(attempt)/\(maxRetry))")
+                        try? await Task.sleep(nanoseconds: delay)
+                        continue
+                    } else {
+                        await showErrorAlert("서버가 일시적으로 응답하지 않습니다.\n잠시 후 다시 시도해주세요.")
+                        return
+                    }
+
+                case .unknown:
+                    await showErrorAlert("예기치 못한 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.")
+                    return
+                }
+            }
         }
     }
+    // MARK: - 사용자 알림 (UI Thread 전환)
+    @MainActor
+    func showErrorAlert(_ message: String) {
+        self.errorMessage = message
+        self.showErrorAlert = true
+    }
+}
+
+// MARK: - 에러 분류기 (FirebaseAI / Vertex 기준)
+enum GeminiErrorCategory {
+    case clientInput    // 400~422 → 입력 오류
+    case transient      // 408, 500, 502, 503, timeout → 서버 불안정
+    case unknown
+}
+
+func classifyGeminiCallError(_ error: Error) -> GeminiErrorCategory {
+    let nsError = error as NSError
+    let code = nsError.code
+    let msg = nsError.localizedDescription.lowercased()
+
+    // 인증 또는 클라이언트 입력 오류 (재시도 안함.)
+    if (400...422).contains(code)
+        || msg.contains("invalid_argument")
+        || msg.contains("permission_denied")
+        || msg.contains("unauthorized") {
+        return .clientInput
+    }
+    
+    // 서버 불안정 / 일시적 오류
+    if [408, 500, 502, 503, 504].contains(code)
+        || msg.contains("unavailable")
+        || msg.contains("deadline_exceeded")
+        || (error as? URLError)?.code == .timedOut {
+        return .transient
+    }
+    
+    // 기타 예외
+    return .unknown
 }
 
 // MARK: - Gemini가 생성한 json 처리로직
@@ -272,6 +344,8 @@ struct ScriptInputView: View {
 func parseGeminiJSONToScriptData(_ jsonText: String, fallbackTitle: String) -> ScriptData? {
     // 코드펜스 제거 (Gemini가 ```json 으로 감싸는 경우 대비)
     let trimmed = jsonText
+//        .replacingOccurrences(of: "```json", with: "")
+//        .replacingOccurrences(of: "```", with: "")
         .replacingOccurrences(of: "```json", with: "")
         .replacingOccurrences(of: "```", with: "")
         .trimmingCharacters(in: .whitespacesAndNewlines)
