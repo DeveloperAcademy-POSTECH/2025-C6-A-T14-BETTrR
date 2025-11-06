@@ -89,7 +89,6 @@ final class ScriptGeminiCall {
             } catch {
                 // 🔹 에러 로그
                 print("🔥 Gemini 호출 오류 (\(attempt)/\(maxRetry)): \(error.localizedDescription)")
-                let nsError = error as NSError
                 let category = classifyGeminiCallError(error)
                 
                 switch category {

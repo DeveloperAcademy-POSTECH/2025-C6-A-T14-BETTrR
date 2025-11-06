@@ -26,7 +26,7 @@ class WordExtractionService {
     }
     
     // MARK: - 🔹 Gemini 기반 단어 추출 + GRDB 저장
-    func extractAndSaveWords(for scriptId: Int64) async {
+    func extractAndSaveWords(for scriptId: Int64) async throws {
         let maxRetry = 2
         let ai = FirebaseAI.firebaseAI(backend: .googleAI())
         let model = ai.generativeModel(modelName: "gemini-2.0-flash-lite")
