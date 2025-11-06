@@ -150,6 +150,15 @@ class WordExtractionService {
             print("❌ WordExtractionService 오류: \(error.localizedDescription)")
         }
     }
+    // MARK: - 🔹 단어 조회 (스크립트별)
+    func fetchWords(for scriptId: Int64) throws -> [Word] {
+        try dbQueue.read { db in
+            try Word
+                .filter(Column("scriptId") == scriptId)
+                .order(Column("orderIndex").asc)
+                .fetchAll(db)
+        }
+    }
     
     // MARK: - 💾 GRDB 저장 로직
     private func saveWordsToDatabase(scriptId: Int64, words: [GeminiWord]) throws {
