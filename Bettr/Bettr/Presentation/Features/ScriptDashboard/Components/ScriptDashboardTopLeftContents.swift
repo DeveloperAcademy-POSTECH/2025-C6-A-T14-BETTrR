@@ -21,7 +21,3 @@ struct ScriptDashboardTopLeftContents: View {
         }
     }
 }
-
-#Preview {
-    ScriptDashboardTopLeftContents()
-}
