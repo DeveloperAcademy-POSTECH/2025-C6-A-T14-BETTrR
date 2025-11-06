@@ -99,6 +99,7 @@ struct WordkListView: View {
             RoundedRectangle(cornerRadius: 35)
                 .fill(.regularMaterial)
         )
+        .glassEffect(in: .rect(cornerRadius: 35))
         .task {
             await loadWords()
         }
