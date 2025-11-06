@@ -15,6 +15,7 @@ struct ScriptDashboardView: View {
             if viewModel.scriptDashboardData != nil {
                 GeometryReader { geometry in
                     VStack(alignment: .leading, spacing: 30) {
+                        
                         ScriptDashboardTopContents(viewModel: viewModel)
                             .frame(height: geometry.size.height * 0.4)
                         
@@ -43,15 +44,188 @@ struct ScriptDashboardView: View {
     }
 }
 
+
+
 struct ScriptDashboardTopContents: View {
-    @Environment(NavigationRouter.self) var router
     var viewModel: ScriptDashboardViewModel
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            
+            if let data = viewModel.scriptDashboardData, data.feedbackCount > 0 {
+                GeometryReader { geometry in
+                    HStack(spacing: 16) {
+                        ScriptDashboardTopLeftContents()
+                            .frame(width: geometry.size.width * 0.5, alignment: .leading)
+                        
+                        ScriptDashboardTopRightContents(
+                            feedbackCount: data.feedbackCount,
+                            top3IncorrectWords: data.top3IncorrectWords,
+                            averagePracticeDuration: data.averagePracticeDuration,
+                            recentFeedbackCount: data.recentFeedbackCount
+                        )
+                        .frame(width: geometry.size.width * 0.5, alignment: .leading)
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+struct ScriptDashboardTopLeftContents: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("그래프")
+                .padding(.vertical, 25)
+                .padding(.horizontal, 40)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.05))
+                )
+        }
+    }
+}
+
+struct ScriptDashboardTopRightContents: View {
+    let feedbackCount: Int
+    let top3IncorrectWords: [IncorrectWordCount]
+    let averagePracticeDuration: Double
+    let recentFeedbackCount: Int
+
+    var body: some View {
+        HStack(spacing: 16) {
+            
+            // 자주 틀린 단어
+            VStack(spacing: 16) {
+                Text("최근 \(recentFeedbackCount)회 중 자주 틀린 단어")
+                    .font(.system(size: 18, weight: .bold))
+                if top3IncorrectWords.isEmpty {
+                    Text("데이터가 없습니다.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                } else {
+                    // 가져온 Top 3 데이터를 리스트로 표시
+                    ForEach(Array(top3IncorrectWords.enumerated()), id: \.offset) { index, item in
+                        HStack {
+                            Text("\(index + 1). \(item.word)")
+                                .font(.system(size: 16, weight: .semibold))
+                            Spacer()
+                            Text("\(item.count)회")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .padding(.vertical, 25)
+            .padding(.horizontal, 40)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.primary.opacity(0.05))
+            )
+            
+            // 누적 피드백, 평균 녹음 시간
+            VStack(spacing: 16) {
+                VStack(spacing: 16) {
+                    Text("누적 피드백")
+                    Text("\(feedbackCount)")
+                }
+                .padding(.vertical, 25)
+                .padding(.horizontal, 40)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.05))
+                )
+                
+                VStack(spacing: 16) {
+                    Text("평균 녹음 시간")
+                    Text(averagePracticeDuration.asPracticeDurationString())
+                }
+                .padding(.vertical, 25)
+                .padding(.horizontal, 40)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.05))
+                )
+            }
+        }
+    }
+}
+
+struct ScriptDashboardBottomContents: View {
+    var viewModel: ScriptDashboardViewModel
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            if let data = viewModel.scriptDashboardData, data.feedbackCount > 0 {
+                GeometryReader { geometry in
+                    HStack(spacing: 16) {
+                        
+                        ScriptDashboardBottomLeftContents(feedbacks: data.recentFeedbacks)
+                            .frame(width: geometry.size.width * 0.5, alignment: .leading)
+                        
+                        ScriptDashboardBottomRightContents(scriptId: viewModel.scriptId, sentences: data.sentences)
+                            .frame(width: geometry.size.width * 0.5, alignment: .leading)
+                        
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct ScriptDashboardBottomLeftContents: View {
+    @Environment(NavigationRouter.self) var router
+    var feedbacks: [FeedbackSummary]
+    
+    var body: some View {
+        if feedbacks.count > 0 {
+            VStack(alignment: .leading, spacing: 20) {
+                ForEach(feedbacks, id: \.id) { feedback in
+                    Button(action: {
+                        router.push(Route.HistoricalFeedback(summary: feedback))
+                    }) {
+                        FeedbackSummaryCard(feedback: feedback)
+                    }
+                    .foregroundStyle(Color.primary)
+                }
+            }
+            .frame(maxHeight: .infinity, alignment: .top)
+        }
+        else {
+            VStack {
+                Spacer()
+                Text("아직 피드백이 없습니다")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.primary.opacity(0.05))
+                    .strokeBorder(Color.primary.opacity(0.5), lineWidth: 1)
+            )
+        }
+    }
+}
+
+struct ScriptDashboardBottomRightContents: View {
+    @Environment(NavigationRouter.self) var router
+    var scriptId: Int64
+    var sentences: [ScriptDashboardSentenceModel]
     
     var body: some View {
         ZStack(alignment: .bottom) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    ForEach(viewModel.scriptDashboardData?.sentences ?? [], id: \.orderIndex) { sentence in
+                    ForEach(sentences, id: \.orderIndex) { sentence in
                         Text(sentence.englishText)
                             .font(.system(size: 20))
                     }
@@ -61,7 +235,7 @@ struct ScriptDashboardTopContents: View {
             .frame(maxHeight: .infinity, alignment: .top)
             
             Button(action: {
-                router.push(Route.memorization(scriptId: viewModel.scriptId))
+                router.push(Route.memorization(scriptId: scriptId))
             }) {
                 Text("암기하기")
                     .foregroundStyle(.white)
@@ -84,149 +258,8 @@ struct ScriptDashboardTopContents: View {
     }
 }
 
-struct ScriptDashboardBottomContents: View {
-    @Environment(NavigationRouter.self) var router
-    var viewModel: ScriptDashboardViewModel
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("피드백 히스토리")
-                .font(.system(size: 30, weight: .bold))
-            
-            if let feedbacks = viewModel.scriptDashboardData?.feedbacks, !feedbacks.isEmpty {
-                
-                GeometryReader { geometry in
-                    HStack(spacing: 0) {
-                        let sortedFeedbacks = feedbacks.sorted { $0.createdAt > $1.createdAt }
-                        let recentFeedbacks = sortedFeedbacks.prefix(5)
-                        let top3Words = viewModel.scriptDashboardData?.top3IncorrectWords ?? []
-                        
-                        // 왼쪽 섹션
-                        FeedbackHistoryGraphAndStatistics(feedbackCount: sortedFeedbacks.count, top3IncorrectWords: top3Words)
-                            .padding(.horizontal, 20)
-                            .frame(width: geometry.size.width * 0.5)
-                        
-                        // 오른쪽 섹션
-                        VStack(alignment: .leading, spacing: 20) {
-                            ForEach(recentFeedbacks, id: \.createdAt) { feedback in
-                                Button(action: {
-                                    router.push(Route.HistoricalFeedback(summary: feedback))
-                                }) {
-                                    FeedbackSummaryCard(feedback: feedback)
-                                }
-                                .foregroundStyle(Color.primary)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .frame(width: geometry.size.width * 0.5, alignment: .leading)
-                        .frame(maxHeight: .infinity, alignment: .top)
-                    }
-                }
-            }
-            else {
-                VStack {
-                    Spacer() // 텍스트를 세로 중앙에 배치
-                    Text("아직 피드백이 없습니다")
-                        .font(.system(size: 18))
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.primary.opacity(0.05))
-                        .strokeBorder(Color.primary.opacity(0.5), lineWidth: 1)
-                )
-            }
-        }
-    }
-}
-
-struct FeedbackHistoryGraphAndStatistics: View {
-    let feedbackCount: Int
-    let top3IncorrectWords: [IncorrectWordCount]
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            Text("그래프")
-                .padding(.vertical, 25)
-                .padding(.horizontal, 40)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.primary.opacity(0.05))
-                )
-            
-            
-            HStack(spacing: 16) {
-                VStack(spacing: 16) {
-                    Text("최근 \(feedbackCount < 5 ? feedbackCount : 5)회 중 많이 틀린 단어")
-                        .font(.system(size: 18, weight: .bold))
-                    if top3IncorrectWords.isEmpty {
-                        Text("데이터가 없습니다.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    } else {
-                        // 가져온 Top 3 데이터를 리스트로 표시
-                        ForEach(Array(top3IncorrectWords.enumerated()), id: \.offset) { index, item in
-                            HStack {
-                                Text("\(index + 1). \(item.word)")
-                                    .font(.system(size: 16, weight: .semibold))
-                                Spacer()
-                                Text("\(item.count)회")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                }
-                .padding(.vertical, 25)
-                .padding(.horizontal, 40)
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.primary.opacity(0.05))
-                )
-                
-                VStack(spacing: 16) {
-                    Text("누적 피드백")
-                    Text("\(feedbackCount)")
-                }
-                .padding(.vertical, 25)
-                .padding(.horizontal, 40)
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.primary.opacity(0.05))
-                )
-            }
-        }
-    }
-}
-
 struct FeedbackSummaryCard: View {
     let feedback: FeedbackSummary
-    
-    private static var dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
-        formatter.locale = Locale(identifier: "ko_KR")
-        return formatter
-    }()
-    
-    private func formatPracticeDuration(duration: Double) -> String {
-        let totalSeconds = duration
-        
-        let minutes = Int(totalSeconds) / 60
-        let seconds = Int(totalSeconds) % 60
-        
-        // 밀리초 계산
-        let milliseconds = Int((totalSeconds - floor(totalSeconds)) * 100)
-        
-        // "dd:dd.dd" (mm:ss.SS) 포맷
-        return String(format: "%02d:%02d.%02d", minutes, seconds, milliseconds)
-    }
     
     var body: some View {
         HStack(spacing: 10) {
@@ -237,13 +270,13 @@ struct FeedbackSummaryCard: View {
             .frame(width: 60, height: 60)
             
             VStack(alignment: .leading, spacing: 5) {
-                Text(formatPracticeDuration(duration: feedback.practiceDuration))
+                Text(feedback.practiceDuration.asPracticeDurationString())
                 Text("누락된 단어 \(feedback.missingWordCount) | 추가된 단어 \(feedback.addedWordCount) | 대체된 단어 \(feedback.replacedWordCount)")
             }
             
             Spacer()
             
-            Text(Self.dateFormatter.string(from: feedback.createdAt))
+            Text(feedback.createdAt.asAppDateString())
         }
     }
 }
