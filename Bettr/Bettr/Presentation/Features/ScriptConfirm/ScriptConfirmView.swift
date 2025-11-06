@@ -21,9 +21,12 @@ struct ScriptConfirmView: View {
     @State private var showBackAlert: Bool = false
     @State private var isPendingDismiss: Bool = false
     
+    // 글자 수 제한
+    private static let maxCharacterCount = 2000
+    
     init(initialText: String?, initialTitle: String?) {
         let content = initialText ?? ""
-        _scriptContent = State(initialValue: String(content.prefix(2000)))
+        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
         _scriptTitle = State(initialValue: initialTitle ?? "")
     }
     
@@ -54,9 +57,9 @@ struct ScriptConfirmView: View {
                 }
                 
                 // 글자 수 표시
-                Text("\(scriptContent.count) / 2000")
+                Text("\(scriptContent.count) / \(Self.maxCharacterCount)")
                     .font(.caption)
-                    .foregroundColor(scriptContent.count == 2000 ? .red : .gray)
+                    .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .gray)
             }
             .padding(.horizontal)
             
@@ -110,8 +113,8 @@ struct ScriptConfirmView: View {
             Text(errorMessage)
         }
         .onChange(of: scriptContent) { oldValue, newValue in
-            if newValue.count > 2000 {
-                scriptContent = String(newValue.prefix(2000))
+            if newValue.count > Self.maxCharacterCount {
+                scriptContent = String(newValue.prefix(Self.maxCharacterCount))
             }
         }
         .onChange(of: parsedScript) { oldValue, newValue in
