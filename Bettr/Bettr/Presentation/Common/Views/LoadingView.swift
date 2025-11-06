@@ -1,13 +1,13 @@
 //
-//  DashboardLoadingView.swift
+//  LoadingView.swift
 //  Bettr
 //
-//  Created by 길정수 on 11/4/25.
+//  Created by 길정수 on 11/6/25.
 //
 
 import SwiftUI
 
-struct DashboardLoadingView: View {
+struct LoadingView: View {
     let isLoading: Bool
     let errorMessage: String?
     
@@ -16,9 +16,9 @@ struct DashboardLoadingView: View {
             Text(errorMessage)
                 .foregroundColor(.red)
         } else if isLoading {
-            ProgressView("대시보드 데이터 로딩 중...")
+            ProgressView()
         } else {
-            Text("대시보드 데이터가 없습니다.")
+            Text("Error! Data Not Found")
         }
     }
 }

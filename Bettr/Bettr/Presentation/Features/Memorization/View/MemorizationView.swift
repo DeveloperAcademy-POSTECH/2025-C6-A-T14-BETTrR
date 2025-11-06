@@ -32,7 +32,7 @@ struct MemorizationView: View {
                 
             } else {
                 // 로딩, 에러 뷰
-                ScriptLoadingView(
+                LoadingView(
                     isLoading: !viewModel.showingError,
                     errorMessage: viewModel.errorMessage
                 )
