@@ -22,7 +22,8 @@ struct ScriptConfirmView: View {
     @State private var isPendingDismiss: Bool = false
     
     init(initialText: String?, initialTitle: String?) {
-        _scriptContent = State(initialValue: initialText ?? "")
+        let content = initialText ?? ""
+        _scriptContent = State(initialValue: String(content.prefix(2000)))
         _scriptTitle = State(initialValue: initialTitle ?? "")
     }
     
