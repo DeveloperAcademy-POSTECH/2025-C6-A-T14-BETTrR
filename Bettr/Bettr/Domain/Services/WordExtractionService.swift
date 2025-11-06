@@ -42,32 +42,54 @@ class WordExtractionService {
             
             // 3️⃣ Gemini 프롬프트 구성
             let prompt = """
-            당신은 영어 어휘 전문가이자 한국어 번역가입니다.
+당신은 이제부터 20년 경력의 영어 교육 전문가이자 한국 고등학생 대상 어휘 선별 어시스턴트이다.
 
-            아래 영어 문장에서 학습자가 모를만한 주요 단어를 추출하고,
-            각 단어의 품사(명사, 동사, 형용사 등)와 간결한 한국어 뜻을 함께 JSON으로 출력하세요.
+# 지시문
+가이드라인에 맞춰 입력된 영어 스크립트를 분석하라.  
+한국 고등학생에게 학습 가치가 높은 어휘와 표현만 선별하여 지정된 출력 형식(JSON)으로 반환하라.  
+코드블록은 사용하지 마라.
 
-            # 출력 형식 (중요)
-            반드시 **순수 JSON만** 출력합니다.
-            코드펜스(```json 등), 설명, 주석 금지.
-            필드명은 아래와 동일하게 유지해야 합니다.
+# 어휘 선별 guideline
+- 문맥 우선: 본문 주제와 논리 전개에 핵심적으로 기여하는 의미어를 우선 선별한다.  
+- 학술·논리 어휘: AWL(학술 어휘 목록) 수준 이상의 연결어, 추론·대조·원인/결과 신호어를 포함한다.  
+- 다의어·혼동어: 문맥에 따라 의미가 달라질 수 있는 학습 가치 높은 어휘를 포함한다.  
+- 문법 기능 표현: 수동, 분사구문, 가정법, 도치 등 고등 수준 문법 구조를 형성하는 표현도 포함한다.  
+- 기초어휘 제외: A1~A2 수준의 쉬운 어휘는 제외하되, 문맥상 핵심이면 포함 가능하다.  
+- 고유명사/숫자/기호 제외: 인명, 지명, 수치, 기호는 제외한다.  
+- meaning 필드는 짧고 핵심적인 한국어 뜻(2~5어절)만 제시한다.  
+- 출력 시 모든 필드 값은 문자열이며, 여분의 공백이나 대문자는 제거한다.
 
-            [
-              {"lemma": "단어원형", "pos": "품사", "meaning": "간단한 한국어 뜻"}
-            ]
+# 출력 형식 (중요)
+반드시 **순수 JSON만** 출력한다.  
+코드펜스(```json 등), 설명, 주석 금지.  
+필드명은 아래와 동일하게 유지해야 한다.
 
-            # 예시
-            입력: "I encountered an enormous challenge during the experiment."
-            출력:
-            [
-              {"lemma": "encounter", "pos": "verb", "meaning": "마주치다"},
-              {"lemma": "enormous", "pos": "adjective", "meaning": "거대한"},
-              {"lemma": "challenge", "pos": "noun", "meaning": "도전"}
-            ]
+- `pos`: 품사를 한국어 약어로 반환  
+  - noun → "명"  
+  - verb → "동"  
+  - adjective → "형"  
+  - adverb → "부"  
+  - pronoun → "대명"  
+  - preposition → "전"  
+  - conjunction → "접"  
+  - 그 외 → "숙어"
 
-            # 입력 텍스트
-            \(fullText)
-            """
+[
+  {"lemma": "단어원형", "pos": "한국어 품사", "meaning": "간단한 한국어 뜻"}
+]
+
+# 입력 예시
+입력: "I encountered an enormous challenge during the experiment."
+출력:
+[
+  {"lemma": "encounter", "pos": "동", "meaning": "마주치다"},
+  {"lemma": "enormous", "pos": "형", "meaning": "거대한"},
+  {"lemma": "challenge", "pos": "명", "meaning": "도전"}
+]
+
+# 입력 텍스트
+\(fullText)
+"""
             
             // 4️⃣ Gemini 호출 + 재시도
             for attempt in 1...maxRetry {
