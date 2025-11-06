@@ -12,6 +12,7 @@ struct ScriptDashboardModel: Hashable {
     let title: String
     let sentences: [ScriptDashboardSentenceModel]
     let feedbacks: [FeedbackSummary]
+    let top3IncorrectWords: [IncorrectWordCount]
 }
 
 /// 대시보드 뷰에서 사용할 문장 데이터 모델
@@ -19,4 +20,12 @@ struct ScriptDashboardSentenceModel: Hashable, Identifiable {
     let id: Int64?
     let orderIndex: Int
     let englishText: String
+}
+
+/// "많이 틀린 단어" 데이터를 담기 위한 모델
+struct IncorrectWordCount: Hashable, Identifiable {
+    let word: String
+    let count: Int
+    
+    var id: String { word }
 }

@@ -17,7 +17,7 @@ struct ScriptDashboardView: View {
                     VStack(alignment: .leading, spacing: 30) {
                         ScriptDashboardTopContents(viewModel: viewModel)
                             .frame(height: geometry.size.height * 0.4)
-
+                        
                         ScriptDashboardBottomContents(viewModel: viewModel)
                             .frame(height: geometry.size.height * 0.6)
                     }
@@ -92,23 +92,25 @@ struct ScriptDashboardBottomContents: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("피드백 히스토리")
                 .font(.system(size: 30, weight: .bold))
+            
             if let feedbacks = viewModel.scriptDashboardData?.feedbacks, !feedbacks.isEmpty {
                 
                 GeometryReader { geometry in
                     HStack(spacing: 0) {
                         let sortedFeedbacks = feedbacks.sorted { $0.createdAt > $1.createdAt }
-                        let recentFeedbacks = sortedFeedbacks.prefix(4)
+                        let recentFeedbacks = sortedFeedbacks.prefix(5)
+                        let top3Words = viewModel.scriptDashboardData?.top3IncorrectWords ?? []
                         
                         // 왼쪽 섹션
-                        FeedbackHistoryGraphAndStatistics(feedback: sortedFeedbacks)
-                        .padding(.horizontal, 20)
-                        .frame(width: geometry.size.width * 0.5)
+                        FeedbackHistoryGraphAndStatistics(feedback: sortedFeedbacks, top3IncorrectWords: top3Words)
+                            .padding(.horizontal, 20)
+                            .frame(width: geometry.size.width * 0.5)
                         
                         // 오른쪽 섹션
                         VStack(alignment: .leading, spacing: 20) {
                             ForEach(recentFeedbacks, id: \.createdAt) { feedback in
                                 Button(action: {
-                                   router.push(Route.HistoricalFeedback(summary: feedback))
+                                    router.push(Route.HistoricalFeedback(summary: feedback))
                                 }) {
                                     FeedbackSummaryCard(feedback: feedback)
                                 }
@@ -142,6 +144,7 @@ struct ScriptDashboardBottomContents: View {
 
 struct FeedbackHistoryGraphAndStatistics: View {
     let feedback: [FeedbackSummary]
+    let top3IncorrectWords: [IncorrectWordCount]
     
     var body: some View {
         VStack(spacing: 16) {
@@ -153,12 +156,30 @@ struct FeedbackHistoryGraphAndStatistics: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.primary.opacity(0.05))
                 )
-                
+            
             
             HStack(spacing: 16) {
                 VStack(spacing: 16) {
-                    Text("많이 틀린 단어")
-                    Text("단어")
+                    Text("최근 \(feedback.count < 5 ? feedback.count : 5)회 중 많이 틀린 단어")
+                        .font(.system(size: 18, weight: .bold))
+                    if top3IncorrectWords.isEmpty {
+                        Text("데이터가 없습니다.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    } else {
+                        // 가져온 Top 3 데이터를 리스트로 표시
+                        ForEach(Array(top3IncorrectWords.enumerated()), id: \.offset) { index, item in
+                            HStack {
+                                Text("\(index + 1). \(item.word)")
+                                    .font(.system(size: 16, weight: .semibold))
+                                Spacer()
+                                Text("\(item.count)회")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
                 }
                 .padding(.vertical, 25)
                 .padding(.horizontal, 40)
