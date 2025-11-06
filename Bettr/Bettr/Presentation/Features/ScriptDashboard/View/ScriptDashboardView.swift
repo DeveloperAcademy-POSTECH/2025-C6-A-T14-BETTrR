@@ -102,7 +102,7 @@ struct ScriptDashboardBottomContents: View {
                         let top3Words = viewModel.scriptDashboardData?.top3IncorrectWords ?? []
                         
                         // 왼쪽 섹션
-                        FeedbackHistoryGraphAndStatistics(feedback: sortedFeedbacks, top3IncorrectWords: top3Words)
+                        FeedbackHistoryGraphAndStatistics(feedbackCount: sortedFeedbacks.count, top3IncorrectWords: top3Words)
                             .padding(.horizontal, 20)
                             .frame(width: geometry.size.width * 0.5)
                         
@@ -143,7 +143,7 @@ struct ScriptDashboardBottomContents: View {
 }
 
 struct FeedbackHistoryGraphAndStatistics: View {
-    let feedback: [FeedbackSummary]
+    let feedbackCount: Int
     let top3IncorrectWords: [IncorrectWordCount]
     
     var body: some View {
@@ -160,7 +160,7 @@ struct FeedbackHistoryGraphAndStatistics: View {
             
             HStack(spacing: 16) {
                 VStack(spacing: 16) {
-                    Text("최근 \(feedback.count < 5 ? feedback.count : 5)회 중 많이 틀린 단어")
+                    Text("최근 \(feedbackCount < 5 ? feedbackCount : 5)회 중 많이 틀린 단어")
                         .font(.system(size: 18, weight: .bold))
                     if top3IncorrectWords.isEmpty {
                         Text("데이터가 없습니다.")
@@ -191,7 +191,7 @@ struct FeedbackHistoryGraphAndStatistics: View {
                 
                 VStack(spacing: 16) {
                     Text("누적 피드백")
-                    Text("\(feedback.count)")
+                    Text("\(feedbackCount)")
                 }
                 .padding(.vertical, 25)
                 .padding(.horizontal, 40)

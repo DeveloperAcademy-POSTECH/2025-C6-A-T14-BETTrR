@@ -60,8 +60,7 @@ class ScriptDashboardViewModel {
                 do {
                     // 스크립트와 모든 피드백 요약본(Summary)을 가져옴 (동기)
                     guard let (fetchedScript, fetchedSentences) = try await self.scriptService.fetchScriptWithSentences(id: scriptId) else {
-                        // ScriptRepositoryError 같은 적절한 에러를 throw
-                        throw URLError(.badURL) // 예시 에러
+                        throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
                     }
                     
                     let allFeedbacks = try await self.scriptService.fetchFeedbackSummaries(forScriptId: scriptId)
@@ -74,7 +73,7 @@ class ScriptDashboardViewModel {
                     var recentDetails: [FeedbackDetail] = []
                     for summary in recentFeedbacks {
                         if let summaryId = summary.id {
-                            // 5번의 동기 DB 호출 (백그라운드 스레드이므로 괜찮음)
+                            // 5번의 동기 DB 호출
                             let details = try await self.scriptService.fetchFeedbackDetails(forFeedbackSummaryId: summaryId)
                             recentDetails.append(contentsOf: details)
                         }
