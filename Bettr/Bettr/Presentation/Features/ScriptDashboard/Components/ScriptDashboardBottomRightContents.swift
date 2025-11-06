@@ -44,7 +44,6 @@ struct ScriptDashboardBottomRightContents: View {
         .background(
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.primary.opacity(0.05))
-                .strokeBorder(Color.primary.opacity(0.5), lineWidth: 1)
         )
     }
 }

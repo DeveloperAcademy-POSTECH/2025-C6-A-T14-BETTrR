@@ -18,7 +18,7 @@ struct ScriptDashboardTopRightContents: View {
             
             // 자주 틀린 단어
             VStack(spacing: 16) {
-                Text("최근 \(recentFeedbackCount)회 중 자주 틀린 단어")
+                Text("최근 \(recentFeedbackCount)개의 피드백 중 자주 틀린 단어")
                     .font(.system(size: 18, weight: .bold))
                 if top3IncorrectWords.isEmpty {
                     Text("데이터가 없습니다.")
