@@ -23,19 +23,17 @@ struct ScriptDashboardView: View {
                             .frame(height: geometry.size.height * 0.6)
                     }
                 }
-                .padding(.horizontal, 60)
-                .padding(.bottom, 60)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .navigationBarTitleDisplayMode(.inline)
             } else {
                 // 로딩, 에러 뷰
                 LoadingView(
-                    isLoading: !viewModel.showingError,
+                    isLoading: viewModel.isLoading,
                     errorMessage: viewModel.errorMessage
                 )
-                
             }
         }
+        .padding(.horizontal, 60)
+        .padding(.bottom, 60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(viewModel.scriptDashboardData?.title ?? "")
         .onAppear {

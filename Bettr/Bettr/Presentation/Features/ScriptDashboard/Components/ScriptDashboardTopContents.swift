@@ -12,13 +12,12 @@ struct ScriptDashboardTopContents: View {
     
     var body: some View {
         HStack(spacing: 16) {
-            
-            if let data = viewModel.scriptDashboardData, data.feedbackCount > 0 {
-                GeometryReader { geometry in
-                    HStack(spacing: 16) {
-                        ScriptDashboardTopLeftContents()
-                            .frame(width: geometry.size.width * 0.5, alignment: .leading)
-                        
+            GeometryReader { geometry in
+                HStack(spacing: 16) {
+                    ScriptDashboardTopLeftContents()
+                        .frame(width: geometry.size.width * 0.5, alignment: .leading)
+                    
+                    if let data = viewModel.scriptDashboardData {
                         ScriptDashboardTopRightContents(
                             feedbackCount: data.feedbackCount,
                             top3IncorrectWords: data.top3IncorrectWords,
