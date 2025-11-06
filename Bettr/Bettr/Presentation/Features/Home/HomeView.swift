@@ -32,23 +32,34 @@ struct HomeView: View {
                     .font(.system(size: 25, weight: .semibold))
                     .padding(.horizontal, 20)
                 
-                VStack {
-                    LazyVGrid(columns: columns, spacing: 20) {                                    AddNewScriptCard(
+                if container.scripts.isEmpty {
+                    EmptyScriptsView(
                         onSelectPhoto: { showingPhotoPicker = true },
                         onTakePhoto: { isShowingCamera = true },
                         onSelectFile: { isShowingDocumentPicker = true }
                     )
-                        
-                        ForEach(container.scripts) { script in
-                            ScriptCard(script: script, onDelete: {
-                                requestDelete(script: script)
-                            })
+                    .frame(height: 500) // 적절한 높이 설정
+                } else {
+                    VStack {
+                        LazyVGrid(columns: columns, spacing: 20) {
+                            AddNewScriptCard(
+                                onSelectPhoto: { showingPhotoPicker = true },
+                                onTakePhoto: { isShowingCamera = true },
+                                onSelectFile: { isShowingDocumentPicker = true }
+                            )
+                            
+                            ForEach(container.scripts) { script in
+                                ScriptCard(script: script, onDelete: {
+                                    requestDelete(script: script)
+                                })
+                            }
                         }
                     }
-                }                .padding(30)
+                    .padding(30)
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(16)
                     .padding(.horizontal, 40)
+                }
             }
             .padding(.vertical)
         }
