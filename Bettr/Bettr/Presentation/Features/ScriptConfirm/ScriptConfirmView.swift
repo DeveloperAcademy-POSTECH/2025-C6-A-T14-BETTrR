@@ -21,37 +21,47 @@ struct ScriptConfirmView: View {
     @State private var showBackAlert: Bool = false
     @State private var isPendingDismiss: Bool = false
     
+    // 글자 수 제한
+    private static let maxCharacterCount = 2000
+    
     init(initialText: String?, initialTitle: String?) {
-        _scriptContent = State(initialValue: initialText ?? "")
+        let content = initialText ?? ""
+        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
         _scriptTitle = State(initialValue: initialTitle ?? "")
     }
     
     var body: some View {
         VStack(spacing: 20) {
             // 스크립트 내용 (메모 앱처럼 동작)
-            if isEditingContent {
-                TextEditor(text: $scriptContent)
-                    .padding(4)
+            VStack(alignment: .trailing, spacing: 8) {
+                if isEditingContent {
+                    TextEditor(text: $scriptContent)
+                        .padding(4)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.gray.opacity(0.5))
+                        )
+                } else {
+                    ScrollView {
+                        Text(scriptContent)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(10)
+                    }
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
                             .stroke(Color.gray.opacity(0.5))
                     )
-                    .padding(.horizontal)
-            } else {
-                ScrollView {
-                    Text(scriptContent)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(10)
+                    .onTapGesture {
+                        isEditingContent = true
+                    }
                 }
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.gray.opacity(0.5))
-                )
-                .padding(.horizontal)
-                .onTapGesture {
-                    isEditingContent = true
-                }
+                
+                // 글자 수 표시
+                Text("\(scriptContent.count) / \(Self.maxCharacterCount)")
+                    .font(.caption)
+                    .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .gray)
             }
+            .padding(.horizontal)
             
             // 분석 및 저장 버튼
             Button(action: {
@@ -101,6 +111,11 @@ struct ScriptConfirmView: View {
             Button("확인", role: .cancel) {}
         } message: {
             Text(errorMessage)
+        }
+        .onChange(of: scriptContent) { oldValue, newValue in
+            if newValue.count > Self.maxCharacterCount {
+                scriptContent = String(newValue.prefix(Self.maxCharacterCount))
+            }
         }
         .onChange(of: parsedScript) { oldValue, newValue in
             guard let scriptData = newValue else { return }
