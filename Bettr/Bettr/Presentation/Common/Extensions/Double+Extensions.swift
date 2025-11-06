@@ -12,8 +12,10 @@ extension Double {
     func asPracticeDurationString() -> String {
         let totalSeconds = self
         
-        let minutes = Int(totalSeconds) / 60
-        let seconds = Int(totalSeconds) % 60
+        let totalIntegerSeconds = Int(totalSeconds)
+        
+        let minutes = totalIntegerSeconds / 60
+        let seconds = totalIntegerSeconds % 60
         
         // 밀리초 계산
         let milliseconds = Int((totalSeconds - floor(totalSeconds)) * 100)
