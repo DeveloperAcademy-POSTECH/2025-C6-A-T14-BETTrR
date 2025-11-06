@@ -24,6 +24,9 @@ struct ScriptConfirmView: View {
     // 글자 수 제한
     private static let maxCharacterCount = 2000
     
+    // 🔹 추가됨: Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
+    private let geminiCaller = ScriptGeminiCall()  // 🔹 추가됨
+    
     init(initialText: String?, initialTitle: String?) {
         let content = initialText ?? ""
         _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
@@ -123,6 +126,30 @@ struct ScriptConfirmView: View {
         }
     }
     
+    // MARK: - 🔹 Gemini 두 번 호출: 스크립트 분석 → 단어 추출
+    private func callGemini() async {
+        isLoading = true
+        defer { isLoading = false }
+        
+        do {
+            print("🚀 [1/2] Gemini 스크립트 분석 시작")
+            // 🔹 ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
+            if let result = try await geminiCaller.analyzeScript(scriptContent) {
+                await MainActor.run {
+                    self.parsedScript = result
+                }
+                print("✅ [1/2] Gemini 스크립트 분석 완료 → ScriptData 생성됨")
+            } else {
+                throw URLError(.cannotParseResponse)
+            }
+        } catch {
+            await MainActor.run {
+                self.showErrorAlert("스크립트 분석 실패: \(error.localizedDescription)")
+            }
+            return
+        }
+    }
+    
     // MARK: - 저장 및 화면 이동
     private func saveAndNavigate(with scriptData: ScriptData) {
         Task {
@@ -135,12 +162,20 @@ struct ScriptConfirmView: View {
                 print("✅ 스크립트가 성공적으로 저장되었습니다.")
                 
                 if let scriptId = script.id {
+//                    do {
+//                        try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
+//                        print("✅ 단어 추출 및 저장이 완료되었습니다.")
+//                    } catch WordExtractionError.deviceNotSupported {
+//                        // TODO: 이 부분은 임시방편이므로, 더 나은 아키텍처로 개선 필요.
+//                        print("⚠️ 단어 추출 건너뜀: 기기가 지원되지 않습니다.")
+//                    } catch {
+//                        print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)
+//                    }
                     do {
+                        print("🚀 [2/2] Gemini 단어 추출 시작")
+                        // 🔹 GRDB + Gemini 기반 단어 저장 (WordExtractionService 호출)
                         try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
-                        print("✅ 단어 추출 및 저장이 완료되었습니다.")
-                    } catch WordExtractionError.deviceNotSupported {
-                        // TODO: 이 부분은 임시방편이므로, 더 나은 아키텍처로 개선 필요.
-                        print("⚠️ 단어 추출 건너뜀: 기기가 지원되지 않습니다.")
+                        print("✅ [2/2] 단어 추출 및 저장 완료")
                     } catch {
                         print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)
                     }

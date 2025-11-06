@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Translation
 
 struct WordkListView: View {
     @Environment(DatabaseContainer.self) var container
@@ -14,8 +13,6 @@ struct WordkListView: View {
     
     @State private var words: [Word] = []
     @State private var isLoading: Bool = false
-    @State private var translationConfig: TranslationSession.Configuration?
-    @State private var pendingLemmas: [String] = []
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -105,34 +102,34 @@ struct WordkListView: View {
         .task {
             await loadWords()
         }
-        .translationTask(translationConfig) { session in
-            guard !pendingLemmas.isEmpty else { return }
-            
-            var translations: [String: String] = [:]
-            
-            do {
-                for lemma in pendingLemmas {
-                    let response = try await session.translate(lemma)
-                    translations[lemma] = response.targetText
-                    
-                    // 즉시 UI 업데이트
-                    if let idx = words.firstIndex(where: { $0.lemma == lemma }) {
-                        words[idx].meaning = response.targetText
-                    }
-                }
-                
-                // DB에도 저장
-                try container.wordExtractionService.updateWordMeanings(
-                    for: scriptId,
-                    translations: translations
-                )
-            } catch {
-                print("⚠️ 번역 중 오류: \(error.localizedDescription)")
-            }
-            
-            translationConfig = nil
-            pendingLemmas.removeAll()
-        }
+//        .translationTask(translationConfig) { session in
+//            guard !pendingLemmas.isEmpty else { return }
+//            
+//            var translations: [String: String] = [:]
+//            
+//            do {
+//                for lemma in pendingLemmas {
+//                    let response = try await session.translate(lemma)
+//                    translations[lemma] = response.targetText
+//                    
+//                    // 즉시 UI 업데이트
+//                    if let idx = words.firstIndex(where: { $0.lemma == lemma }) {
+//                        words[idx].meaning = response.targetText
+//                    }
+//                }
+//                
+//                // DB에도 저장
+//                try container.wordExtractionService.updateWordMeanings(
+//                    for: scriptId,
+//                    translations: translations
+//                )
+//            } catch {
+//                print("⚠️ 번역 중 오류: \(error.localizedDescription)")
+//            }
+//            
+//            translationConfig = nil
+//            pendingLemmas.removeAll()
+//        }
     }
     
     private func loadWords() async {
@@ -145,15 +142,15 @@ struct WordkListView: View {
             
             self.words = fetchedWords
             
-            // 번역이 안 된 단어들 번역하기
-            let untranslated = words.filter { $0.meaning.isEmpty }
-            if !untranslated.isEmpty {
-                self.pendingLemmas = Array(untranslated.map { $0.lemma }.prefix(TranslationHelper.maxTranslationCount))
-                
-                if !pendingLemmas.isEmpty {
-                    self.translationConfig = TranslationHelper.createConfiguration()
-                }
-            }
+//            // 번역이 안 된 단어들 번역하기
+//            let untranslated = words.filter { $0.meaning.isEmpty }
+//            if !untranslated.isEmpty {
+//                self.pendingLemmas = Array(untranslated.map { $0.lemma }.prefix(TranslationHelper.maxTranslationCount))
+//                
+//                if !pendingLemmas.isEmpty {
+//                    self.translationConfig = TranslationHelper.createConfiguration()
+//                }
+//            }
         } catch {
             print("⚠️ 단어 불러오기 실패: \(error.localizedDescription)")
         }
