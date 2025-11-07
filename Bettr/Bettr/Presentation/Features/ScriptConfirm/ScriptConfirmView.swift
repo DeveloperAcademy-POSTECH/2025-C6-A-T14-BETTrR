@@ -183,6 +183,7 @@ struct ScriptConfirmView: View {
                     // MainActor를 사용하여 UI 업데이트 (화면 이동)
                     await MainActor.run {
                         router.reset() // Go back to HomeView
+                        router.push(Route.scriptDashboard(scriptId: scriptId))
                         router.push(Route.memorization(scriptId: scriptId))
                     }
                 }
