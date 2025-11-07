@@ -38,8 +38,14 @@ struct MemorizationView: View {
                 )
             }
             
+            // 단어장 뷰
             if viewModel.showWordList {
-                WordListOverlay(showWordList: $viewModel.showWordList, scriptId: viewModel.scriptId)
+                WordListOverlay(
+                    showWordList: $viewModel.showWordList,
+                    words: $viewModel.words,
+                    isLoadingWords: $viewModel.isLoadingWords,
+                    scriptId: viewModel.scriptId
+                )
             }
         }
         .animation(.easeInOut, value: viewModel.showWordList)

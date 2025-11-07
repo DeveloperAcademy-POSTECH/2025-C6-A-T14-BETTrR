@@ -9,6 +9,8 @@ import SwiftUI
 
 struct WordListOverlay: View {
     @Binding var showWordList: Bool
+    @Binding var words: [Word]
+    @Binding var isLoadingWords: Bool
     let scriptId: Int64
     
     var body: some View {
@@ -21,10 +23,14 @@ struct WordListOverlay: View {
                     }
                 }
             
-            WordkListView(scriptId: scriptId)
-                .padding(.trailing, 16)
-                .padding(.bottom, 13)
-                .transition(.move(edge: .trailing).combined(with: .opacity))
+            WordkListView(
+                scriptId: scriptId,
+                words: $words,
+                isLoading: $isLoadingWords
+            )
+            .padding(.trailing, 16)
+            .padding(.bottom, 13)
+            .transition(.move(edge: .trailing).combined(with: .opacity))
         }
     }
 }
