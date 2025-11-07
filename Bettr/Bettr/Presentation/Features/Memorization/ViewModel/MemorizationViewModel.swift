@@ -9,6 +9,7 @@ final class MemorizationViewModel {
     let scriptId: Int64
     private let scriptService: ScriptManagementServiceProtocol
     private let audioService: AudioPlaybackServiceProtocol
+    private let wordExtractionService: WordExtractionService
     
     // MARK: - State (뷰에서 사용될 상태)
     
@@ -18,6 +19,8 @@ final class MemorizationViewModel {
     // 오류 상태
     var showingError = false
     var errorMessage = ""
+    var isLoadingWords: Bool = false
+    var words: [Word] = []
     
     // 툴바 UI 상태
     var isChunkMode: Bool = false {
@@ -69,11 +72,13 @@ final class MemorizationViewModel {
     init(
         scriptId: Int64,
         scriptService: ScriptManagementServiceProtocol,
-        audioService: AudioPlaybackServiceProtocol
+        audioService: AudioPlaybackServiceProtocol,
+        wordExtractionService: WordExtractionService
     ) {
         self.scriptId = scriptId
         self.scriptService = scriptService
         self.audioService = audioService
+        self.wordExtractionService = wordExtractionService
     }
     
     // MARK: - Public Methods (View's Lifecycle)
@@ -83,6 +88,7 @@ final class MemorizationViewModel {
         // 뷰가 나타날 때 데이터를 비동기로 로드
         Task {
             await loadScriptById()
+            await loadWords()
         }
     }
     
@@ -194,6 +200,21 @@ final class MemorizationViewModel {
         } catch {
             errorMessage = "스크립트 로딩 중 오류 발생: \(error.localizedDescription)"
             showingError = true
+        }
+    }
+    
+    @MainActor
+    private func loadWords() async {
+        isLoadingWords = true
+        defer { isLoadingWords = false }
+        do {
+            print("🚀 [2/2] Gemini 단어 추출 시작 (MemorizationView)")
+            try await wordExtractionService.extractAndSaveWords(for: scriptId)
+            print("✅ [2/2] 단어 추출 및 저장 완료 (MemorizationView)")
+            self.words = try wordExtractionService.fetchWords(for: scriptId)
+        } catch {
+            print("🔥 단어 추출 중 오류 발생 (MemorizationView):", error.localizedDescription)
+            // 사용자에게 오류를 표시할 수 있습니다.
         }
     }
     

@@ -33,7 +33,8 @@ struct ContentView: View {
                         let viewModel = MemorizationViewModel(
                             scriptId: scriptId,
                             scriptService: container.scriptManagementService,
-                            audioService: audioService
+                            audioService: audioService,
+                            wordExtractionService: container.wordExtractionService
                         )
                         MemorizationView(viewModel: viewModel)
                     case .HistoricalFeedback(let summary):

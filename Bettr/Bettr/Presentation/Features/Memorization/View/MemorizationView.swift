@@ -11,7 +11,7 @@ struct MemorizationView: View {
     @Environment(AudioPlaybackService.self) private var audioService
     
     init(viewModel: MemorizationViewModel) {
-            _viewModel = State(initialValue: viewModel)
+        _viewModel = State(initialValue: viewModel)
     }
     
     var body: some View {
@@ -38,7 +38,6 @@ struct MemorizationView: View {
                 )
             }
             
-            // 단어장 뷰
             if viewModel.showWordList {
                 WordListOverlay(showWordList: $viewModel.showWordList, scriptId: viewModel.scriptId)
             }
