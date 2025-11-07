@@ -44,6 +44,7 @@ struct EmptyScriptsView: View {
                     .padding(.vertical, 12)
                     .background(Color.blue)
                     .cornerRadius(25)
+                    .glassEffect()
             }
             
             Spacer()

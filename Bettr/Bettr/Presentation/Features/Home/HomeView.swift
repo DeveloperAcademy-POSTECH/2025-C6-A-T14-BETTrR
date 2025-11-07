@@ -159,6 +159,7 @@ private struct AddNewScriptCard: View {
                         .font(.system(size: 24, weight: .medium))
                         .foregroundColor(.white)
                 )
+                .glassEffect()
         }
         .aspectRatio(1, contentMode: .fit)
         .contentShape(Rectangle())

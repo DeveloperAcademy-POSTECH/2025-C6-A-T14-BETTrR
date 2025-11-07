@@ -92,13 +92,11 @@ struct ScriptConfirmView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 if isEditingContent {
-                    Button(action: {
+                    Button("Done", systemImage: "checkmark") {
                         isEditingContent = false
-                    }) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.blue)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color(.systemBlue))
                 }
             }
         }
@@ -162,15 +160,15 @@ struct ScriptConfirmView: View {
                 print("✅ 스크립트가 성공적으로 저장되었습니다.")
                 
                 if let scriptId = script.id {
-//                    do {
-//                        try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
-//                        print("✅ 단어 추출 및 저장이 완료되었습니다.")
-//                    } catch WordExtractionError.deviceNotSupported {
-//                        // TODO: 이 부분은 임시방편이므로, 더 나은 아키텍처로 개선 필요.
-//                        print("⚠️ 단어 추출 건너뜀: 기기가 지원되지 않습니다.")
-//                    } catch {
-//                        print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)
-//                    }
+                    //                    do {
+                    //                        try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
+                    //                        print("✅ 단어 추출 및 저장이 완료되었습니다.")
+                    //                    } catch WordExtractionError.deviceNotSupported {
+                    //                        // TODO: 이 부분은 임시방편이므로, 더 나은 아키텍처로 개선 필요.
+                    //                        print("⚠️ 단어 추출 건너뜀: 기기가 지원되지 않습니다.")
+                    //                    } catch {
+                    //                        print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)
+                    //                    }
                     do {
                         print("🚀 [2/2] Gemini 단어 추출 시작")
                         // 🔹 GRDB + Gemini 기반 단어 저장 (WordExtractionService 호출)
