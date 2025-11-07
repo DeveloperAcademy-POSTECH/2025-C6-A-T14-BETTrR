@@ -127,7 +127,6 @@ struct ScriptConfirmView: View {
     // MARK: - 🔹 Gemini 두 번 호출: 스크립트 분석 → 단어 추출
     private func callGemini() async {
         isLoading = true
-        defer { isLoading = false }
         
         do {
             print("🚀 [1/2] Gemini 스크립트 분석 시작")
@@ -149,51 +148,32 @@ struct ScriptConfirmView: View {
     }
     
     // MARK: - 저장 및 화면 이동
-    private func saveAndNavigate(with scriptData: ScriptData) {
-        Task {
-            do {
-                // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
-                let finalTitle = scriptTitle.isEmpty ? scriptData.title : scriptTitle
-                let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
-                
-                let script = try databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
-                print("✅ 스크립트가 성공적으로 저장되었습니다.")
-                
-                if let scriptId = script.id {
-                    //                    do {
-                    //                        try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
-                    //                        print("✅ 단어 추출 및 저장이 완료되었습니다.")
-                    //                    } catch WordExtractionError.deviceNotSupported {
-                    //                        // TODO: 이 부분은 임시방편이므로, 더 나은 아키텍처로 개선 필요.
-                    //                        print("⚠️ 단어 추출 건너뜀: 기기가 지원되지 않습니다.")
-                    //                    } catch {
-                    //                        print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)
-                    //                    }
-                    do {
-                        print("🚀 [2/2] Gemini 단어 추출 시작")
-                        // 🔹 GRDB + Gemini 기반 단어 저장 (WordExtractionService 호출)
-                        try await databaseContainer.wordExtractionService.extractAndSaveWords(for: scriptId)
-                        print("✅ [2/2] 단어 추출 및 저장 완료")
-                    } catch {
-                        print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)
-                    }
+        private func saveAndNavigate(with scriptData: ScriptData) {
+            Task {
+                defer { isLoading = false }
+                do {
+                    // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
+                    let finalTitle = scriptTitle.isEmpty ? scriptData.title : scriptTitle
+                    let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
                     
-                    // MainActor를 사용하여 UI 업데이트 (화면 이동)
-                    await MainActor.run {
-                        router.reset() // Go back to HomeView
-                        router.push(Route.scriptDashboard(scriptId: scriptId))
-                        router.push(Route.memorization(scriptId: scriptId))
+                    let script = try databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
+                    print("✅ 스크립트가 성공적으로 저장되었습니다.")
+                    
+                    if let scriptId = script.id {
+                        // MainActor를 사용하여 UI 업데이트 (화면 이동)
+                        await MainActor.run {
+                            router.reset() // Go back to HomeView
+                            router.push(Route.memorization(scriptId: scriptId))
+                        }
                     }
-                }
-            } catch {
-                print("🔥 스크립트 저장 오류:", error.localizedDescription)
-                await MainActor.run {
-                    showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
+                } catch {
+                    print("🔥 스크립트 저장 오류:", error.localizedDescription)
+                    await MainActor.run {
+                        showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
+                    }
                 }
             }
-        }
-    }
-    
+        }    
     // MARK: - 사용자 알림 (UI Thread 전환)
     @MainActor
     func showErrorAlert(_ message: String) {

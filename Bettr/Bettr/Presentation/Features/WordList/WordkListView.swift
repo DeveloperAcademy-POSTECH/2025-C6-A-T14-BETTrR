@@ -10,9 +10,8 @@ import SwiftUI
 struct WordkListView: View {
     @Environment(DatabaseContainer.self) var container
     let scriptId: Int64
-    
-    @State private var words: [Word] = []
-    @State private var isLoading: Bool = false
+    @Binding var words: [Word]
+    @Binding var isLoading: Bool
     
     var body: some View {
         VStack(alignment: .leading) {
@@ -100,9 +99,6 @@ struct WordkListView: View {
                 .fill(.regularMaterial)
         )
         .glassEffect(in: .rect(cornerRadius: 35))
-        .task {
-            await loadWords()
-        }
 //        .translationTask(translationConfig) { session in
 //            guard !pendingLemmas.isEmpty else { return }
 //            
@@ -133,32 +129,32 @@ struct WordkListView: View {
 //        }
     }
     
-    private func loadWords() async {
-        isLoading = true
-        defer { isLoading = false }
-        
-        do {
-            // DB에서 단어 불러오기
-            let fetchedWords = try container.wordExtractionService.fetchWords(for: scriptId)
-            
-            self.words = fetchedWords
-            
-//            // 번역이 안 된 단어들 번역하기
-//            let untranslated = words.filter { $0.meaning.isEmpty }
-//            if !untranslated.isEmpty {
-//                self.pendingLemmas = Array(untranslated.map { $0.lemma }.prefix(TranslationHelper.maxTranslationCount))
-//                
-//                if !pendingLemmas.isEmpty {
-//                    self.translationConfig = TranslationHelper.createConfiguration()
-//                }
-//            }
-        } catch {
-            print("⚠️ 단어 불러오기 실패: \(error.localizedDescription)")
-        }
-    }
+//    private func loadWords() async {
+//        isLoading = true
+//        defer { isLoading = false }
+//        
+//        do {
+//            // DB에서 단어 불러오기
+//            let fetchedWords = try container.wordExtractionService.fetchWords(for: scriptId)
+//            
+//            self.words = fetchedWords
+//            
+////            // 번역이 안 된 단어들 번역하기
+////            let untranslated = words.filter { $0.meaning.isEmpty }
+////            if !untranslated.isEmpty {
+////                self.pendingLemmas = Array(untranslated.map { $0.lemma }.prefix(TranslationHelper.maxTranslationCount))
+////                
+////                if !pendingLemmas.isEmpty {
+////                    self.translationConfig = TranslationHelper.createConfiguration()
+////                }
+////            }
+//        } catch {
+//            print("⚠️ 단어 불러오기 실패: \(error.localizedDescription)")
+//        }
+//    }
 }
 
 #Preview {
-    WordkListView(scriptId: 1)
+    WordkListView(scriptId: 1, words: .constant([]), isLoading: .constant(false))
         .environment(DatabaseContainer(database: AppDatabase.shared))
 }
