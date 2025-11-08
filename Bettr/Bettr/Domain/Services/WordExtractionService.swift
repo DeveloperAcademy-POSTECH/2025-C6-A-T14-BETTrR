@@ -27,7 +27,7 @@ class WordExtractionService {
     
     // MARK: - 🔹 Gemini 기반 단어 추출 + GRDB 저장
     func extractAndSaveWords(for scriptId: Int64) async throws {
-        // 🔸 Step 0: 이미 단어가 존재하면 바로 리턴
+        // 이미 단어가 존재하면 바로 리턴
         let existingWords = try fetchWords(for: scriptId)
         if !existingWords.isEmpty {
             print("🟢 이미 단어 \(existingWords.count)개 존재 — Gemini 호출 생략")
