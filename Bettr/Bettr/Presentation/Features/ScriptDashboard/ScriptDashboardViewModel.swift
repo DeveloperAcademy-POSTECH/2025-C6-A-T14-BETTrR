@@ -8,16 +8,23 @@
 import Foundation
 
 @Observable
-class ScriptDashboardViewModel {
+class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
     
     // MARK: - Dependencies (의존성)
     let scriptId: Int64
-    private let scriptService: ScriptManagementServiceProtocol
+    let scriptService: ScriptManagementServiceProtocol
     
     // MARK: - State (뷰에서 사용될 상태)
     
     // 원본 데이터 (새로운 모델 타입으로 정확히 지정됨)
     var scriptDashboardData: ScriptDashboardModel?
+    
+    // 제목
+    var currentTitle: String = "Loading..." {
+        didSet {
+            handleTitleChange(oldValue: oldValue, newValue: currentTitle)
+        }
+    }
     
     // 로딩 상태
     var isLoading = false
@@ -25,6 +32,10 @@ class ScriptDashboardViewModel {
     // 오류 상태
     var showingError = false
     var errorMessage = ""
+    
+    func updateLocalModelTitle(_ newTitle: String) {
+        self.scriptDashboardData?.title = newTitle
+    }
     
     // MARK: - Init
     
@@ -117,6 +128,7 @@ class ScriptDashboardViewModel {
                         top3IncorrectWords: top3Words,
                         averagePracticeDuration: averageDuration
                     )
+                    self.currentTitle = fetchedScript.title
                     self.isLoading = false
                 }
                 
@@ -126,6 +138,7 @@ class ScriptDashboardViewModel {
                     self.errorMessage = "스크립트 로딩 중 오류 발생: \(error.localizedDescription)"
                     self.showingError = true
                     self.isLoading = false
+                    self.currentTitle = "스크립트 오류"
                 }
             }
         }

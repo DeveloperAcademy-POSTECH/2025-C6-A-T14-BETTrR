@@ -9,7 +9,10 @@ import SwiftUI
 
 struct MemorizationToolbar: ViewModifier {
     
-    let title: String
+    @Binding var title: String
+    let showEditIcon: Bool
+    @Binding var isTitleEditing: Bool
+    
     @Binding var isChunkMode: Bool
     @Binding var functionMode: FunctionMode
     @Binding var languageMode: LanguageMode
@@ -24,7 +27,7 @@ struct MemorizationToolbar: ViewModifier {
             .toolbar {
                 // 타이틀
                 ToolbarItem(placement: .principal) {
-                    Text(title)
+                    EditableTitleView(title: $title, showEditIcon: showEditIcon, isEditing: $isTitleEditing )
                 }
                 
                 // 상단 오른쪽 툴 바
@@ -39,36 +42,36 @@ struct MemorizationToolbar: ViewModifier {
                 ToolbarSpacer(.flexible)
                 
                 ToolbarItemGroup {
-                        Button(action: {
-                            functionMode = .hide
-                        }) {
-                            Image(systemName: "bandage")
-                                .foregroundStyle(functionMode == .hide ? .primary : .quinary)
-                        }
-                        Button(action: {
-                            functionMode = .read
-                        }) {
-                            Image(systemName: "speaker.wave.2")
-                                .foregroundStyle(functionMode == .read ? .primary : .quinary)
-                        }
+                    Button(action: {
+                        functionMode = .hide
+                    }) {
+                        Image(systemName: "bandage")
+                            .foregroundStyle(functionMode == .hide ? .primary : .quinary)
+                    }
+                    Button(action: {
+                        functionMode = .read
+                    }) {
+                        Image(systemName: "speaker.wave.2")
+                            .foregroundStyle(functionMode == .read ? .primary : .quinary)
+                    }
                 }
                 
                 ToolbarSpacer(.flexible)
                 
                 ToolbarItemGroup {
-                        Button(action: {
-                            languageMode = .engKor
-                        }) {
-                            Image(systemName: "translate")
-                                .foregroundStyle(languageMode == .engKor ? .primary : .quinary)
-                        }
-                        Button(action: {
-                            languageMode = .engOnly
-                        }) {
-                            Image(systemName: "character")
-                                .foregroundStyle(languageMode == .engOnly ? .primary : .quinary)
-                        }
+                    Button(action: {
+                        languageMode = .engKor
+                    }) {
+                        Image(systemName: "translate")
+                            .foregroundStyle(languageMode == .engKor ? .primary : .quinary)
                     }
+                    Button(action: {
+                        languageMode = .engOnly
+                    }) {
+                        Image(systemName: "character")
+                            .foregroundStyle(languageMode == .engOnly ? .primary : .quinary)
+                    }
+                }
                 
                 ToolbarSpacer(.flexible)
                 
@@ -124,7 +127,9 @@ struct MemorizationToolbar: ViewModifier {
 
 extension View {
     func memorizationToolbar(
-        title: String,
+        title: Binding<String>,
+        showEditIcon: Bool = false,
+        isTitleEditing: Binding<Bool>,
         isChunkMode: Binding<Bool>,
         functionMode: Binding<FunctionMode>,
         languageMode: Binding<LanguageMode>,
@@ -136,6 +141,8 @@ extension View {
     ) -> some View {
         self.modifier(MemorizationToolbar(
             title: title,
+            showEditIcon: showEditIcon,
+            isTitleEditing: isTitleEditing,
             isChunkMode: isChunkMode,
             functionMode: functionMode,
             languageMode: languageMode,

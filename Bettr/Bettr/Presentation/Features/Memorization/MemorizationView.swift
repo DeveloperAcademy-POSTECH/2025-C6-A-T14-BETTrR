@@ -9,6 +9,7 @@ import SwiftUI
 struct MemorizationView: View {
     @State var viewModel: MemorizationViewModel
     @Environment(AudioPlaybackService.self) private var audioService
+    @State private var isTitleEditing: Bool = false
     
     init(viewModel: MemorizationViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -48,6 +49,9 @@ struct MemorizationView: View {
                 )
             }
         }
+        .onTapGesture {
+            isTitleEditing = false
+        }
         .animation(.easeInOut, value: viewModel.showWordList)
         .onChange(of: audioService.isPlaying) { _, serviceIsPlaying in
             viewModel.handleAudioServiceStateChange(
@@ -59,7 +63,9 @@ struct MemorizationView: View {
             viewModel.onDisappear()
         }
         .memorizationToolbar(
-            title: viewModel.toolbarTitle,
+            title: $viewModel.currentTitle,
+            showEditIcon: true,
+            isTitleEditing: $isTitleEditing,
             isChunkMode: $viewModel.isChunkMode,
             functionMode: $viewModel.funcMode,
             languageMode: $viewModel.langMode,

@@ -8,7 +8,12 @@
 import SwiftUI
 
 struct ScriptDashboardView: View {
-    var viewModel: ScriptDashboardViewModel
+    @State var viewModel: ScriptDashboardViewModel
+    @State private var isTitleEditing: Bool = false
+    
+    init(viewModel: ScriptDashboardViewModel) {
+        _viewModel = State(initialValue: viewModel)
+    }
     
     var body: some View {
         Group {
@@ -34,8 +39,19 @@ struct ScriptDashboardView: View {
         .padding(.horizontal, 60)
         .padding(.bottom, 60)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onTapGesture {
+            isTitleEditing = false
+        }
         .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle(viewModel.scriptDashboardData?.title ?? "")
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                EditableTitleView(
+                    title: $viewModel.currentTitle,
+                    showEditIcon: true,
+                    isEditing: $isTitleEditing
+                )
+            }
+        }
         .onAppear {
             viewModel.onAppear()
         }

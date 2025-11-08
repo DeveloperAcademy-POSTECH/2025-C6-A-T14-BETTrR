@@ -9,7 +9,7 @@ import Foundation
 
 /// 대시보드 뷰에서 필요한 스크립트 데이터만 담는 모델
 struct ScriptDashboardModel: Hashable {
-    let title: String
+    var title: String
     let sentences: [ScriptDashboardSentenceModel]
     
     let feedbackCount: Int
