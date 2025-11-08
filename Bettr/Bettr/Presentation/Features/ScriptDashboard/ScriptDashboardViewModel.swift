@@ -144,17 +144,16 @@ class ScriptDashboardViewModel {
     }
     
     /// 스크립트 제목을 DB에 저장하기 위한 함수
-        private func saveTitleToDatabase(newTitle: String) {
-            Task(priority: .background) {
-                do {
-           //         try await scriptService.updateScriptTitle(id: scriptId, newTitle: newTitle)
-                    print("✅ 대시보드 제목 DB 저장 성공: \(newTitle)")
-                } catch {
-                    print("🔥 대시보드 제목 DB 저장 실패: \(error.localizedDescription)")
-                    // (선택) 사용자에게 저장 실패 알림
-                }
+    private func saveTitleToDatabase(newTitle: String) {
+        Task(priority: .background) {
+            do {
+                try scriptService.updateScriptTitle(scriptId: scriptId, newTitle: newTitle)
+                print("✅ 대시보드 제목 DB 저장 성공: \(newTitle)")
+            } catch {
+                print("🔥 대시보드 제목 DB 저장 실패: \(error.localizedDescription)")
             }
         }
+    }
     
     /// FeedbackDetail에서 틀린 단어를 집계하는 헬퍼 함수
     private func processTopIncorrectWords(from details: [FeedbackDetail]) -> [IncorrectWordCount] {

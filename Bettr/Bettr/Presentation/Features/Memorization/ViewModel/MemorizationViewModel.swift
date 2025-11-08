@@ -215,13 +215,10 @@ final class MemorizationViewModel {
     private func saveTitleToDatabase(newTitle: String) {
         Task(priority: .background) {
             do {
-                // 'scriptService'에 제목 업데이트 함수가 있다고 가정합니다.
-                // 이 함수는 'ScriptManagementServiceProtocol'에 추가해야 합니다.
-        //        try await scriptService.updateScriptTitle(id: scriptId, newTitle: newTitle)
+                try scriptService.updateScriptTitle(scriptId: scriptId, newTitle: newTitle)
                 print("✅ 제목 DB 저장 성공: \(newTitle)")
             } catch {
                 print("🔥 제목 DB 저장 실패: \(error.localizedDescription)")
-                // (선택) 사용자에게 저장 실패 알림
             }
         }
     }
