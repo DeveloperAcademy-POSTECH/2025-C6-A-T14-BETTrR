@@ -16,6 +16,16 @@ final class MemorizationViewModel {
     // 원본 데이터
     var scriptData: ScriptData?
     
+    // 스크립트 제목
+    var currentTitle: String = "Loading..." {
+        didSet {
+            if oldValue != "Loading..." && oldValue != currentTitle {
+                self.scriptData?.title = currentTitle
+                saveTitleToDatabase(newTitle: currentTitle)
+            }
+        }
+    }
+    
     // 오류 상태
     var showingError = false
     var errorMessage = ""
@@ -51,13 +61,8 @@ final class MemorizationViewModel {
     var hiddenKorChunks: Set<ChunkIdentifier> = []
     var hiddenEngSentences: Set<Int> = []
     var hiddenKorSentences: Set<Int> = []
-
-    // MARK: - Computed Properties (계산 프로퍼티)
     
-    // 뷰에서 바로 사용할 수 있도록 데이터를 가공
-    var toolbarTitle: String {
-        scriptData?.title ?? "Loading..."
-    }
+    // MARK: - Computed Properties (계산 프로퍼티)
     
     var isRecordingDisabled: Bool {
         scriptData == nil
@@ -95,9 +100,9 @@ final class MemorizationViewModel {
     func onDisappear() {
         audioService.stop()
     }
-
+    
     // MARK: - Public Methods (User Interactions)
-
+    
     // 청크 탭 처리
     func handleChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
         if funcMode == .hide {
@@ -116,17 +121,17 @@ final class MemorizationViewModel {
     
     func handleKorChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
         if funcMode == .hide {
-             withAnimation(.easeInOut(duration: 0.02)) {
-                 if hiddenKorChunks.contains(identifier) {
-                     hiddenKorChunks.remove(identifier)
-                 } else {
-                     hiddenKorChunks.insert(identifier)
-                 }
-             }
-         }
-         // 한국어는 재생 로직이 없으므로 'else'는 생략
+            withAnimation(.easeInOut(duration: 0.02)) {
+                if hiddenKorChunks.contains(identifier) {
+                    hiddenKorChunks.remove(identifier)
+                } else {
+                    hiddenKorChunks.insert(identifier)
+                }
+            }
+        }
+        // 한국어는 재생 로직이 없으므로 'else'는 생략
     }
-
+    
     // 문장 탭 처리
     func handleSentenceTap(sentence: SentenceData) {
         if funcMode == .hide {
@@ -143,17 +148,17 @@ final class MemorizationViewModel {
         }
     }
     
-     func handleKorSentenceTap(sentence: SentenceData) {
-         if funcMode == .hide {
-             withAnimation(.easeInOut(duration: 0.02)) {
-                 if hiddenKorSentences.contains(sentence.orderIndex) {
-                     hiddenKorSentences.remove(sentence.orderIndex)
-                 } else {
-                     hiddenKorSentences.insert(sentence.orderIndex)
-                 }
-             }
-         }
-     }
+    func handleKorSentenceTap(sentence: SentenceData) {
+        if funcMode == .hide {
+            withAnimation(.easeInOut(duration: 0.02)) {
+                if hiddenKorSentences.contains(sentence.orderIndex) {
+                    hiddenKorSentences.remove(sentence.orderIndex)
+                } else {
+                    hiddenKorSentences.insert(sentence.orderIndex)
+                }
+            }
+        }
+    }
     
     // 오디오 서비스의 상태 변경 처리 (View의 .onChange에서 호출)
     func handleAudioServiceStateChange(isPlaying serviceIsPlaying: Bool, isPaused serviceIsPaused: Bool) {
@@ -163,7 +168,7 @@ final class MemorizationViewModel {
             self.isPause = false
         }
     }
-
+    
     // MARK: - Private Methods (Internal Logic)
     
     @MainActor
@@ -197,9 +202,27 @@ final class MemorizationViewModel {
                 sentences: sentenceDataList
             )
             
+            self.currentTitle = fetchedData.script.title
+            
         } catch {
             errorMessage = "스크립트 로딩 중 오류 발생: \(error.localizedDescription)"
             showingError = true
+            self.currentTitle = "스크립트 오류"
+        }
+    }
+    
+    /// 스크립트 제목을 DB에 저장하기 위한 함수
+    private func saveTitleToDatabase(newTitle: String) {
+        Task(priority: .background) {
+            do {
+                // 'scriptService'에 제목 업데이트 함수가 있다고 가정합니다.
+                // 이 함수는 'ScriptManagementServiceProtocol'에 추가해야 합니다.
+        //        try await scriptService.updateScriptTitle(id: scriptId, newTitle: newTitle)
+                print("✅ 제목 DB 저장 성공: \(newTitle)")
+            } catch {
+                print("🔥 제목 DB 저장 실패: \(error.localizedDescription)")
+                // (선택) 사용자에게 저장 실패 알림
+            }
         }
     }
     
@@ -241,7 +264,7 @@ final class MemorizationViewModel {
             tappedPlaybackText = nil
         }
     }
-
+    
     // .onChange(of: isPause) 로직
     private func handleIsPauseChange(to isNowPaused: Bool) {
         guard isPlaying else { return } // isPlaying이 false(정지 상태)일 때는 무시

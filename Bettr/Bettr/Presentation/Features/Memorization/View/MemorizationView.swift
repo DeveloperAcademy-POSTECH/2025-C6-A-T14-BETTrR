@@ -59,7 +59,8 @@ struct MemorizationView: View {
             viewModel.onDisappear()
         }
         .memorizationToolbar(
-            title: viewModel.toolbarTitle,
+            title: $viewModel.currentTitle,
+            showEditIcon: true,
             isChunkMode: $viewModel.isChunkMode,
             functionMode: $viewModel.funcMode,
             languageMode: $viewModel.langMode,
