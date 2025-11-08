@@ -476,6 +476,45 @@ final class ScriptManagementServiceTests: XCTestCase {
             )
         }
     }
+    
+    func test_updateScriptTitle_whenScriptExists_thenUpdatesTitle() throws {
+        // Given: Script가 존재할 때
+        let scriptData = ScriptData(
+            title: "Original Title",
+            sentences: [
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "Sentence.",
+                    koreanText: "문장.",
+                    chunks: [ChunkData(orderIndex: 0, englishText: "Chunk", koreanText: "청크")]
+                )
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+        let newTitle = "Updated Title"
+        
+        // When: Script 제목을 갱신했을 때
+        try sut.updateScriptTitle(scriptId: createdScript.id!, newTitle: newTitle)
+        
+        // Then: 제목이 올바르게 업데이트되어야 함
+        let updatedScript = try sut.fetchScript(id: createdScript.id!)
+        XCTAssertNotNil(updatedScript)
+        XCTAssertEqual(updatedScript?.title, newTitle)
+    }
+    
+    func test_updateScriptTitle_whenScriptDoesNotExist_thenThrowsError() throws {
+        // Given: 존재하지 않는 Script ID가 있을 때
+        let nonExistentId: Int64 = 9999
+        let newTitle = "Any Title"
+        
+        // When-Then: 업데이트 시 notFound 오류가 발생해야 함
+        XCTAssertThrowsError(try sut.updateScriptTitle(scriptId: nonExistentId, newTitle: newTitle)) { error in
+            XCTAssertEqual(
+                (error as? ScriptRepositoryError)?.errorDescription,
+                ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription
+            )
+        }
+    }
 
     // MARK: - Script Delete Tests
 
