@@ -72,9 +72,15 @@ struct ScriptConfirmView: View {
                     await callGemini()
                 }
             }) {
-                AnalyzeButtonLabel(isLoading: isLoading)
+                Text("분석 및 암기 시작")
+                    .bold()
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent ? Color.gray : Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
             }
-            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading || isEditingContent)
+            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent)
             .padding(.horizontal)
         }
         .padding()
@@ -122,6 +128,9 @@ struct ScriptConfirmView: View {
             guard let scriptData = newValue else { return }
             saveAndNavigate(with: scriptData)
         }
+        .fullScreenCover(isPresented: $isLoading) {
+            ScriptConfirmLoadingView()
+        }
     }
     
     // MARK: - 🔹 Gemini 두 번 호출: 스크립트 분석 → 단어 추출
@@ -143,37 +152,38 @@ struct ScriptConfirmView: View {
             await MainActor.run {
                 self.showErrorAlert("스크립트 분석 실패: \(error.localizedDescription)")
             }
+            isLoading = false // Ensure isLoading is reset on error
             return
         }
     }
     
     // MARK: - 저장 및 화면 이동
-        private func saveAndNavigate(with scriptData: ScriptData) {
-            Task {
-                defer { isLoading = false }
-                do {
-                    // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
-                    let finalTitle = scriptTitle.isEmpty ? scriptData.title : scriptTitle
-                    let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
-                    
-                    let script = try databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
-                    print("✅ 스크립트가 성공적으로 저장되었습니다.")
-                    
-                    if let scriptId = script.id {
-                        // MainActor를 사용하여 UI 업데이트 (화면 이동)
-                        await MainActor.run {
-                            router.reset() // Go back to HomeView
-                            router.push(Route.memorization(scriptId: scriptId))
-                        }
-                    }
-                } catch {
-                    print("🔥 스크립트 저장 오류:", error.localizedDescription)
+    private func saveAndNavigate(with scriptData: ScriptData) {
+        Task {
+            defer { isLoading = false }
+            do {
+                // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
+                let finalTitle = scriptTitle.isEmpty ? scriptData.title : scriptTitle
+                let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
+                
+                let script = try databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
+                print("✅ 스크립트가 성공적으로 저장되었습니다.")
+                
+                if let scriptId = script.id {
+                    // MainActor를 사용하여 UI 업데이트 (화면 이동)
                     await MainActor.run {
-                        showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
-                    }
+                        router.reset() // Go back to HomeView
+                        router.push(Route.scriptDashboard(scriptId: scriptId))
+                        router.push(Route.memorization(scriptId: scriptId))                    }
+                }
+            } catch {
+                print("🔥 스크립트 저장 오류:", error.localizedDescription)
+                await MainActor.run {
+                    showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
                 }
             }
-        }    
+        }
+    }
     // MARK: - 사용자 알림 (UI Thread 전환)
     @MainActor
     func showErrorAlert(_ message: String) {
@@ -182,43 +192,20 @@ struct ScriptConfirmView: View {
     }
 }
 
-// MARK: - AnalyzeButtonLabel Component
-private struct AnalyzeButtonLabel: View {
-    @Environment(\.isEnabled) private var isEnabled
-    let isLoading: Bool
-    
-    var body: some View {
-        Group {
-            if isLoading {
-                ProgressView("Gemini가 분석 중...")
-                    .tint(.white)
-            } else {
-                Text("분석 및 암기 시작")
-                    .bold()
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .background(isEnabled ? Color.blue : Color.gray)
-        .foregroundColor(.white)
-        .cornerRadius(10)
-    }
-}
-
 #Preview {
     NavigationStack {
         ScriptConfirmView(initialText: """
-        Hello everyone, my name is Dewy.
-        Today, I want to talk about the power of challenge.
-        I used to be afraid of speaking English in front of others.
-        But my teacher told me, "Mistakes are part of learning."
-        So I decided to join the English speech contest.
-        At first, I was really nervous, but I didn't give up.
-        When I finished, I felt proud of myself.
-        That experience taught me to be brave.
-        Now I know every challenge helps me grow.
-        Thank you for listening.
-        """, initialTitle: "Dewy's Speech")
+            Hello everyone, my name is Dewy.
+            Today, I want to talk about the power of challenge.
+            I used to be afraid of speaking English in front of others.
+            But my teacher told me, "Mistakes are part of learning."
+            So I decided to join the English speech contest.
+            At first, I was really nervous, but I didn't give up.
+            When I finished, I felt proud of myself.
+            That experience taught me to be brave.
+            Now I know every challenge helps me grow.
+            Thank you for listening.
+            """, initialTitle: "Dewy's Speech")
         .environment(DatabaseContainer.getForPreview())
         .environment(NavigationRouter())
     }

@@ -1,5 +1,5 @@
 //
-//  Extention.swift
+//  Extension.swift
 //  Bettr
 //
 //  Created by 서세린 on 10/30/25.
