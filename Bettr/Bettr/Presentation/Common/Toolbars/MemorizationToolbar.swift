@@ -11,6 +11,7 @@ struct MemorizationToolbar: ViewModifier {
     
     @Binding var title: String
     let showEditIcon: Bool
+    @Binding var isTitleEditing: Bool
     
     @Binding var isChunkMode: Bool
     @Binding var functionMode: FunctionMode
@@ -26,7 +27,7 @@ struct MemorizationToolbar: ViewModifier {
             .toolbar {
                 // 타이틀
                 ToolbarItem(placement: .principal) {
-                    EditableTitleView(title: $title, showEditIcon: showEditIcon)
+                    EditableTitleView(title: $title, showEditIcon: showEditIcon, isEditing: $isTitleEditing )
                 }
                 
                 // 상단 오른쪽 툴 바
@@ -128,6 +129,7 @@ extension View {
     func memorizationToolbar(
         title: Binding<String>,
         showEditIcon: Bool = false,
+        isTitleEditing: Binding<Bool>,
         isChunkMode: Binding<Bool>,
         functionMode: Binding<FunctionMode>,
         languageMode: Binding<LanguageMode>,
@@ -140,6 +142,7 @@ extension View {
         self.modifier(MemorizationToolbar(
             title: title,
             showEditIcon: showEditIcon,
+            isTitleEditing: isTitleEditing,
             isChunkMode: isChunkMode,
             functionMode: functionMode,
             languageMode: languageMode,

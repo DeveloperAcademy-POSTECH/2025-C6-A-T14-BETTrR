@@ -19,6 +19,16 @@ class ScriptDashboardViewModel {
     // 원본 데이터 (새로운 모델 타입으로 정확히 지정됨)
     var scriptDashboardData: ScriptDashboardModel?
     
+    // 제목
+    var currentTitle: String = "Loading..." {
+        didSet {
+            if oldValue != "Loading..." && oldValue != currentTitle {
+                self.scriptDashboardData?.title = currentTitle
+                saveTitleToDatabase(newTitle: currentTitle)
+            }
+        }
+    }
+    
     // 로딩 상태
     var isLoading = false
     
@@ -117,6 +127,7 @@ class ScriptDashboardViewModel {
                         top3IncorrectWords: top3Words,
                         averagePracticeDuration: averageDuration
                     )
+                    self.currentTitle = fetchedScript.title
                     self.isLoading = false
                 }
                 
@@ -126,10 +137,24 @@ class ScriptDashboardViewModel {
                     self.errorMessage = "스크립트 로딩 중 오류 발생: \(error.localizedDescription)"
                     self.showingError = true
                     self.isLoading = false
+                    self.currentTitle = "스크립트 오류"
                 }
             }
         }
     }
+    
+    /// 스크립트 제목을 DB에 저장하기 위한 함수
+        private func saveTitleToDatabase(newTitle: String) {
+            Task(priority: .background) {
+                do {
+           //         try await scriptService.updateScriptTitle(id: scriptId, newTitle: newTitle)
+                    print("✅ 대시보드 제목 DB 저장 성공: \(newTitle)")
+                } catch {
+                    print("🔥 대시보드 제목 DB 저장 실패: \(error.localizedDescription)")
+                    // (선택) 사용자에게 저장 실패 알림
+                }
+            }
+        }
     
     /// FeedbackDetail에서 틀린 단어를 집계하는 헬퍼 함수
     private func processTopIncorrectWords(from details: [FeedbackDetail]) -> [IncorrectWordCount] {
