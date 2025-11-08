@@ -18,4 +18,14 @@ extension Font {
     static var subtitleSemibold24: Font {
         return .sfPro(weight: .semibold, size: 24)
     }
+    
+    /// Bold, 20pt
+    static var iconBold20: Font {
+        return .sfPro(weight: .bold, size: 20)
+    }
+    
+    /// regular, 20pt
+    static var bodyRegular20: Font {
+        return .sfPro(weight: .regular, size: 20)
+    }
 }

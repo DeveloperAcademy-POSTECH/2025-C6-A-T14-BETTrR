@@ -36,9 +36,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     var funcMode: FunctionMode = .hide {
         didSet { if funcMode == .read { clearAllHiddenStates() }; tappedPlaybackText = nil }
     }
-    var langMode: LanguageMode = .engKor {
-        didSet { clearAllHiddenStates(); tappedPlaybackText = nil }
-    }
+    var isKoreanVisible: Bool = true
     var showWordList: Bool = false
     var showFeedbackModal: Bool = false
     
