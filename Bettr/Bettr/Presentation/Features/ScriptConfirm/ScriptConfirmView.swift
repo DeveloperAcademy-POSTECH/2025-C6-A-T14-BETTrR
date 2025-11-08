@@ -10,6 +10,7 @@ struct ScriptConfirmView: View {
     @State var scriptContent: String
     @State var isLoading: Bool = false
     @State private var isEditingContent = false
+    @State private var isTitleEditing: Bool = false
     
     // Gemini 분석 결과 임시 저장
     @State var parsedScript: ScriptData?
@@ -82,9 +83,12 @@ struct ScriptConfirmView: View {
             }
             .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent)
             .padding(.horizontal)
+            .onTapGesture {
+                isTitleEditing = false
+                isEditingContent = false
+            }
         }
         .padding()
-        .navigationTitle(scriptTitle.isEmpty ? "새 스크립트" : scriptTitle)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -94,6 +98,14 @@ struct ScriptConfirmView: View {
                 }) {
                     Image(systemName: "chevron.left")
                 }
+            }
+            
+            ToolbarItem(placement: .principal) {
+                EditableTitleView(
+                    title: $scriptTitle,
+                    showEditIcon: true,
+                    isEditing: $isTitleEditing
+                )
             }
             
             ToolbarItem(placement: .navigationBarTrailing) {
