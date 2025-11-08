@@ -38,6 +38,16 @@ class ScriptRepository {
             }
         }
     }
+    
+    func updateScriptTitle(id: Int64, newTitle: String) throws {
+        try dbQueue.write { db in
+            guard var script = try Script.fetchOne(db, key: id) else {
+                throw ScriptRepositoryError.notFound(message: "Script with ID \(id) not found.")
+            }
+            script.title = newTitle
+            try script.save(db)
+        }
+    }
 
     // MARK: Sentence
     func save(sentence: inout Sentence) throws -> Sentence {

@@ -91,6 +91,10 @@ class ScriptManagementService {
         script.lastViewedAt = Date()
         _ = try scriptRepository.save(script: &script)
     }
+    
+    func updateScriptTitle(scriptId: Int64, newTitle: String) throws {
+        try scriptRepository.updateScriptTitle(id: scriptId, newTitle: newTitle)
+    }
 
     // MARK: - Script Delete
     func deleteScript(id: Int64) throws {
