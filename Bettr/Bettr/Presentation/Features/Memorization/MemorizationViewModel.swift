@@ -214,10 +214,24 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     @MainActor
     private func loadWords() async {
+        // 이미 단어가 존재하면 Gemini 호출 생략
+        if !words.isEmpty {
+            print("🟢 이미 단어 \(words.count)개 로드됨 — Gemini 호출 생략")
+            return
+        }
+        
         isLoadingWords = true
         defer { isLoadingWords = false }
         do {
             print("🚀 [2/2] Gemini 단어 추출 시작 (MemorizationView)")
+            // Gemini 호출 전 DB에도 기존 데이터가 있는지 double-check
+            let existing = try wordExtractionService.fetchWords(for: scriptId)
+            if !existing.isEmpty {
+                print("🟢 DB에서 \(existing.count)개 단어 발견 — Gemini 호출 생략")
+                self.words = existing
+                return
+            }
+            
             try await wordExtractionService.extractAndSaveWords(for: scriptId)
             print("✅ [2/2] 단어 추출 및 저장 완료 (MemorizationView)")
             self.words = try wordExtractionService.fetchWords(for: scriptId)
