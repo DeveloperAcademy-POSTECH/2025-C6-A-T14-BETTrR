@@ -3,13 +3,13 @@ import SwiftUI
 import AVFoundation
 
 @Observable
-final class MemorizationViewModel {
+final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     // MARK: - Dependencies (의존성)
     let scriptId: Int64
-    private let scriptService: ScriptManagementServiceProtocol
-    private let audioService: AudioPlaybackServiceProtocol
-    private let wordExtractionService: WordExtractionService
+    let scriptService: ScriptManagementServiceProtocol
+    let audioService: AudioPlaybackServiceProtocol
+    let wordExtractionService: WordExtractionService
     
     // MARK: - State (뷰에서 사용될 상태)
     
@@ -19,10 +19,7 @@ final class MemorizationViewModel {
     // 스크립트 제목
     var currentTitle: String = "Loading..." {
         didSet {
-            if oldValue != "Loading..." && oldValue != currentTitle {
-                self.scriptData?.title = currentTitle
-                saveTitleToDatabase(newTitle: currentTitle)
-            }
+            handleTitleChange(oldValue: oldValue, newValue: currentTitle)
         }
     }
     
@@ -70,6 +67,10 @@ final class MemorizationViewModel {
     
     var referenceSentences: [String] {
         scriptData?.sentences.map { $0.englishText } ?? []
+    }
+    
+    func updateLocalModelTitle(_ newTitle: String) {
+        self.scriptData?.title = newTitle
     }
     
     // MARK: - Init
@@ -208,18 +209,6 @@ final class MemorizationViewModel {
             errorMessage = "스크립트 로딩 중 오류 발생: \(error.localizedDescription)"
             showingError = true
             self.currentTitle = "스크립트 오류"
-        }
-    }
-    
-    /// 스크립트 제목을 DB에 저장하기 위한 함수
-    private func saveTitleToDatabase(newTitle: String) {
-        Task(priority: .background) {
-            do {
-                try scriptService.updateScriptTitle(scriptId: scriptId, newTitle: newTitle)
-                print("✅ 제목 DB 저장 성공: \(newTitle)")
-            } catch {
-                print("🔥 제목 DB 저장 실패: \(error.localizedDescription)")
-            }
         }
     }
     

@@ -8,11 +8,11 @@
 import Foundation
 
 @Observable
-class ScriptDashboardViewModel {
+class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
     
     // MARK: - Dependencies (의존성)
     let scriptId: Int64
-    private let scriptService: ScriptManagementServiceProtocol
+    let scriptService: ScriptManagementServiceProtocol
     
     // MARK: - State (뷰에서 사용될 상태)
     
@@ -22,10 +22,7 @@ class ScriptDashboardViewModel {
     // 제목
     var currentTitle: String = "Loading..." {
         didSet {
-            if oldValue != "Loading..." && oldValue != currentTitle {
-                self.scriptDashboardData?.title = currentTitle
-                saveTitleToDatabase(newTitle: currentTitle)
-            }
+            handleTitleChange(oldValue: oldValue, newValue: currentTitle)
         }
     }
     
@@ -35,6 +32,10 @@ class ScriptDashboardViewModel {
     // 오류 상태
     var showingError = false
     var errorMessage = ""
+    
+    func updateLocalModelTitle(_ newTitle: String) {
+        self.scriptDashboardData?.title = newTitle
+    }
     
     // MARK: - Init
     
@@ -139,18 +140,6 @@ class ScriptDashboardViewModel {
                     self.isLoading = false
                     self.currentTitle = "스크립트 오류"
                 }
-            }
-        }
-    }
-    
-    /// 스크립트 제목을 DB에 저장하기 위한 함수
-    private func saveTitleToDatabase(newTitle: String) {
-        Task(priority: .background) {
-            do {
-                try scriptService.updateScriptTitle(scriptId: scriptId, newTitle: newTitle)
-                print("✅ 대시보드 제목 DB 저장 성공: \(newTitle)")
-            } catch {
-                print("🔥 대시보드 제목 DB 저장 실패: \(error.localizedDescription)")
             }
         }
     }
