@@ -15,7 +15,7 @@ struct MemorizationToolbar: ViewModifier {
     
     @Binding var isChunkMode: Bool
     @Binding var functionMode: FunctionMode
-    @Binding var languageMode: LanguageMode
+    @Binding var isKoreanVisible: Bool
     @Binding var isWordListOpen: Bool
     @Binding var isPlaying: Bool
     @Binding var isPause: Bool
@@ -35,7 +35,8 @@ struct MemorizationToolbar: ViewModifier {
                     Button(action: {
                         isChunkMode.toggle()
                     }) {
-                        Image(systemName: isChunkMode ? "text.word.spacing" : "text.justify")
+                        Image(systemName: "text.word.spacing")
+                            .toolbarButtonStyle(emphasized: isChunkMode)
                     }
                 }
                 
@@ -46,30 +47,24 @@ struct MemorizationToolbar: ViewModifier {
                         functionMode = .hide
                     }) {
                         Image(systemName: "bandage")
-                            .foregroundStyle(functionMode == .hide ? .primary : .quinary)
+                            .toolbarButtonStyle(enabled: functionMode == .hide)
                     }
                     Button(action: {
                         functionMode = .read
                     }) {
                         Image(systemName: "speaker.wave.2")
-                            .foregroundStyle(functionMode == .read ? .primary : .quinary)
+                            .toolbarButtonStyle(enabled: functionMode == .read)
                     }
                 }
                 
                 ToolbarSpacer(.flexible)
                 
-                ToolbarItemGroup {
+                ToolbarItem {
                     Button(action: {
-                        languageMode = .engKor
+                        isKoreanVisible.toggle()
                     }) {
-                        Image(systemName: "translate")
-                            .foregroundStyle(languageMode == .engKor ? .primary : .quinary)
-                    }
-                    Button(action: {
-                        languageMode = .engOnly
-                    }) {
-                        Image(systemName: "character")
-                            .foregroundStyle(languageMode == .engOnly ? .primary : .quinary)
+                        Text("한")
+                            .toolbarButtonStyle(emphasized: isKoreanVisible)
                     }
                 }
                 
@@ -80,7 +75,7 @@ struct MemorizationToolbar: ViewModifier {
                         isWordListOpen.toggle()
                     }) {
                         Image(systemName: "character.book.closed")
-                            .foregroundStyle(isWordListOpen ? .blue : .primary)
+                            .toolbarButtonStyle(emphasized: isWordListOpen)
                     }
                 }
                 
@@ -132,7 +127,7 @@ extension View {
         isTitleEditing: Binding<Bool>,
         isChunkMode: Binding<Bool>,
         functionMode: Binding<FunctionMode>,
-        languageMode: Binding<LanguageMode>,
+        isKoreanVisible: Binding<Bool>,
         isWordListOpen: Binding<Bool>,
         isPlaying: Binding<Bool>,
         isPause: Binding<Bool>,
@@ -145,7 +140,7 @@ extension View {
             isTitleEditing: isTitleEditing,
             isChunkMode: isChunkMode,
             functionMode: functionMode,
-            languageMode: languageMode,
+            isKoreanVisible: isKoreanVisible,
             isWordListOpen: isWordListOpen,
             isPlaying: isPlaying,
             isPause: isPause,
