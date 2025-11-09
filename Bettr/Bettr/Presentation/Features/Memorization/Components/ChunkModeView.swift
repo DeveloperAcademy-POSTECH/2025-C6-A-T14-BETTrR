@@ -37,7 +37,7 @@ struct ChunkModeView: View {
                 }
                 
                 // 2. 한국어 청크 라인
-                if viewModel.langMode == .engKor {
+                if viewModel.isKoreanVisible {
                     CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
                         ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                             let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)

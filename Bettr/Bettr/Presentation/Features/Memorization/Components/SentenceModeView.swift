@@ -27,7 +27,7 @@ struct SentenceModeView: View {
                 )
                 
                 // 2. 한국어 텍스트
-                if viewModel.langMode == .engKor {
+                if viewModel.isKoreanVisible {
                     ScriptTextView(
                         text: sentence.koreanText,
                         fontSize: 20,

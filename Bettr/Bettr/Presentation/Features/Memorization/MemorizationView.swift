@@ -68,7 +68,7 @@ struct MemorizationView: View {
             isTitleEditing: $isTitleEditing,
             isChunkMode: $viewModel.isChunkMode,
             functionMode: $viewModel.funcMode,
-            languageMode: $viewModel.langMode,
+            isKoreanVisible: $viewModel.isKoreanVisible,
             isWordListOpen: $viewModel.showWordList,
             isPlaying: $viewModel.isPlaying,
             isPause: $viewModel.isPause,

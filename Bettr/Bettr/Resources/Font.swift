@@ -14,8 +14,23 @@ extension Font {
         return .system(size: size, weight: weight)
     }
 
-    /// Semibold, 24pt
     static var subtitleSemibold24: Font {
         return .sfPro(weight: .semibold, size: 24)
+    }
+    
+    static var bodyRegular28: Font {
+        return .sfPro(weight: .regular, size: 28)
+    }
+
+    static var calloutRegular16: Font {
+        return .sfPro(weight: .regular, size: 16)
+    }
+    
+    static var iconBold20: Font {
+        return .sfPro(weight: .bold, size: 20)
+    }
+    
+    static var bodyRegular20: Font {
+        return .sfPro(weight: .regular, size: 20)
     }
 }
