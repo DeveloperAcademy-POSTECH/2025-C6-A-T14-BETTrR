@@ -17,27 +17,28 @@ struct SentenceModeView: View {
                 // 1. 영어 텍스트
                 ScriptTextView(
                     text: sentence.englishText,
-                    fontSize: 30,
-                    // ⭐️ 모든 상태를 viewModel에서 직접 읽음
+                    font: .bodyRegular28,
+                    isBackground: true,
                     isHidden: viewModel.hiddenEngSentences.contains(sentence.orderIndex),
                     isHighlighted: viewModel.tappedPlaybackText == sentence.englishText,
+                    isVisible: true,
                     onTap: {
                         viewModel.handleSentenceTap(sentence: sentence)
                     }
                 )
                 
                 // 2. 한국어 텍스트
-                if viewModel.isKoreanVisible {
                     ScriptTextView(
                         text: sentence.koreanText,
-                        fontSize: 20,
+                        font: .calloutRegular16,
+                        isBackground: false,
                         isHidden: viewModel.hiddenKorSentences.contains(sentence.orderIndex),
                         isHighlighted: false,
+                        isVisible: viewModel.isKoreanVisible,
                         onTap: {
                             viewModel.handleKorSentenceTap(sentence: sentence)
                         }
                     )
-                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

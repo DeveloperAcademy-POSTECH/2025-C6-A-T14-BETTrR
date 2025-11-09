@@ -19,15 +19,14 @@ struct MemorizationView: View {
         ZStack {
             if viewModel.scriptData != nil {
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 24) {
                         if viewModel.isChunkMode {
                             ChunkModeView(viewModel: viewModel)
                         } else {
                             SentenceModeView(viewModel: viewModel)
                         }
                     }
-                    .padding(.horizontal, 60)
-                    .padding(.vertical, 40)
+                    .padding(.horizontal, 44)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
@@ -49,6 +48,9 @@ struct MemorizationView: View {
                 )
             }
         }
+        .padding(.horizontal, 36)
+        .padding(.top, 36)
+        .padding(.bottom, 48)
         .onTapGesture {
             isTitleEditing = false
         }

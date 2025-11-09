@@ -9,21 +9,25 @@ import SwiftUI
 
 struct ScriptTextView: View {
     let text: String
-    let fontSize: CGFloat
+    let font: Font
+    let isBackground: Bool
     let isHidden: Bool
     let isHighlighted: Bool
-    let onTap: () -> Void // 탭 이벤트를 부모에게 전달
+    let isVisible: Bool
+    let onTap: () -> Void
 
     var body: some View {
         Text(text)
-            .font(.system(size: fontSize))
-            .opacity(isHidden ? 0 : 1)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .font(font)
+            .opacity(isHidden || !isVisible ? 0 : 1)
             .background(
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(isHidden ? Color.primary.opacity(0.05) : Color.clear)
+                    .fill(isBackground ? .G_1 : .clear)
                     .overlay(
                         RoundedRectangle(cornerRadius: 2)
-                            .stroke(isHighlighted ? Color.primary : Color.clear, lineWidth: 1)
+                            .stroke(isHighlighted ? .pp2L2 : .clear, lineWidth: 4)
                     )
             )
             .onTapGesture(perform: onTap)
