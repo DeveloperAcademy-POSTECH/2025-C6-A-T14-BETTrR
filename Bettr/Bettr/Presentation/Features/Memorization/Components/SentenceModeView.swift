@@ -15,29 +15,19 @@ struct SentenceModeView: View {
             VStack(alignment: .leading, spacing: 12) {
                 
                 // 1. 영어 텍스트
-                ScriptTextView(
+                EnglishScriptTextView(
                     text: sentence.englishText,
-                    font: .bodyRegular28,
-                    isBackground: true,
                     isHidden: viewModel.hiddenEngSentences.contains(sentence.orderIndex),
                     isHighlighted: viewModel.tappedPlaybackText == sentence.englishText,
-                    isVisible: true,
                     onTap: {
                         viewModel.handleSentenceTap(sentence: sentence)
                     }
                 )
                 
                 // 2. 한국어 텍스트
-                    ScriptTextView(
+                KoreanScriptTextView(
                         text: sentence.koreanText,
-                        font: .calloutRegular16,
-                        isBackground: false,
-                        isHidden: viewModel.hiddenKorSentences.contains(sentence.orderIndex),
-                        isHighlighted: false,
                         isVisible: viewModel.isKoreanVisible,
-                        onTap: {
-                            viewModel.handleKorSentenceTap(sentence: sentence)
-                        }
                     )
             }
             .frame(maxWidth: .infinity, alignment: .leading)

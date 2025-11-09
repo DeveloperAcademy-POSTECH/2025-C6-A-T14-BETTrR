@@ -20,13 +20,10 @@ struct ChunkModeView: View {
                     ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                         let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)
                         
-                        ScriptTextView(
+                        EnglishScriptTextView(
                             text: chunk.englishText,
-                            font: .bodyRegular28,
-                            isBackground: true,
                             isHidden: viewModel.hiddenEngChunks.contains(chunkID),
                             isHighlighted: viewModel.tappedPlaybackText == chunk.englishText,
-                            isVisible: true,
                             onTap: {
                                 viewModel.handleChunkTap(chunk: chunk, identifier: chunkID)
                             }
@@ -41,18 +38,10 @@ struct ChunkModeView: View {
                 // 2. 한국어 청크 라인
                     CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
                         ForEach(sentence.chunks, id: \.orderIndex) { chunk in
-                            let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)
                             
-                            ScriptTextView(
+                            KoreanScriptTextView(
                                 text: chunk.koreanText,
-                                font: .calloutRegular16,
-                                isBackground: false,
-                                isHidden: viewModel.hiddenKorChunks.contains(chunkID),
-                                isHighlighted: false,
                                 isVisible: viewModel.isKoreanVisible,
-                                onTap: {
-                                    viewModel.handleKorChunkTap(chunk: chunk, identifier: chunkID)
-                                }
                             )
                             
                             if chunk.orderIndex != lastChunkIndex {
