@@ -16,57 +16,48 @@ struct ChunkModeView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 // 1. 영어 청크 라인
-                CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
+                CustomFlowLayout(horizontalSpacing: 12, verticalSpacing: 5) {
                     ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                         let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)
                         
-                        ScriptTextView(
+                        EnglishScriptTextView(
                             text: chunk.englishText,
-                            fontSize: 30,
                             isHidden: viewModel.hiddenEngChunks.contains(chunkID),
                             isHighlighted: viewModel.tappedPlaybackText == chunk.englishText,
                             onTap: {
                                 viewModel.handleChunkTap(chunk: chunk, identifier: chunkID)
                             }
                         )
-                        
+
                         if chunk.orderIndex != lastChunkIndex {
-                            chunkSeparatorText(size: 33)
+                            chunkSeparatorText(size: 35, isKoreanVisible: true)
                         }
                     }
                 }
                 
                 // 2. 한국어 청크 라인
-                if viewModel.isKoreanVisible {
                     CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
                         ForEach(sentence.chunks, id: \.orderIndex) { chunk in
-                            let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)
                             
-                            ScriptTextView(
+                            KoreanScriptTextView(
                                 text: chunk.koreanText,
-                                fontSize: 20,
-                                isHidden: viewModel.hiddenKorChunks.contains(chunkID),
-                                isHighlighted: false,
-                                onTap: {
-                                    viewModel.handleKorChunkTap(chunk: chunk, identifier: chunkID)
-                                }
+                                isVisible: viewModel.isKoreanVisible,
                             )
                             
                             if chunk.orderIndex != lastChunkIndex {
-                                chunkSeparatorText(size: 20)
+                                chunkSeparatorText(size: 20, isKoreanVisible: viewModel.isKoreanVisible)
                             }
                         }
                     }
-                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
     
     @ViewBuilder
-    private func chunkSeparatorText(size: CGFloat) -> some View {
-        Text(" / ")
+    private func chunkSeparatorText(size: CGFloat, isKoreanVisible: Bool) -> some View {
+        Text("/")
             .font(.system(size: size))
-            .foregroundColor(.gray.opacity(0.7))
+            .foregroundStyle(isKoreanVisible ? .G_1 : .clear)
     }
 }

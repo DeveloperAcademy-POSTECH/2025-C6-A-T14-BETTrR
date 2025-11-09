@@ -28,7 +28,7 @@ extension View {
             font: .bodyRegular20
         ))
     }
-
+    
     /// 툴바 비활성화
     func toolbarDisabled() -> some View {
         self.modifier(ToolbarButtonModifier(
@@ -47,21 +47,21 @@ extension View {
     
     /// 상태에 따라 활성화 또는 강조
     @ViewBuilder
-        func toolbarButtonStyle(emphasized isActive: Bool) -> some View {
-            if isActive {
-                self.toolbarEmphasized()
-            } else {
-                self.toolbarEnabled()
-            }
+    func toolbarButtonStyle(emphasized isActive: Bool) -> some View {
+        if isActive {
+            self.toolbarEmphasized()
+        } else {
+            self.toolbarEnabled()
         }
+    }
     
     /// 상태에 따라 활성화 또는 비활성화
     @ViewBuilder
-        func toolbarButtonStyle(enabled isActive: Bool) -> some View {
-            if isActive {
-                self.toolbarEnabled()
-            } else {
-                self.toolbarDisabled()
-            }
+    func toolbarButtonStyle(enabled isActive: Bool) -> some View {
+        if isActive {
+            self.toolbarEnabled()
+        } else {
+            self.toolbarDisabled()
         }
+    }
 }

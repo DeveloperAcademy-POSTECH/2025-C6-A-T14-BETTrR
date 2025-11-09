@@ -112,7 +112,7 @@ struct MemorizationToolbar: ViewModifier {
                         isFeedbackModalOpen.toggle()
                     }) {
                         Image(systemName: "append.page")
-                            .foregroundStyle(Color.blue)
+                            .toolbarButtonStyle(enabled: !isRecordingDisabled)
                     }
                     .disabled(isRecordingDisabled)
                 }

@@ -15,10 +15,8 @@ struct SentenceModeView: View {
             VStack(alignment: .leading, spacing: 12) {
                 
                 // 1. 영어 텍스트
-                ScriptTextView(
+                EnglishScriptTextView(
                     text: sentence.englishText,
-                    fontSize: 30,
-                    // ⭐️ 모든 상태를 viewModel에서 직접 읽음
                     isHidden: viewModel.hiddenEngSentences.contains(sentence.orderIndex),
                     isHighlighted: viewModel.tappedPlaybackText == sentence.englishText,
                     onTap: {
@@ -27,17 +25,10 @@ struct SentenceModeView: View {
                 )
                 
                 // 2. 한국어 텍스트
-                if viewModel.isKoreanVisible {
-                    ScriptTextView(
+                KoreanScriptTextView(
                         text: sentence.koreanText,
-                        fontSize: 20,
-                        isHidden: viewModel.hiddenKorSentences.contains(sentence.orderIndex),
-                        isHighlighted: false,
-                        onTap: {
-                            viewModel.handleKorSentenceTap(sentence: sentence)
-                        }
+                        isVisible: viewModel.isKoreanVisible,
                     )
-                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

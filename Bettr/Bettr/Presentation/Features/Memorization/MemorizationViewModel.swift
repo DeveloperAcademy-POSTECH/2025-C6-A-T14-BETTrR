@@ -53,9 +53,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     // 가리기 상태
     var hiddenEngChunks: Set<ChunkIdentifier> = []
-    var hiddenKorChunks: Set<ChunkIdentifier> = []
     var hiddenEngSentences: Set<Int> = []
-    var hiddenKorSentences: Set<Int> = []
     
     // MARK: - Computed Properties (계산 프로퍼티)
     
@@ -105,57 +103,20 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     // 청크 탭 처리
     func handleChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
         if funcMode == .hide {
-            withAnimation(.easeInOut(duration: 0.02)) {
-                if hiddenEngChunks.contains(identifier) {
-                    hiddenEngChunks.remove(identifier)
-                } else {
-                    hiddenEngChunks.insert(identifier)
-                }
-            }
+            toggleHiddenState(in: &hiddenEngChunks, for: identifier)
         } else {
             audioService.play(text: chunk.englishText)
             tappedPlaybackText = chunk.englishText
         }
     }
     
-    func handleKorChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
-        if funcMode == .hide {
-            withAnimation(.easeInOut(duration: 0.02)) {
-                if hiddenKorChunks.contains(identifier) {
-                    hiddenKorChunks.remove(identifier)
-                } else {
-                    hiddenKorChunks.insert(identifier)
-                }
-            }
-        }
-        // 한국어는 재생 로직이 없으므로 'else'는 생략
-    }
-    
     // 문장 탭 처리
     func handleSentenceTap(sentence: SentenceData) {
         if funcMode == .hide {
-            withAnimation(.easeInOut(duration: 0.02)) {
-                if hiddenEngSentences.contains(sentence.orderIndex) {
-                    hiddenEngSentences.remove(sentence.orderIndex)
-                } else {
-                    hiddenEngSentences.insert(sentence.orderIndex)
-                }
-            }
+            toggleHiddenState(in: &hiddenEngSentences, for: sentence.orderIndex)
         } else {
             audioService.play(text: sentence.englishText)
             tappedPlaybackText = sentence.englishText
-        }
-    }
-    
-    func handleKorSentenceTap(sentence: SentenceData) {
-        if funcMode == .hide {
-            withAnimation(.easeInOut(duration: 0.02)) {
-                if hiddenKorSentences.contains(sentence.orderIndex) {
-                    hiddenKorSentences.remove(sentence.orderIndex)
-                } else {
-                    hiddenKorSentences.insert(sentence.orderIndex)
-                }
-            }
         }
     }
     
@@ -169,6 +130,16 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     }
     
     // MARK: - Private Methods (Internal Logic)
+    
+    private func toggleHiddenState<T: Hashable>(in set: inout Set<T>, for item: T) {
+        withAnimation(.easeInOut(duration: 0.02)) {
+            if set.contains(item) {
+                set.remove(item)
+            } else {
+                set.insert(item)
+            }
+        }
+    }
     
     @MainActor
     private func loadScriptById() async {
@@ -241,9 +212,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     private func clearAllHiddenStates() {
         hiddenEngChunks.removeAll()
-        hiddenKorChunks.removeAll()
         hiddenEngSentences.removeAll()
-        hiddenKorSentences.removeAll()
     }
     
     // .onChange(of: isPlaying) 로직

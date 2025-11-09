@@ -1,0 +1,32 @@
+//
+//  EnglishScriptTextView.swift
+//  Bettr
+//
+//  Created by 길정수 on 11/3/25.
+//
+
+import SwiftUI
+
+struct EnglishScriptTextView: View {
+    let text: String
+    let isHidden: Bool
+    let isHighlighted: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Text(text)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .font(.bodyRegular28)
+            .opacity(isHidden ? 0 : 1)
+            .background(
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(.G_1)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 2)
+                    .stroke(isHighlighted ? .pp2L2 : .clear, lineWidth: 4)
+            )
+            .onTapGesture(perform: onTap)
+    }
+}
