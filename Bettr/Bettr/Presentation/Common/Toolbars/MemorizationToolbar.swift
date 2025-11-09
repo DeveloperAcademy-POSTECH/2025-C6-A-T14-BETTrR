@@ -36,8 +36,7 @@ struct MemorizationToolbar: ViewModifier {
                         isChunkMode.toggle()
                     }) {
                         Image(systemName: "text.word.spacing")
-                            .foregroundStyle(isChunkMode ? .PP_1 : .primary)
-                            .font(isChunkMode ? .iconBold20 : .bodyRegular20)
+                            .toolbarButtonStyle(emphasized: isChunkMode)
                     }
                 }
                 
@@ -48,15 +47,13 @@ struct MemorizationToolbar: ViewModifier {
                         functionMode = .hide
                     }) {
                         Image(systemName: "bandage")
-                            .font(.bodyRegular20)
-                            .foregroundStyle(functionMode == .hide ? .primary : .quinary)
+                            .toolbarButtonStyle(enabled: functionMode == .hide)
                     }
                     Button(action: {
                         functionMode = .read
                     }) {
                         Image(systemName: "speaker.wave.2")
-                            .font(.bodyRegular20)
-                            .foregroundStyle(functionMode == .read ? .primary : .quinary)
+                            .toolbarButtonStyle(enabled: functionMode == .read)
                     }
                 }
                 
@@ -67,8 +64,7 @@ struct MemorizationToolbar: ViewModifier {
                         isKoreanVisible.toggle()
                     }) {
                         Text("한")
-                            .font(isChunkMode ? .iconBold20 : .bodyRegular20)
-                            .foregroundStyle(isKoreanVisible ? .PP_1 : .primary)
+                            .toolbarButtonStyle(emphasized: isKoreanVisible)
                     }
                 }
                 
@@ -79,7 +75,7 @@ struct MemorizationToolbar: ViewModifier {
                         isWordListOpen.toggle()
                     }) {
                         Image(systemName: "character.book.closed")
-                            .foregroundStyle(isWordListOpen ? .blue : .primary)
+                            .toolbarButtonStyle(emphasized: isWordListOpen)
                     }
                 }
                 
