@@ -26,7 +26,9 @@ struct MemorizationView: View {
                             SentenceModeView(viewModel: viewModel)
                         }
                     }
-                    .padding(.horizontal, 44)
+                    .padding(.horizontal, 80)
+                    .padding(.top, 36)
+                    .padding(.bottom, 48)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
@@ -48,9 +50,6 @@ struct MemorizationView: View {
                 )
             }
         }
-        .padding(.horizontal, 36)
-        .padding(.top, 36)
-        .padding(.bottom, 48)
         .onTapGesture {
             isTitleEditing = false
         }
