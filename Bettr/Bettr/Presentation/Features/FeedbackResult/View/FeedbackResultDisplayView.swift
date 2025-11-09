@@ -165,3 +165,57 @@ struct FeedbackResultDisplayView: View {
         }
     }
 }
+
+#Preview("일반 피드백") {
+    FeedbackResultDisplayView(
+        accuracy: 0.75,
+        totalRecordingTime: 120.5,
+        missingCount: 2,
+        extraCount: 1,
+        replacedCount: 1,
+        filteredSentenceDiffs: [
+            (index: 0, data: (original: "Hello world, how are you?", diffs: [
+                .matched(word: "Hello"),
+                .matched(word: "world"),
+                .missing(expected: "how"),
+                .extra(actual: "are"),
+                .replaced(expected: "you", actual: "yoo")
+            ])),
+            (index: 1, data: (original: "I am fine, thank you.", diffs: [
+                .matched(word: "I"),
+                .matched(word: "am"),
+                .matched(word: "fine"),
+                .extra(actual: "very"),
+                .matched(word: "thank"),
+                .missing(expected: "you")
+            ]))
+        ],
+        hasSentences: true
+    )
+}
+
+#Preview("완벽한 발음") {
+    FeedbackResultDisplayView(
+        accuracy: 1.0,
+        totalRecordingTime: 60.0,
+        missingCount: 0,
+        extraCount: 0,
+        replacedCount: 0,
+        filteredSentenceDiffs: [],
+        hasSentences: true
+    )
+}
+
+#Preview("분석 결과 없음") {
+    FeedbackResultDisplayView(
+        accuracy: 0.0,
+        totalRecordingTime: 0.0,
+        missingCount: 0,
+        extraCount: 0,
+        replacedCount: 0,
+        filteredSentenceDiffs: [],
+        hasSentences: false
+    )
+}
+
+
