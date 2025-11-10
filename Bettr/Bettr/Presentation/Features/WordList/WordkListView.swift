@@ -14,7 +14,7 @@ struct WordkListView: View {
     @Binding var isLoading: Bool
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 24) {
             
             if isLoading {
                 ProgressView("단어 불러오는 중...")
@@ -32,7 +32,7 @@ struct WordkListView: View {
                                     Text(word.lemma)
                                         .font(.system(size: 24, weight: .bold))
                                         .foregroundStyle(.primary)
-                                        .padding(4)
+//                                        .padding(4)
                                         .padding(.trailing, 4)
                                     // POS capsule badge (한글 축약은 상위 레이어에서 처리되어 있다고 가정)
                                     Text(word.pos)
@@ -63,18 +63,25 @@ struct WordkListView: View {
                                         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                                         .filter { !$0.isEmpty }
                                     
-                                    VStack(alignment: .leading) {
-                                        ForEach(Array(parts.enumerated()), id: \.offset) { idx, item in
-                                            HStack(alignment: .top) {
-                                                Text("\(idx + 1).")
-                                                    .font(.callout.weight(.semibold))
-                                                    .foregroundStyle(.secondary)
-                                                    .frame(width: 18, alignment: .trailing)
-                                                Text(item)
-                                                    .font(.callout)
-                                                    .foregroundStyle(.primary)
-                                                    .multilineTextAlignment(.leading)
-                                            }
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        ForEach(parts, id: \.self) { item in
+                                            Text(item)
+                                                .font(.system(size: 14))
+                                                .foregroundStyle(.primary)
+                                                .multilineTextAlignment(.leading)
+                                    
+//                                    VStack(alignment: .leading) {
+//                                        ForEach(Array(parts.enumerated()), id: \.offset) { idx, item in
+//                                            HStack(alignment: .top) {
+//                                                Text("\(idx + 1).")
+//                                                    .font(.callout.weight(.semibold))
+//                                                    .foregroundStyle(.secondary)
+//                                                    .frame(width: 18, alignment: .trailing)
+//                                                Text(item)
+//                                                    .font(.callout)
+//                                                    .foregroundStyle(.primary)
+//                                                    .multilineTextAlignment(.leading)
+//                                            }
                                         }
                                     }
                                 }
