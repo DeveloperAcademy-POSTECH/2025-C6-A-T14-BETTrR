@@ -24,7 +24,7 @@ extension View {
     /// 툴바 활성화
     func toolbarEnabled() -> some View {
         self.modifier(ToolbarButtonModifier(
-            foregroundColor: .black,
+            foregroundColor: .secondaryBlue700,
             font: .calloutRegular20
         ))
     }
@@ -32,7 +32,7 @@ extension View {
     /// 툴바 비활성화
     func toolbarDisabled() -> some View {
         self.modifier(ToolbarButtonModifier(
-            foregroundColor: .gray.opacity(0.2),
+            foregroundColor: .primaryBlue200,
             font: .calloutRegular20
         ))
     }

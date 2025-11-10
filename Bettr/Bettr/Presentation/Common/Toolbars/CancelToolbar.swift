@@ -19,7 +19,9 @@ struct CancelToolbar: ViewModifier {
                         (modalDismiss ?? defaultDismiss)()
                     }) {
                         Image(systemName: "xmark")
+                            .toolbarButtonStyle(enabled: true)
                     }
+                    
                 }
             }
     }
