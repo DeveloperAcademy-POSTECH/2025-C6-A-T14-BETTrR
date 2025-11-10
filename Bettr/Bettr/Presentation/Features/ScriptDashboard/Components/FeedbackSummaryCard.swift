@@ -42,3 +42,32 @@ struct FeedbackSummaryCard: View {
         }
     }
 }
+
+struct FeedbackSummaryCardPlaceholderView: View {
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(" ")
+                    .font(.subtitleSemibold24)
+                
+                HStack(spacing: 12) {
+                    Text(" ")
+                    Text(" ")
+                    Text(" ")
+                    Text(" ")
+                    Text(" ")
+                }
+                .font(.labelRegular14)
+            }
+            
+            Spacer()
+            
+            HStack(spacing: 8) {
+                Text(" ")
+                Image(systemName: "chevron.right")
+            }
+            .font(.calloutRegular16)
+        }
+        .opacity(0)
+    }
+}

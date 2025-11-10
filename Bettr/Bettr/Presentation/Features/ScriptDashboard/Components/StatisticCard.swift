@@ -24,6 +24,6 @@ struct StatisticCard<Content: View>: View {
                 content()
             }
         }
-        .dashboardCardStyle()
+        .dashboardCardStyle(top: 24, leading: 24, bottom: 24, trailing: 16)
     }
 }

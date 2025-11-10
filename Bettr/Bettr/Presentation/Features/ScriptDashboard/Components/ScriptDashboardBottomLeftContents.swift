@@ -37,28 +37,39 @@ struct ScriptDashboardBottomLeftContents: View {
             .padding(8)
             .foregroundStyle(.normalBlack900)
             
-            if recentFeedbacks.count > 0 {
-                VStack(spacing: 20) {
+            VStack(spacing: 20) {
+                if recentFeedbacks.isEmpty {
+                    VStack(spacing: 20) {
+                        ForEach(0..<5, id: \.self) { _ in
+                            FeedbackSummaryCardPlaceholderView()
+                        }
+                        Spacer()
+                    }
+                    .overlay(
+                        VStack {
+                            Spacer()
+                            Text("데이터가 충분하지 않아요")
+                                .font(.labelBold16)                            
+                                .foregroundStyle(.normalBlack900)
+                            Spacer()
+                        }
+                    )
+                } else {
                     ForEach(recentFeedbacks, id: \.id) { feedback in
                         FeedbackSummaryCard(feedback: feedback)
                     }
-                    Spacer()
-                }
-                .dashboardCardStyle(padding: 36)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            else {
-                VStack {
-                    Spacer()
-                    Text("데이터가 충분하지 않아요")
-                        .font(.labelBold16)
-                        .foregroundStyle(.normalBlack900)
+                    
+                    let placeholderCount = 5 - recentFeedbacks.count
+                    if placeholderCount > 0 {
+                        ForEach(0..<placeholderCount, id: \.self) { _ in
+                            FeedbackSummaryCardPlaceholderView()
+                        }
+                    }
                     
                     Spacer()
                 }
-                .dashboardCardStyle(padding: 36)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .dashboardCardStyle(padding: 36)
         }
     }
 }

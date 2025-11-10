@@ -18,15 +18,9 @@ struct ScriptDashboardView: View {
     var body: some View {
         Group {
             if viewModel.scriptDashboardData != nil {
-                GeometryReader { geometry in
-                    VStack(alignment: .leading, spacing: 35) {
-                        
-                        ScriptDashboardTopContents(viewModel: viewModel)
-                            .frame(height: geometry.size.height * 0.3325 - 17.5)
-                        
-                        ScriptDashboardBottomContents(viewModel: viewModel)
-                            .frame(height: geometry.size.height * 0.6675 - 17.5)
-                    }
+                VStack(alignment: .leading, spacing: 35) {
+                    ScriptDashboardTopContents(viewModel: viewModel)
+                    ScriptDashboardBottomContents(viewModel: viewModel)
                 }
             } else {
                 // 로딩, 에러 뷰

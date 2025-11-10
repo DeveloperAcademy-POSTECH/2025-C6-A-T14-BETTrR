@@ -17,33 +17,30 @@ struct ScriptDashboardBottomRightContents: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading) {
-            Text(combinedSentences)
-                .font(.calloutRegular20)
-                .foregroundStyle(.normalBlack900)
-                .lineLimit(nil)
-                .truncationMode(.tail)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .frame(maxHeight: .infinity, alignment: .top)
-        .padding(.vertical, 25)
-        .padding(.horizontal, 36)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.primaryBlue50)
-        )
-        .overlay(alignment:. center) {
-            ZStack {
+        Text(combinedSentences)
+            .font(.calloutRegular20)
+            .foregroundStyle(.normalBlack900)
+            .lineLimit(nil)
+            .truncationMode(.tail)
+            .padding(.vertical, 25)
+            .padding(.horizontal, 36)
+            .frame(maxHeight: .infinity)
+            .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.defaultWhite50.opacity(0.3))
-                
-                Button(action: {
-                    router.push(Route.memorization(scriptId: scriptId))
-                }) {
-                    Text("암기하기")
+                    .fill(.primaryBlue50)
+            )
+            .overlay(alignment:. center) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(.defaultWhite50.opacity(0.3))
+                    
+                    Button(action: {
+                        router.push(Route.memorization(scriptId: scriptId))
+                    }) {
+                        Text("암기하기")
+                    }
+                    .buttonStyle(.general)
                 }
-                .buttonStyle(.general)
             }
-        }
     }
 }
