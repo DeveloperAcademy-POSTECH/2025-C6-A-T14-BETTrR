@@ -8,9 +8,7 @@
 import SwiftUI
 
 struct GeneralButtonStyle: ButtonStyle {
-    var backgroundColor: Color
-    var foregroundColor: Color
-    var font: Font
+    var font: Font = .labelBold16
     var cornerRadius: CGFloat = 50
     var paddingVertical: CGFloat = 16
     var width: CGFloat = 160
@@ -19,8 +17,8 @@ struct GeneralButtonStyle: ButtonStyle {
     
     func makeBody(configuration: Configuration) -> some View {
         // 비활성화 상태일 때 색상 처리
-        let currentBackgroundColor = isEnabled ? backgroundColor : .defalutWhite50
-        let currentForegroundColor = isEnabled ? foregroundColor : .gray.opacity(0.2)
+        let currentBackgroundColor = isEnabled ? Color.primaryBlue500 : Color.defaultWhite50
+        let currentForegroundColor = isEnabled ? Color.defaultWhite50 : .gray.opacity(0.2)
         
         configuration.label
             .font(font)
@@ -36,11 +34,8 @@ struct GeneralButtonStyle: ButtonStyle {
 
 extension ButtonStyle where Self == GeneralButtonStyle {
     
-    static var standardActive: GeneralButtonStyle {
-        GeneralButtonStyle(
-            backgroundColor: .primaryBlue500,
-            foregroundColor: .defalutWhite50,
-            font: .labelBold16
-        )
+    /// 기본 버튼 스타일 (너비 160)
+    static var general: GeneralButtonStyle {
+        GeneralButtonStyle()
     }
 }
