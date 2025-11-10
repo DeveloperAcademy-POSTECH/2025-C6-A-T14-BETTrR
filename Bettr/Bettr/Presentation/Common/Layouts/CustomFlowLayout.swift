@@ -1,17 +1,17 @@
 import SwiftUI
 
-// iOS 16, macOS 13 이상에서만 사용 가능
+/// 암기뷰에 청크 모드를 구현하기 위한 커스텀 레이아웃
 @available(iOS 16.0, macOS 13.0, *)
 struct CustomFlowLayout: Layout {
     var horizontalSpacing: CGFloat // 뷰 사이의 '가로' 간격
-        var verticalSpacing: CGFloat   // '줄' 사이의 '세로' 간격
+    var verticalSpacing: CGFloat   // '줄' 사이의 '세로' 간격
     
     init(horizontalSpacing: CGFloat = 8, verticalSpacing: CGFloat = 8) {
-            self.horizontalSpacing = horizontalSpacing
-            self.verticalSpacing = verticalSpacing
-        }
+        self.horizontalSpacing = horizontalSpacing
+        self.verticalSpacing = verticalSpacing
+    }
     
-    // 1. 레이아웃이 차지할 전체 크기를 계산하는 함수 (이 함수는 수정할 필요 없습니다)
+    /// 레이아웃이 차지할 전체 크기를 계산하는 함수
     func sizeThatFits(
         proposal: ProposedViewSize,
         subviews: Subviews,
@@ -20,7 +20,7 @@ struct CustomFlowLayout: Layout {
         guard let availableWidth = proposal.width else { return .zero }
         
         var (currentX, currentLineHeight, totalHeight) = (CGFloat.zero, CGFloat.zero, CGFloat.zero)
-
+        
         for subview in subviews {
             let subviewSize = subview.sizeThatFits(.unspecified)
             
@@ -35,11 +35,11 @@ struct CustomFlowLayout: Layout {
         }
         
         totalHeight += currentLineHeight
-
+        
         return CGSize(width: availableWidth, height: totalHeight)
     }
-
-    // 2. 계산된 크기 안에 자식 뷰들을 배치하는 함수 (✅ 이 함수를 통째로 교체하세요)
+    
+    /// 계산된 크기 안에 자식 뷰들을 배치하는 함수
     func placeSubviews(
         in bounds: CGRect,
         proposal: ProposedViewSize,
@@ -88,13 +88,13 @@ struct CustomFlowLayout: Layout {
             for subview in line.subviews {
                 let subviewSize = subview.sizeThatFits(.unspecified)
                 
-                // ✅ 중앙 정렬을 위한 Y 오프셋 계산
+                // 중앙 정렬을 위한 Y 오프셋 계산
                 // (줄의 최대 높이 - 현재 뷰의 높이) / 2
                 let yOffset = (line.height - subviewSize.height) / 2
                 
                 // 뷰를 계산된 위치에 배치
                 subview.place(
-                    at: CGPoint(x: currentX, y: currentY + yOffset), // ✅ Y + 오프셋
+                    at: CGPoint(x: currentX, y: currentY + yOffset), // Y + 오프셋
                     anchor: .topLeading,
                     proposal: .unspecified
                 )
