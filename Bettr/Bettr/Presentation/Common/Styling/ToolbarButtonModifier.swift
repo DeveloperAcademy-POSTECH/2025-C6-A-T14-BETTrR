@@ -25,7 +25,7 @@ extension View {
     func toolbarEnabled() -> some View {
         self.modifier(ToolbarButtonModifier(
             foregroundColor: .black,
-            font: .bodyRegular20
+            font: .calloutRegular20
         ))
     }
     
@@ -33,14 +33,14 @@ extension View {
     func toolbarDisabled() -> some View {
         self.modifier(ToolbarButtonModifier(
             foregroundColor: .gray.opacity(0.2),
-            font: .bodyRegular20
+            font: .calloutRegular20
         ))
     }
     
     /// 툴바 강조
     func toolbarEmphasized() -> some View {
         self.modifier(ToolbarButtonModifier(
-            foregroundColor: .PP_1,
+            foregroundColor: .primaryBlue500,
             font: .iconBold20
         ))
     }
