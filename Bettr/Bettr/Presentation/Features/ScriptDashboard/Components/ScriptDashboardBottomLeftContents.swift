@@ -22,14 +22,16 @@ struct ScriptDashboardBottomLeftContents: View {
                 
                 Spacer()
                 
-                Button(action: {
-                    router.push(Route.allFeedback(feedbacks: allFeedbacks))
-                }) {
-                    HStack(spacing: 4) {
-                        Text("더보기")
-                        Image(systemName: "chevron.right")
+                if allFeedbacks.count > 5 {
+                    Button(action: {
+                        router.push(Route.allFeedback(feedbacks: allFeedbacks))
+                    }) {
+                        HStack(spacing: 4) {
+                            Text("더보기")
+                            Image(systemName: "chevron.right")
+                        }
+                        .font(.labelRegular14)
                     }
-                    .font(.labelRegular14)
                 }
             }
             .padding(8)
