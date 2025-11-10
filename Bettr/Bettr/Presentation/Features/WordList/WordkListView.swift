@@ -14,7 +14,7 @@ struct WordkListView: View {
     @Binding var isLoading: Bool
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading) {
             
             if isLoading {
                 ProgressView("단어 불러오는 중...")
@@ -26,13 +26,12 @@ struct WordkListView: View {
                 ScrollView {
                     VStack {
                         ForEach(Array(words.enumerated()), id: \.element.id) { index, word in
-                            VStack(alignment: .leading) {
+                            VStack(alignment: .leading, spacing: 8) {
                                 // Title + POS badge
                                 HStack(alignment: .center, spacing: 8) {
                                     Text(word.lemma)
                                         .font(.system(size: 24, weight: .bold))
                                         .foregroundStyle(.primary)
-//                                        .padding(4)
                                         .padding(.trailing, 4)
                                     // POS capsule badge (한글 축약은 상위 레이어에서 처리되어 있다고 가정)
                                     Text(word.pos)
@@ -44,10 +43,10 @@ struct WordkListView: View {
                                                 .fill(Color.clear)
                                                 .overlay(
                                                     RoundedRectangle(cornerRadius: 4)
-                                                        .stroke(Color.indigo, lineWidth: 1)
+                                                        .stroke(Color.indigo, lineWidth: 1) // FIXME: 나중에 정식 컬러로 변경
                                                 )
                                         )
-                                        .foregroundStyle(.indigo)
+                                        .foregroundStyle(Color.indigo) // FIXME: 나중에 정식 컬러로 변경
                                     Spacer(minLength: 0)
                                 }
 
@@ -69,26 +68,16 @@ struct WordkListView: View {
                                                 .font(.system(size: 14))
                                                 .foregroundStyle(.primary)
                                                 .multilineTextAlignment(.leading)
-                                    
-//                                    VStack(alignment: .leading) {
-//                                        ForEach(Array(parts.enumerated()), id: \.offset) { idx, item in
-//                                            HStack(alignment: .top) {
-//                                                Text("\(idx + 1).")
-//                                                    .font(.callout.weight(.semibold))
-//                                                    .foregroundStyle(.secondary)
-//                                                    .frame(width: 18, alignment: .trailing)
-//                                                Text(item)
-//                                                    .font(.callout)
-//                                                    .foregroundStyle(.primary)
-//                                                    .multilineTextAlignment(.leading)
-//                                            }
                                         }
                                     }
                                 }
                             }
+                            .padding(.bottom, 7)
                             
                             if index != words.count - 1 {
-                                Divider()
+                                Rectangle()
+                                    .frame(height: 1)
+                                    .foregroundStyle(.white) // FIXME: 나중에 정식 컬러로 변경
                             }
                         }
                     }
@@ -98,70 +87,40 @@ struct WordkListView: View {
             
             Spacer()
         }
-        .padding(.top, 40)
+        .padding(.top, 36)
         .padding(.leading, 36)
         .frame(maxWidth: 360, maxHeight: .infinity, alignment: .topLeading)
+        .clipShape(RoundedRectangle(cornerRadius: 35))
         .background(
             RoundedRectangle(cornerRadius: 35)
                 .fill(.regularMaterial)
         )
         .glassEffect(in: .rect(cornerRadius: 35))
-//        .translationTask(translationConfig) { session in
-//            guard !pendingLemmas.isEmpty else { return }
-//            
-//            var translations: [String: String] = [:]
-//            
-//            do {
-//                for lemma in pendingLemmas {
-//                    let response = try await session.translate(lemma)
-//                    translations[lemma] = response.targetText
-//                    
-//                    // 즉시 UI 업데이트
-//                    if let idx = words.firstIndex(where: { $0.lemma == lemma }) {
-//                        words[idx].meaning = response.targetText
-//                    }
-//                }
-//                
-//                // DB에도 저장
-//                try container.wordExtractionService.updateWordMeanings(
-//                    for: scriptId,
-//                    translations: translations
-//                )
-//            } catch {
-//                print("⚠️ 번역 중 오류: \(error.localizedDescription)")
-//            }
-//            
-//            translationConfig = nil
-//            pendingLemmas.removeAll()
-//        }
     }
-    
-//    private func loadWords() async {
-//        isLoading = true
-//        defer { isLoading = false }
-//        
-//        do {
-//            // DB에서 단어 불러오기
-//            let fetchedWords = try container.wordExtractionService.fetchWords(for: scriptId)
-//            
-//            self.words = fetchedWords
-//            
-////            // 번역이 안 된 단어들 번역하기
-////            let untranslated = words.filter { $0.meaning.isEmpty }
-////            if !untranslated.isEmpty {
-////                self.pendingLemmas = Array(untranslated.map { $0.lemma }.prefix(TranslationHelper.maxTranslationCount))
-////                
-////                if !pendingLemmas.isEmpty {
-////                    self.translationConfig = TranslationHelper.createConfiguration()
-////                }
-////            }
-//        } catch {
-//            print("⚠️ 단어 불러오기 실패: \(error.localizedDescription)")
-//        }
-//    }
 }
 
+//#Preview {
+//    WordkListView(scriptId: 1, words: .constant([]), isLoading: .constant(false))
+//        .environment(DatabaseContainer(database: AppDatabase.shared))
+//}
+
 #Preview {
-    WordkListView(scriptId: 1, words: .constant([]), isLoading: .constant(false))
-        .environment(DatabaseContainer(database: AppDatabase.shared))
+    // MARK: - 목업 데이터를 Preview 내부에서 정의
+    let localMockWords: [Word] = [
+        // 누락된 scriptId와 orderIndex 인자를 추가했습니다.
+        Word(id: 1, scriptId: 1, lemma: "apple", pos: "명", meaning: "사과", orderIndex: 0),
+        Word(id: 2, scriptId: 1, lemma: "run", pos: "동", meaning: "달리다", orderIndex: 1),
+        Word(id: 3, scriptId: 1, lemma: "beautiful", pos: "형", meaning: "아름다운", orderIndex: 2),
+        Word(id: 6, scriptId: 1, lemma: "untranslated", pos: "명", meaning: "", orderIndex: 3)
+    ]
+    
+    // Environment 객체도 Preview 내부에서 생성
+    let mockContainer = DatabaseContainer(database: AppDatabase.shared)
+    
+    WordkListView(
+        scriptId: 1,
+        words: .constant(localMockWords), // 로컬 목업 데이터 주입
+        isLoading: .constant(false)
+    )
+    .environment(mockContainer) // 로컬 목업 컨테이너 제공
 }
