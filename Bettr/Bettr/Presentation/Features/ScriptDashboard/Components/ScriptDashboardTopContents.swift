@@ -15,7 +15,7 @@ struct ScriptDashboardTopContents: View {
             GeometryReader { geometry in
                 HStack(spacing: 16) {
                     ScriptDashboardTopLeftContents()
-                        .frame(width: geometry.size.width * 0.5, alignment: .leading)
+                        .frame(width: geometry.size.width * 0.5 - 8, alignment: .leading)
                     
                     if let data = viewModel.scriptDashboardData {
                         ScriptDashboardTopRightContents(
@@ -24,7 +24,7 @@ struct ScriptDashboardTopContents: View {
                             averagePracticeDuration: data.averagePracticeDuration,
                             recentFeedbackCount: data.recentFeedbackCount
                         )
-                        .frame(width: geometry.size.width * 0.5, alignment: .leading)
+                        .frame(width: geometry.size.width * 0.5 - 8, alignment: .leading)
                     }
                 }
             }

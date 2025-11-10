@@ -19,13 +19,13 @@ struct ScriptDashboardView: View {
         Group {
             if viewModel.scriptDashboardData != nil {
                 GeometryReader { geometry in
-                    VStack(alignment: .leading, spacing: 30) {
+                    VStack(alignment: .leading, spacing: 35) {
                         
                         ScriptDashboardTopContents(viewModel: viewModel)
-                            .frame(height: geometry.size.height * 0.4)
+                            .frame(height: geometry.size.height * 0.4 - 17.5)
                         
                         ScriptDashboardBottomContents(viewModel: viewModel)
-                            .frame(height: geometry.size.height * 0.6)
+                            .frame(height: geometry.size.height * 0.6 - 17.5)
                     }
                 }
             } else {
@@ -36,8 +36,9 @@ struct ScriptDashboardView: View {
                 )
             }
         }
-        .padding(.horizontal, 60)
-        .padding(.bottom, 60)
+        .padding(.horizontal, 84)
+        .padding(.top, 36)
+        .padding(.bottom, 48)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onTapGesture {
             isTitleEditing = false

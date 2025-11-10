@@ -28,7 +28,7 @@ struct ScriptDashboardBottomLeftContents: View {
         else {
             VStack {
                 Spacer()
-                Text("아직 피드백이 없습니다")
+                Text("데이터가 충분하지 않아요")
                     .font(.system(size: 18))
                     .foregroundStyle(.secondary)
                 Spacer()
