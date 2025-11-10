@@ -76,8 +76,8 @@ struct ScriptDashboardTopLeftContents: View {
                         AxisValueLabel()
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .padding(.leading, 20)
+                .padding(.bottom, 16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
             } else {
