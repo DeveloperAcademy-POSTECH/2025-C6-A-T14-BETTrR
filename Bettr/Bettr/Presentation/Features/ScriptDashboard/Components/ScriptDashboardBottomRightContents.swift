@@ -13,31 +13,26 @@ struct ScriptDashboardBottomRightContents: View {
     var sentences: [ScriptDashboardSentenceModel]
     
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack(alignment: .center) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     ForEach(sentences, id: \.orderIndex) { sentence in
                         Text(sentence.englishText)
-                            .font(.system(size: 20))
+                            .font(.calloutRegular20)
+                            .foregroundStyle(.normalBlack900)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .scrollDisabled(true)
             .frame(maxHeight: .infinity, alignment: .top)
             
             Button(action: {
                 router.push(Route.memorization(scriptId: scriptId))
             }) {
                 Text("암기하기")
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 50)
-                    .background(
-                        RoundedRectangle(cornerRadius: 100)
-                            .fill(Color.blue)
-                    )
-                    .glassEffect()
             }
+            .buttonStyle(.general)
         }
         .padding(.vertical, 25)
         .padding(.horizontal, 40)

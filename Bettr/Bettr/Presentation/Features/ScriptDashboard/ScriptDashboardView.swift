@@ -22,10 +22,10 @@ struct ScriptDashboardView: View {
                     VStack(alignment: .leading, spacing: 35) {
                         
                         ScriptDashboardTopContents(viewModel: viewModel)
-                            .frame(height: geometry.size.height * 0.4 - 17.5)
+                            .frame(height: geometry.size.height * 0.3325 - 17.5)
                         
                         ScriptDashboardBottomContents(viewModel: viewModel)
-                            .frame(height: geometry.size.height * 0.6 - 17.5)
+                            .frame(height: geometry.size.height * 0.6675 - 17.5)
                     }
                 }
             } else {

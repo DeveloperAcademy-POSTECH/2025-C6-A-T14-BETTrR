@@ -50,7 +50,6 @@ extension Font {
         return .sfPro(weight: .regular, size: 20)
     }
 
-
     static var labelBold16: Font {
         return .sfPro(weight: .bold, size: 16)
     }

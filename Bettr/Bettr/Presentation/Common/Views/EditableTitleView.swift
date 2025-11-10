@@ -52,7 +52,8 @@ struct EditableTitleView: View {
                 // --- 수정 중이 아닐 때 ---
                 HStack(spacing: 4) {
                     Text(title)
-                        .font(.headline)
+                        .font(.subtitleSemibold24)
+                        .foregroundStyle(.normalBlack900)
                     
                     if showEditIcon {
                         Image(systemName: "chevron.down.circle.fill")

@@ -14,8 +14,8 @@ struct StatisticCard<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
-                .font(.headline)
-                .foregroundStyle(.secondary)
+                .font(.calloutRegular16)
+                .foregroundStyle(.normalBlack900)
             
             Spacer()
             

@@ -15,8 +15,8 @@ struct DashboardCardStyle: ViewModifier {
             .padding(padding)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: padding)
-                    .strokeBorder(Color.gray)
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(.primaryBlue200)
             )
     }
 }
