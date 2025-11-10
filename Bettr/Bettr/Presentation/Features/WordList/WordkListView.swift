@@ -14,14 +14,38 @@ struct WordkListView: View {
     @Binding var isLoading: Bool
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack {
+            Spacer()
             
             if isLoading {
-                ProgressView("단어 불러오는 중...")
-                    .frame(maxWidth: .infinity, alignment: .center)
+                VStack(spacing: 36) {
+                    ProgressView()
+                        .controlSize(.large)
+                    
+                    VStack(spacing: 12) {
+                        Text("단어장을 불러오는 중입니다.")
+                            .font(.system(size: 20, weight: .bold))
+                        
+                        Text("잠시 기다려주세요.")
+                            .font(.system(size: 16))
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                
             } else if words.isEmpty {
-                Text("단어가 없습니다.")
-                    .foregroundStyle(.secondary)
+                VStack(spacing: 36) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.system(size: 24))
+                    
+                    VStack(spacing: 12) {
+                        Text("단어장이 비어있어요!")
+                            .font(.system(size: 20, weight: .bold))
+                        
+                        Text("추출된 단어가 없습니다.")
+                            .font(.system(size: 16))
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     VStack {
@@ -49,7 +73,7 @@ struct WordkListView: View {
                                         .foregroundStyle(Color.indigo) // FIXME: 나중에 정식 컬러로 변경
                                     Spacer(minLength: 0)
                                 }
-
+                                
                                 if word.meaning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                     Text("번역 준비중…")
                                         .font(.callout)
@@ -72,6 +96,7 @@ struct WordkListView: View {
                                     }
                                 }
                             }
+                            .padding(.top, 16)
                             .padding(.bottom, 7)
                             
                             if index != words.count - 1 {
@@ -79,7 +104,9 @@ struct WordkListView: View {
                                     .frame(height: 1)
                                     .foregroundStyle(.white) // FIXME: 나중에 정식 컬러로 변경
                             }
+
                         }
+                        .padding(.leading, 36)
                     }
                 }
                 .scrollIndicators(.hidden)
@@ -87,8 +114,7 @@ struct WordkListView: View {
             
             Spacer()
         }
-        .padding(.top, 36)
-        .padding(.leading, 36)
+        .padding(.top, 12)
         .frame(maxWidth: 360, maxHeight: .infinity, alignment: .topLeading)
         .clipShape(RoundedRectangle(cornerRadius: 35))
         .background(
