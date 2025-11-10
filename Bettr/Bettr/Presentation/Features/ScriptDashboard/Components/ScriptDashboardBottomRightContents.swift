@@ -12,33 +12,38 @@ struct ScriptDashboardBottomRightContents: View {
     var scriptId: Int64
     var sentences: [ScriptDashboardSentenceModel]
     
+    private var combinedSentences: String {
+        sentences.map { $0.englishText }.joined(separator: "\n\n")
+    }
+    
     var body: some View {
-        ZStack(alignment: .center) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    ForEach(sentences, id: \.orderIndex) { sentence in
-                        Text(sentence.englishText)
-                            .font(.calloutRegular20)
-                            .foregroundStyle(.normalBlack900)
-                    }
-                }
+        VStack(alignment: .leading) {
+            Text(combinedSentences)
+                .font(.calloutRegular20)
+                .foregroundStyle(.normalBlack900)
+                .lineLimit(nil)
+                .truncationMode(.tail)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .scrollDisabled(true)
-            .frame(maxHeight: .infinity, alignment: .top)
-            
-            Button(action: {
-                router.push(Route.memorization(scriptId: scriptId))
-            }) {
-                Text("암기하기")
-            }
-            .buttonStyle(.general)
         }
+        .frame(maxHeight: .infinity, alignment: .top)
         .padding(.vertical, 25)
-        .padding(.horizontal, 40)
+        .padding(.horizontal, 36)
         .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color.primary.opacity(0.05))
+            RoundedRectangle(cornerRadius: 20)
+                .fill(.primaryBlue50)
         )
+        .overlay(alignment:. center) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.defaultWhite50.opacity(0.3))
+                
+                Button(action: {
+                    router.push(Route.memorization(scriptId: scriptId))
+                }) {
+                    Text("암기하기")
+                }
+                .buttonStyle(.general)
+            }
+        }
     }
 }
