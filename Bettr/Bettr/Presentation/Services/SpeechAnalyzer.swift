@@ -43,7 +43,7 @@ class SpeechAnalyzer {
         return normalized.split(separator: " ").map(String.init)
     }
     
-    func analyze(reference: String, transcription: SFTranscription) -> FeedbackResultModel {
+    func analyze(reference: String, transcription: SFTranscription) -> [WordDiff] {
         let referenceWords = normalize(reference)
         let recognizedWords = normalize(transcription.formattedString)
         let n = referenceWords.count
@@ -101,19 +101,6 @@ class SpeechAnalyzer {
             }
         }
         
-        // 정확도 계산 (matched 기준)
-        let matchedCount = diffs.filter {
-            if case .matched = $0 { return true }
-            return false
-        }.count
-        
-        let accuracy = referenceWords.isEmpty ? 0 : Double(matchedCount) / Double(referenceWords.count)
-        
-        // FeedbackResultModel 반환
-        return FeedbackResultModel(
-            diffs: diffs,
-            accuracy: accuracy,
-            totalOriginalWords: referenceWords.count
-        )
+        return diffs
     }
 }

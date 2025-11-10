@@ -4,17 +4,25 @@ import Speech
 @testable import Bettr
 
 final class HistoricalFeedbackViewModelTests: XCTestCase {
-    var scriptManagementService: MockScriptManagementService!
+    var scriptManagementService: ScriptManagementService!
     var dbQueue: DatabaseQueue!
     
     override func setUp() {
         super.setUp()
-        dbQueue = try! DatabaseQueue()
+        dbQueue = try! DatabaseQueue(path: ":memory:") // Use in-memory database for tests
         try! DatabaseMigrator.setupDatabase(dbQueue)
-        scriptManagementService = MockScriptManagementService(dbQueue: dbQueue)
+        let scriptRepository = ScriptRepository(dbQueue: dbQueue) // Create a real ScriptRepository
+        scriptManagementService = ScriptManagementService(scriptRepository: scriptRepository) // Pass it to the service
     }
     
     override func tearDown() {
+        try! dbQueue.write { db in
+            try Script.deleteAll(db)
+            try Sentence.deleteAll(db)
+            try Chunk.deleteAll(db)
+            try FeedbackSummary.deleteAll(db)
+            try FeedbackDetail.deleteAll(db)
+        }
         scriptManagementService = nil
         dbQueue = nil
         super.tearDown()
@@ -22,19 +30,19 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
     
     // MARK: - Helpers
     
-    private func createDummyScript(title: String, sentences: [String]) throws -> Script {
-        var script = Script(title: title, createdAt: Date(), lastViewedAt: Date())
-        script = try scriptManagementService.scriptRepository.save(script: &script)
-        
-        for (index, text) in sentences.enumerated() {
-            var sentence = Sentence(
-                scriptId: script.id!,
-                orderIndex: index,
-                englishText: text,
-                koreanText: "Dummy Korean"
-            )
-            _ = try scriptManagementService.scriptRepository.save(sentence: &sentence)
-        }
+    private func createDummyScript(title: String, sentences: [String]) async throws -> Script { // Make it async
+        let scriptData = ScriptData(
+            title: title,
+            sentences: sentences.enumerated().map { index, englishText in
+                SentenceData(
+                    orderIndex: index,
+                    englishText: englishText,
+                    koreanText: "Dummy Korean",
+                    chunks: [ChunkData(orderIndex: 0, englishText: englishText, koreanText: "Dummy Korean")] // Add a dummy chunk
+                )
+            }
+        )
+        let script = try await scriptManagementService.createScript(scriptData: scriptData)
         return script
     }
     
@@ -42,33 +50,27 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
     
     func testHistoricalFeedback_MatchesCurrentFeedback_WithExtraWord() async throws {
         // Given: Script and feedback with extra word
-        let sentences = ["Hello world.", "How are you?"]
-        let script = try createDummyScript(title: "Test Script", sentences: sentences)
+        let sentences = ["Hello world.", "How are you?"] // Here, sentences is defined
+        let script = try await createDummyScript(title: "Test Script", sentences: sentences)
         
-        // Original words: hello, world, how, are, you = 5 words
-        // Spoken words: hello, extra, world, how, are, you = 6 words (1 extra)
-        // Matched: hello, world, how, are, you = 5 words
-        // Accuracy: 5/5 = 1.0 (all original words matched)
-        let feedbackResult = FeedbackResultModel(
-            diffs: [
-                .matched(word: "hello"),
-                .extra(actual: "extra"),
-                .matched(word: "world"),
-                .matched(word: "how"),
-                .matched(word: "are"),
-                .matched(word: "you")
-            ],
-            accuracy: 1.0,
-            totalOriginalWords: 5,
-            totalRecordingTime: 10.0
-        )
+        let diffs: [WordDiff] = [
+            .matched(word: "hello"),
+            .extra(actual: "extra"),
+            .matched(word: "world"),
+            .matched(word: "how"),
+            .matched(word: "are"),
+            .matched(word: "you")
+        ]
+        let accuracy: Double = 1.0
+        let practiceDuration: Double = 10.0
         
         // When: Create current feedback
         let currentViewModel = await MainActor.run {
             FeedbackViewModel(
                 scriptId: script.id!,
-                feedbackResult: feedbackResult,
-                sentences: sentences,
+                diffs: diffs, // Pass diffs directly
+                sentences: sentences, // sentences is used here
+                practiceDuration: practiceDuration,
                 scriptManagementService: scriptManagementService
             )
         }
@@ -78,17 +80,71 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
             (currentViewModel.missingCount, currentViewModel.extraCount, currentViewModel.replacedCount)
         }
         
-        // Save to database
-        let detailsData = extractDetailsData(from: feedbackResult)
-        let summary = try scriptManagementService.scriptRepository.createFeedbackSummaryWithDetails(
+        // Construct detailsData directly
+        var detailsData: [(wordDiff: WordDiff, originalText: String?, sentenceIndex: Int, wordIndex: Int)] = []
+        let analyzer = SpeechAnalyzer()
+        var tempDiffs = diffs
+        var chunkedResult: [(original: String, diffs: [WordDiff])] = []
+        
+        for sentence in sentences {
+            let wordCount = analyzer.normalize(sentence).count
+            var chunk: [WordDiff] = []
+            var wordsTaken = 0
+            
+            while wordsTaken < wordCount && !tempDiffs.isEmpty {
+                let diff = tempDiffs.removeFirst()
+                chunk.append(diff)
+                switch diff {
+                case .matched, .missing, .replaced:
+                    wordsTaken += 1
+                case .extra:
+                    break
+                }
+            }
+            while let nextDiff = tempDiffs.first, case .extra = nextDiff {
+                chunk.append(tempDiffs.removeFirst())
+            }
+            chunkedResult.append((original: sentence, diffs: chunk))
+        }
+        
+        if !tempDiffs.isEmpty {
+            if chunkedResult.isEmpty {
+                chunkedResult.append((original: "", diffs: tempDiffs))
+            } else {
+                chunkedResult[chunkedResult.count - 1].diffs.append(contentsOf: tempDiffs)
+            }
+        }
+        
+        for (sIdx, sentenceData) in chunkedResult.enumerated() {
+            var originalWordIndexInSentence = 0
+            for diff in sentenceData.diffs {
+                switch diff {
+                case .matched:
+                    originalWordIndexInSentence += 1
+                    break
+                case .missing(let expected):
+                    detailsData.append((diff, expected, sIdx, originalWordIndexInSentence))
+                    originalWordIndexInSentence += 1
+                case .extra(let actual):
+                    detailsData.append((diff, nil, sIdx, originalWordIndexInSentence))
+                case .replaced(let expected, let actual):
+                    detailsData.append((diff, expected, sIdx, originalWordIndexInSentence))
+                    originalWordIndexInSentence += 1
+                }
+            }
+        }
+        
+        let summary = try scriptManagementService.createFeedbackSummary(
             scriptId: script.id!,
-            totalScore: feedbackResult.accuracy,
+            accuracy: accuracy, // Pass accuracy directly
             missingWordCount: missingCount,
             addedWordCount: extraCount,
             replacedWordCount: replacedCount,
-            practiceDuration: feedbackResult.totalRecordingTime,
+            practiceDuration: practiceDuration, // Pass practiceDuration directly
             feedbackDetailsData: detailsData
         )
+        
+        let summaryIdBeforeViewModel = summary.id!
         
         // Load historical feedback
         let historicalViewModel = await MainActor.run {
@@ -97,6 +153,8 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
                 scriptManagementService: scriptManagementService
             )
         }
+        
+        await historicalViewModel.loadFeedbackData() // Ensure this is awaited
         
         // Then: Verify they match
         await MainActor.run {
@@ -127,29 +185,23 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
     func testHistoricalFeedback_MatchesCurrentFeedback_WithMissingWord() async throws {
         // Given: Script and feedback with missing word
         let sentences = ["Hello world everyone."]
-        let script = try createDummyScript(title: "Test Script", sentences: sentences)
+        let script = try await createDummyScript(title: "Test Script", sentences: sentences)
         
-        // Original words: hello, world, everyone = 3 words
-        // Spoken words: hello, everyone = 2 words (1 missing)
-        // Matched: hello, everyone = 2 words
-        // Accuracy: 2/3 = 0.666...
-        let feedbackResult = FeedbackResultModel(
-            diffs: [
-                .matched(word: "hello"),
-                .missing(expected: "world"),
-                .matched(word: "everyone")
-            ],
-            accuracy: 2.0 / 3.0,
-            totalOriginalWords: 3,
-            totalRecordingTime: 5.0
-        )
+        let diffs: [WordDiff] = [
+            .matched(word: "hello"),
+            .missing(expected: "world"),
+            .matched(word: "everyone")
+        ]
+        let accuracy: Double = 2.0 / 3.0
+        let practiceDuration: Double = 5.0
         
         // When: Create current feedback
         let currentViewModel = await MainActor.run {
             FeedbackViewModel(
                 scriptId: script.id!,
-                feedbackResult: feedbackResult,
+                diffs: diffs,
                 sentences: sentences,
+                practiceDuration: practiceDuration,
                 scriptManagementService: scriptManagementService
             )
         }
@@ -158,15 +210,67 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
             (currentViewModel.missingCount, currentViewModel.extraCount, currentViewModel.replacedCount)
         }
         
-        // Save to database
-        let detailsData = extractDetailsData(from: feedbackResult)
-        let summary = try scriptManagementService.scriptRepository.createFeedbackSummaryWithDetails(
+        // Construct detailsData directly
+        var detailsData: [(wordDiff: WordDiff, originalText: String?, sentenceIndex: Int, wordIndex: Int)] = []
+        let analyzer = SpeechAnalyzer()
+        var tempDiffs = diffs
+        var chunkedResult: [(original: String, diffs: [WordDiff])] = []
+        
+        for sentence in sentences {
+            let wordCount = analyzer.normalize(sentence).count
+            var chunk: [WordDiff] = []
+            var wordsTaken = 0
+            
+            while wordsTaken < wordCount && !tempDiffs.isEmpty {
+                let diff = tempDiffs.removeFirst()
+                chunk.append(diff)
+                switch diff {
+                case .matched, .missing, .replaced:
+                    wordsTaken += 1
+                case .extra:
+                    break
+                }
+            }
+            while let nextDiff = tempDiffs.first, case .extra = nextDiff {
+                chunk.append(tempDiffs.removeFirst())
+            }
+            chunkedResult.append((original: sentence, diffs: chunk))
+        }
+        
+        if !tempDiffs.isEmpty {
+            if chunkedResult.isEmpty {
+                chunkedResult.append((original: "", diffs: tempDiffs))
+            } else {
+                chunkedResult[chunkedResult.count - 1].diffs.append(contentsOf: tempDiffs)
+            }
+        }
+        
+        for (sIdx, sentenceData) in chunkedResult.enumerated() {
+            var originalWordIndexInSentence = 0
+            for diff in sentenceData.diffs {
+                switch diff {
+                case .matched:
+                    originalWordIndexInSentence += 1
+                    break
+                case .missing(let expected):
+                    detailsData.append((diff, expected, sIdx, originalWordIndexInSentence))
+                    originalWordIndexInSentence += 1
+                case .extra(let actual):
+                    detailsData.append((diff, nil, sIdx, originalWordIndexInSentence))
+                case .replaced(let expected, let actual):
+                    detailsData.append((diff, expected, sIdx, originalWordIndexInSentence))
+                    originalWordIndexInSentence += 1
+                }
+            }
+        }
+        
+        let summary = try scriptManagementService.createFeedbackSummary(
             scriptId: script.id!,
-            totalScore: feedbackResult.accuracy,
+            accuracy: accuracy,
             missingWordCount: missingCount,
             addedWordCount: extraCount,
             replacedWordCount: replacedCount,
-            practiceDuration: feedbackResult.totalRecordingTime,
+            practiceDuration: practiceDuration,
             feedbackDetailsData: detailsData
         )
         
@@ -192,28 +296,22 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
     func testHistoricalFeedback_MatchesCurrentFeedback_WithReplacedWord() async throws {
         // Given: Script and feedback with replaced word
         let sentences = ["Hello world."]
-        let script = try createDummyScript(title: "Test Script", sentences: sentences)
+        let script = try await createDummyScript(title: "Test Script", sentences: sentences)
         
-        // Original words: hello, world = 2 words
-        // Spoken words: hello, earth = 2 words (1 replaced)
-        // Matched: hello = 1 word
-        // Accuracy: 1/2 = 0.5
-        let feedbackResult = FeedbackResultModel(
-            diffs: [
-                .matched(word: "hello"),
-                .replaced(expected: "world", actual: "earth")
-            ],
-            accuracy: 0.5,
-            totalOriginalWords: 2,
-            totalRecordingTime: 5.0
-        )
+        let diffs: [WordDiff] = [
+            .matched(word: "hello"),
+            .replaced(expected: "world", actual: "earth")
+        ]
+        let accuracy: Double = 0.5
+        let practiceDuration: Double = 5.0
         
         // When: Create current feedback
         let currentViewModel = await MainActor.run {
             FeedbackViewModel(
                 scriptId: script.id!,
-                feedbackResult: feedbackResult,
+                diffs: diffs,
                 sentences: sentences,
+                practiceDuration: practiceDuration,
                 scriptManagementService: scriptManagementService
             )
         }
@@ -222,15 +320,67 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
             (currentViewModel.missingCount, currentViewModel.extraCount, currentViewModel.replacedCount)
         }
         
-        // Save to database
-        let detailsData = extractDetailsData(from: feedbackResult)
-        let summary = try scriptManagementService.scriptRepository.createFeedbackSummaryWithDetails(
+        // Construct detailsData directly
+        var detailsData: [(wordDiff: WordDiff, originalText: String?, sentenceIndex: Int, wordIndex: Int)] = []
+        let analyzer = SpeechAnalyzer()
+        var tempDiffs = diffs
+        var chunkedResult: [(original: String, diffs: [WordDiff])] = []
+        
+        for sentence in sentences {
+            let wordCount = analyzer.normalize(sentence).count
+            var chunk: [WordDiff] = []
+            var wordsTaken = 0
+            
+            while wordsTaken < wordCount && !tempDiffs.isEmpty {
+                let diff = tempDiffs.removeFirst()
+                chunk.append(diff)
+                switch diff {
+                case .matched, .missing, .replaced:
+                    wordsTaken += 1
+                case .extra:
+                    break
+                }
+            }
+            while let nextDiff = tempDiffs.first, case .extra = nextDiff {
+                chunk.append(tempDiffs.removeFirst())
+            }
+            chunkedResult.append((original: sentence, diffs: chunk))
+        }
+        
+        if !tempDiffs.isEmpty {
+            if chunkedResult.isEmpty {
+                chunkedResult.append((original: "", diffs: tempDiffs))
+            } else {
+                chunkedResult[chunkedResult.count - 1].diffs.append(contentsOf: tempDiffs)
+            }
+        }
+        
+        for (sIdx, sentenceData) in chunkedResult.enumerated() {
+            var originalWordIndexInSentence = 0
+            for diff in sentenceData.diffs {
+                switch diff {
+                case .matched:
+                    originalWordIndexInSentence += 1
+                    break
+                case .missing(let expected):
+                    detailsData.append((diff, expected, sIdx, originalWordIndexInSentence))
+                    originalWordIndexInSentence += 1
+                case .extra(let actual):
+                    detailsData.append((diff, nil, sIdx, originalWordIndexInSentence))
+                case .replaced(let expected, let actual):
+                    detailsData.append((diff, expected, sIdx, originalWordIndexInSentence))
+                    originalWordIndexInSentence += 1
+                }
+            }
+        }
+        
+        let summary = try scriptManagementService.createFeedbackSummary(
             scriptId: script.id!,
-            totalScore: feedbackResult.accuracy,
+            accuracy: accuracy,
             missingWordCount: missingCount,
             addedWordCount: extraCount,
             replacedWordCount: replacedCount,
-            practiceDuration: feedbackResult.totalRecordingTime,
+            practiceDuration: practiceDuration,
             feedbackDetailsData: detailsData
         )
         
@@ -256,35 +406,27 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
     func testHistoricalFeedback_MatchesCurrentFeedback_WithMultipleErrors() async throws {
         // Given: Script and feedback with multiple error types
         let sentences = ["Hello beautiful world.", "How are you doing?"]
-        let script = try createDummyScript(title: "Test Script", sentences: sentences)
+        let script = try await createDummyScript(title: "Test Script", sentences: sentences)
         
-        // Original words: hello, beautiful, world, how, are, you, doing = 7 words
-        // Spoken words: hello, world, how, is, you = 5 words
-        // Matched: hello, world, how, you = 4 words
-        // Missing: beautiful, doing = 2 words
-        // Replaced: are -> is = 1 word
-        // Accuracy: 4/7 = 0.571...
-        let feedbackResult = FeedbackResultModel(
-            diffs: [
-                .matched(word: "hello"),
-                .missing(expected: "beautiful"),
-                .matched(word: "world"),
-                .matched(word: "how"),
-                .replaced(expected: "are", actual: "is"),
-                .matched(word: "you"),
-                .missing(expected: "doing")
-            ],
-            accuracy: 4.0 / 7.0,
-            totalOriginalWords: 7,
-            totalRecordingTime: 12.0
-        )
+        let diffs: [WordDiff] = [
+            .matched(word: "hello"),
+            .missing(expected: "beautiful"),
+            .matched(word: "world"),
+            .matched(word: "how"),
+            .replaced(expected: "are", actual: "is"),
+            .matched(word: "you"),
+            .missing(expected: "doing")
+        ]
+        let accuracy: Double = 4.0 / 7.0
+        let practiceDuration: Double = 12.0
         
         // When: Create current feedback
         let currentViewModel = await MainActor.run {
             FeedbackViewModel(
                 scriptId: script.id!,
-                feedbackResult: feedbackResult,
+                diffs: diffs,
                 sentences: sentences,
+                practiceDuration: practiceDuration,
                 scriptManagementService: scriptManagementService
             )
         }
@@ -293,15 +435,67 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
             (currentViewModel.missingCount, currentViewModel.extraCount, currentViewModel.replacedCount)
         }
         
-        // Save to database
-        let detailsData = extractDetailsData(from: feedbackResult)
-        let summary = try scriptManagementService.scriptRepository.createFeedbackSummaryWithDetails(
+        // Construct detailsData directly
+        var detailsData: [(wordDiff: WordDiff, originalText: String?, sentenceIndex: Int, wordIndex: Int)] = []
+        let analyzer = SpeechAnalyzer()
+        var tempDiffs = diffs
+        var chunkedResult: [(original: String, diffs: [WordDiff])] = []
+        
+        for sentence in sentences {
+            let wordCount = analyzer.normalize(sentence).count
+            var chunk: [WordDiff] = []
+            var wordsTaken = 0
+            
+            while wordsTaken < wordCount && !tempDiffs.isEmpty {
+                let diff = tempDiffs.removeFirst()
+                chunk.append(diff)
+                switch diff {
+                case .matched, .missing, .replaced:
+                    wordsTaken += 1
+                case .extra:
+                    break
+                }
+            }
+            while let nextDiff = tempDiffs.first, case .extra = nextDiff {
+                chunk.append(tempDiffs.removeFirst())
+            }
+            chunkedResult.append((original: sentence, diffs: chunk))
+        }
+        
+        if !tempDiffs.isEmpty {
+            if chunkedResult.isEmpty {
+                chunkedResult.append((original: "", diffs: tempDiffs))
+            } else {
+                chunkedResult[chunkedResult.count - 1].diffs.append(contentsOf: tempDiffs)
+            }
+        }
+        
+        for (sIdx, sentenceData) in chunkedResult.enumerated() {
+            var originalWordIndexInSentence = 0
+            for diff in sentenceData.diffs {
+                switch diff {
+                case .matched:
+                    originalWordIndexInSentence += 1
+                    break
+                case .missing(let expected):
+                    detailsData.append((diff, expected, sIdx, originalWordIndexInSentence))
+                    originalWordIndexInSentence += 1
+                case .extra(let actual):
+                    detailsData.append((diff, nil, sIdx, originalWordIndexInSentence))
+                case .replaced(let expected, let actual):
+                    detailsData.append((diff, expected, sIdx, originalWordIndexInSentence))
+                    originalWordIndexInSentence += 1
+                }
+            }
+        }
+        
+        let summary = try scriptManagementService.createFeedbackSummary(
             scriptId: script.id!,
-            totalScore: feedbackResult.accuracy,
+            accuracy: accuracy,
             missingWordCount: missingCount,
             addedWordCount: extraCount,
             replacedWordCount: replacedCount,
-            practiceDuration: feedbackResult.totalRecordingTime,
+            practiceDuration: practiceDuration,
             feedbackDetailsData: detailsData
         )
         
@@ -328,83 +522,5 @@ final class HistoricalFeedbackViewModelTests: XCTestCase {
             XCTAssertEqual(currentViewModel.missingCount, historicalViewModel.missingCount)
             XCTAssertEqual(currentViewModel.replacedCount, historicalViewModel.replacedCount)
         }
-    }
-    
-    // MARK: - Helper Methods
-    
-    private func extractDetailsData(from feedbackResult: FeedbackResultModel) -> [(
-        errorType: FeedbackErrorType,
-        originalText: String?,
-        spokenText: String?,
-        startTime: Double,
-        endTime: Double
-    )] {
-        var data: [(FeedbackErrorType, String?, String?, Double, Double)] = []
-        
-        for diff in feedbackResult.diffs {
-            switch diff {
-            case .matched:
-                break
-            case .missing(let expected):
-                data.append((.missingWord, expected, nil, 0.0, 0.0))
-            case .extra(let actual):
-                data.append((.addedWord, nil, actual, 0.0, 0.0))
-            case .replaced(let expected, let actual):
-                data.append((.replacedWord, expected, actual, 0.0, 0.0))
-            }
-        }
-        
-        return data
-    }
-}
-
-// MARK: - Mock Service
-
-class MockScriptManagementService: ScriptManagementServiceProtocol {
-    let scriptRepository: ScriptRepository
-    
-    init(dbQueue: DatabaseQueue) {
-        self.scriptRepository = ScriptRepository(dbQueue: dbQueue)
-    }
-    
-    func fetchScriptWithSentencesAndChunks(id: Int64) throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])])? {
-        guard let script = try scriptRepository.fetchScript(id: id) else { return nil }
-        let sentences = try scriptRepository.fetchSentences(forScriptId: id)
-        var sentencesWithChunks: [(sentence: Sentence, chunks: [Chunk])] = []
-        for sentence in sentences {
-            let chunks = try scriptRepository.fetchChunks(forSentenceId: sentence.id!)
-            sentencesWithChunks.append((sentence: sentence, chunks: chunks))
-        }
-        return (script, sentencesWithChunks)
-    }
-    
-    func fetchScriptWithSentences(id: Int64) throws -> (script: Script, sentences: [Sentence])? {
-        guard let script = try scriptRepository.fetchScript(id: id) else { return nil }
-        let sentences = try scriptRepository.fetchSentences(forScriptId: id)
-        return (script, sentences)
-    }
-    
-    func createFeedbackSummary(scriptId: Int64, totalScore: Double, missingWordCount: Int, addedWordCount: Int, replacedWordCount: Int, practiceDuration: Double, feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]) throws -> FeedbackSummary {
-        return try scriptRepository.createFeedbackSummaryWithDetails(
-            scriptId: scriptId,
-            totalScore: totalScore,
-            missingWordCount: missingWordCount,
-            addedWordCount: addedWordCount,
-            replacedWordCount: replacedWordCount,
-            practiceDuration: practiceDuration,
-            feedbackDetailsData: feedbackDetailsData
-        )
-    }
-    
-    func fetchFeedbackSummaries(forScriptId: Int64) throws -> [FeedbackSummary] {
-        return try scriptRepository.fetchFeedbackSummaries(forScriptId: forScriptId)
-    }
-    
-    func fetchFeedbackDetails(forFeedbackSummaryId feedbackSummaryId: Int64) throws -> [FeedbackDetail] {
-        return try scriptRepository.fetchFeedbackDetails(forFeedbackSummaryId: feedbackSummaryId)
-    }
-    
-    func updateScriptTitle(scriptId: Int64, newTitle: String) throws {
-        try scriptRepository.updateScriptTitle(id: scriptId, newTitle: newTitle)
     }
 }

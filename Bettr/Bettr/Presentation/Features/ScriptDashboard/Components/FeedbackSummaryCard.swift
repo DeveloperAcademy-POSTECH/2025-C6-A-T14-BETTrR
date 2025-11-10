@@ -14,7 +14,7 @@ struct FeedbackSummaryCard: View {
         HStack(spacing: 10) {
             ZStack {
                 Circle().fill(Color.gray.opacity(0.5))
-                Text("\(Int(feedback.totalScore * 100))%")
+                Text("\(Int(feedback.accuracy * 100))%")
             }
             .frame(width: 60, height: 60)
             

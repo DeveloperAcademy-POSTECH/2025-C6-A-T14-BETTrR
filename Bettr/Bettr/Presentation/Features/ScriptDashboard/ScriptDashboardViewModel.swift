@@ -148,11 +148,21 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
     private func processTopIncorrectWords(from details: [FeedbackDetail]) -> [IncorrectWordCount] {
         
         let incorrectWords = details.compactMap { detail -> String? in
-            switch detail.errorType {
-            case .missingWord, .replacedWord, .addedWord:
-                return detail.originalText?
+            switch detail.wordDiff {
+            case .missing(let expected):
+                return expected
                     .lowercased()
-                    .trimmingCharacters(in: .punctuationCharacters) // 구두점 제거
+                    .trimmingCharacters(in: .punctuationCharacters)
+            case .replaced(let expected, _):
+                return expected
+                    .lowercased()
+                    .trimmingCharacters(in: .punctuationCharacters)
+            case .extra(let actual):
+                return actual
+                    .lowercased()
+                    .trimmingCharacters(in: .punctuationCharacters)
+            case .matched:
+                return nil
             }
         }.filter { !$0.isEmpty } // 빈 문자열 제거
         
