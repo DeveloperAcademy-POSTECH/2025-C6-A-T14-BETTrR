@@ -37,12 +37,14 @@ struct ContentView: View {
                             wordExtractionService: container.wordExtractionService
                         )
                         MemorizationView(viewModel: viewModel)
-                    case .HistoricalFeedback(let summary):
+                    case .historicalFeedback(let summary):
                         let viewModel = HistoricalFeedbackViewModel(
                             summary: summary,
                             scriptManagementService: container.scriptManagementService
                         )
                         HistoricalFeedbackView(viewModel: viewModel)
+                    case .allFeedback(let feedbacks):
+                        AllFeedbackView(feedbacks: feedbacks)
                     }
                 }
         }

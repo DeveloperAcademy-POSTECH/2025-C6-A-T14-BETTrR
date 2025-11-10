@@ -123,6 +123,7 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
                         title: fetchedScript.title,
                         sentences: sentenceModelList,
                         feedbackCount: sortedFeedbacks.count,
+                        allFeedbacks: sortedFeedbacks,
                         recentFeedbacks: recentFeedbacks,
                         recentFeedbackCount: recentFeedbacks.count,
                         top3IncorrectWords: top3Words,

@@ -9,7 +9,9 @@ import SwiftUI
 
 struct ScriptDashboardBottomLeftContents: View {
     @Environment(NavigationRouter.self) var router
-    var feedbacks: [FeedbackSummary]
+    
+    var recentFeedbacks: [FeedbackSummary]
+    var allFeedbacks: [FeedbackSummary]
     
     var body: some View {
         
@@ -17,26 +19,28 @@ struct ScriptDashboardBottomLeftContents: View {
             HStack {
                 Text("최근 생성된 피드백")
                     .font(.subbodyBold24)
-
+                
                 Spacer()
                 
-                HStack(spacing: 4) {
-                    Text("더보기")
-                    Image(systemName: "chevron.right")
+                if allFeedbacks.count > 5 {
+                    Button(action: {
+                        router.push(Route.allFeedback(feedbacks: allFeedbacks))
+                    }) {
+                        HStack(spacing: 4) {
+                            Text("더보기")
+                            Image(systemName: "chevron.right")
+                        }
+                        .font(.labelRegular14)
+                    }
                 }
-                .font(.labelRegular14)
             }
             .padding(8)
             .foregroundStyle(.normalBlack900)
             
-            if feedbacks.count > 0 {
+            if recentFeedbacks.count > 0 {
                 VStack(spacing: 20) {
-                    ForEach(feedbacks, id: \.id) { feedback in
-                        Button(action: {
-                            router.push(Route.HistoricalFeedback(summary: feedback))
-                        }) {
-                            FeedbackSummaryCard(feedback: feedback)
-                        }
+                    ForEach(recentFeedbacks, id: \.id) { feedback in
+                        FeedbackSummaryCard(feedback: feedback)
                     }
                     Spacer()
                 }
