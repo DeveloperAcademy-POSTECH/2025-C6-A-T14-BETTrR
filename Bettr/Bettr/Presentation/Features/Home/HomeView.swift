@@ -180,37 +180,7 @@ private struct AddNewScriptCard: View {
 }
 
 // MARK: - ScriptCard Component
-private struct ScriptCard: View {
-    @Environment(NavigationRouter.self) var router
-    
-    let script: Script
-    let onDelete: () -> Void
-    
-    var body: some View {
-        Button(action: {
-            if let scriptId = script.id {
-                router.push(Route.scriptDashboard(scriptId: scriptId))
-            }
-        }) {
-            VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray.opacity(0.2))
-                    .aspectRatio(1, contentMode: .fit)
-                
-                Text(script.title)
-                    .foregroundStyle(Color.primary)
-                    .font(.caption2)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-        .contextMenu {
-            Button(role: .destructive, action: onDelete) {
-                Label("삭제", systemImage: "trash")
-            }
-        }
-    }
-}
+
 
 #Preview {
     HomeView()
