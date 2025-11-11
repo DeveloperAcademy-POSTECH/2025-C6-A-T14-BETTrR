@@ -14,16 +14,15 @@ struct ScriptDashboardTopRightContents: View {
     let averagePracticeDuration: Double
     let recentFeedbackCount: Int
     
-    @ScaledMetric(relativeTo: .body) var horizontalSpacing: CGFloat = 16
-    @ScaledMetric(relativeTo: .body) var verticalSpacing: CGFloat = 16
+    @Environment(\.metrics) var metrics
     
     var body: some View {
-        HStack(spacing: horizontalSpacing) {
+        HStack(spacing: metrics.topRightStackSpacing) {
             
             // 자주 틀린 단어
             VStack(alignment: .leading) {
                 Text("자주 틀린 단어 Top 3")
-                    .font(.calloutRegular16)
+                    .font(.system(size: metrics.font16, weight: .regular))
                     .foregroundStyle(.normalBlack900)
                 
                 Spacer()
@@ -31,12 +30,12 @@ struct ScriptDashboardTopRightContents: View {
                 VStack(alignment: .center) {
                     if top3IncorrectWords.isEmpty {
                         Text("데이터가 충분하지 않아요")
-                            .font(.labelBold16)
+                            .font(.system(size: metrics.font16, weight: .bold))
                     } else {
-                        VStack(spacing: verticalSpacing) {
+                        VStack(spacing: metrics.topRightStackSpacing) {
                             ForEach(top3IncorrectWords, id: \.id) { item in
                                 Text("\(item.word)")
-                                    .font(.subbodyBold24)
+                                    .font(.system(size: metrics.font24, weight: .bold))
                             }
                         }
                     }
@@ -47,25 +46,25 @@ struct ScriptDashboardTopRightContents: View {
                 Spacer()
             }
             .dashboardCardStyle(
-                padding: 24,
-                relativeTo: .callout,
+                padding: metrics.cardPadding24,
                 style: .border(.primaryBlue200)
             )
             
             // 누적 피드백, 평균 녹음 시간
-            VStack(spacing: verticalSpacing) {
+            VStack(spacing: metrics.topRightStackSpacing) {
                 StatisticCard(title: "누적 피드백") {
                     HStack(alignment: .bottom, spacing: 4) {
                         Text("\(feedbackCount)")
-                            .font(.subtitleBold32)
+                            .font(.system(size: metrics.font32, weight: .bold))
+
                         Text("회")
-                            .font(.calloutRegular20)
+                            .font(.system(size: metrics.font20, weight: .regular))
                     }
                 }
                 
                 StatisticCard(title: "평균 녹음 시간") {
                     Text(averagePracticeDuration.asPracticeDurationString())
-                        .font(.subtitleBold32)
+                        .font(.system(size: metrics.font32, weight: .bold))
                 }
             }
             .foregroundStyle(.normalBlack900)

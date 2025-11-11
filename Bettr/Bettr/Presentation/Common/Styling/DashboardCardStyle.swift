@@ -13,27 +13,26 @@ enum DashboardCardStyleType {
 
 struct DashboardCardStyle: ViewModifier {
     
-    @ScaledMetric var top: CGFloat
-    @ScaledMetric var leading: CGFloat
-    @ScaledMetric var bottom: CGFloat
-    @ScaledMetric var trailing: CGFloat
+    var top: CGFloat
+    var leading: CGFloat
+    var bottom: CGFloat
+    var trailing: CGFloat
     
     let style: DashboardCardStyleType
     
-    init(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat, relativeTo textStyle: Font.TextStyle, style: DashboardCardStyleType) {
-        _top = ScaledMetric(wrappedValue: top, relativeTo: textStyle)
-        _leading = ScaledMetric(wrappedValue: leading, relativeTo: textStyle)
-        _bottom = ScaledMetric(wrappedValue: bottom, relativeTo: textStyle)
-        _trailing = ScaledMetric(wrappedValue: trailing, relativeTo: textStyle)
+    init(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat, style: DashboardCardStyleType) {
+        self.top = top
+        self.leading = leading
+        self.bottom = bottom
+        self.trailing = trailing
         self.style = style
     }
     
-    init(padding: CGFloat, relativeTo textStyle: Font.TextStyle, style: DashboardCardStyleType) {
+    init(padding: CGFloat, style: DashboardCardStyleType) {
         self.init(top: padding,
                   leading: padding,
                   bottom: padding,
                   trailing: padding,
-                  relativeTo: textStyle,
                   style: style)
     }
     
@@ -63,18 +62,16 @@ private extension RoundedRectangle {
 }
 
 extension View {
-    func dashboardCardStyle(padding: CGFloat = 24, relativeTo textStyle: Font.TextStyle = .body, style: DashboardCardStyleType) -> some View {
+    func dashboardCardStyle(padding: CGFloat = 24, style: DashboardCardStyleType) -> some View {
         self.modifier(DashboardCardStyle(padding: padding,
-                                         relativeTo: textStyle,
                                          style: style))
     }
     
-    func dashboardCardStyle(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat, relativeTo textStyle: Font.TextStyle, style: DashboardCardStyleType) -> some View {
+    func dashboardCardStyle(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat, style: DashboardCardStyleType) -> some View {
         self.modifier(DashboardCardStyle(top: top,
                                          leading: leading,
                                          bottom: bottom,
                                          trailing: trailing,
-                                         relativeTo: textStyle,
                                          style: style))
     }
 }

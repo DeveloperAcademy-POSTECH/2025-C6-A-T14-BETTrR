@@ -11,19 +11,42 @@ struct ScriptDashboardView: View {
     @State var viewModel: ScriptDashboardViewModel
     @State private var isTitleEditing: Bool = false
     
-    @ScaledMetric(relativeTo: .body) var horizontalPadding: CGFloat = 84
-    @ScaledMetric(relativeTo: .body) var topPadding: CGFloat = 36
-    @ScaledMetric(relativeTo: .body) var bottomPadding: CGFloat = 48
-    
     init(viewModel: ScriptDashboardViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
     
     var body: some View {
+        GeometryReader { geo in
+            let metrics = LayoutMetrics(width: geo.size.width)
+            
+            dashboardContent(metrics: metrics)
+                .environment(\.metrics, metrics)
+        }
+        .onTapGesture {
+            isTitleEditing = false
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                EditableTitleView(
+                    title: $viewModel.currentTitle,
+                    showEditIcon: true,
+                    isEditing: $isTitleEditing
+                )
+            }
+        }
+        .onAppear {
+            viewModel.onAppear()
+        }
+    }
+    
+    @ViewBuilder
+    private func dashboardContent(metrics: LayoutMetrics) -> some View {
         Group {
             if viewModel.scriptDashboardData != nil {
                 
-                Grid(alignment: .top, horizontalSpacing: 16, verticalSpacing: 16) {
+                Grid(horizontalSpacing: metrics.gridHorizontalSpacing,
+                     verticalSpacing: metrics.gridVerticalSpacing) {
                     GridRow {
                         ScriptDashboardTopLeftContents(feedbacks: viewModel.scriptDashboardData!.recentFeedbacks)
                         
@@ -56,25 +79,9 @@ struct ScriptDashboardView: View {
         }
         .border(Color.blue)
         .frame(maxWidth: .infinity)
-        .padding(.horizontal, horizontalPadding)
-        .padding(.top, topPadding)
-        .padding(.bottom, bottomPadding)
+        .padding(.horizontal, metrics.horizontalPadding)
+        .padding(.top, metrics.topPadding)
+        .padding(.bottom, metrics.bottomPadding)
         .border(Color.red)
-        .onTapGesture {
-            isTitleEditing = false
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                EditableTitleView(
-                    title: $viewModel.currentTitle,
-                    showEditIcon: true,
-                    isEditing: $isTitleEditing
-                )
-            }
-        }
-        .onAppear {
-            viewModel.onAppear()
-        }
     }
 }

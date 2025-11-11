@@ -17,6 +17,8 @@ struct FeedbackChartDataPoint: Identifiable {
 struct ScriptDashboardTopLeftContents: View {
     var feedbacks: [FeedbackSummary]
     
+    @Environment(\.metrics) var metrics
+    
     // 차트 데이터 계산
     private var chartData: [FeedbackChartDataPoint] {
         feedbacks.enumerated().map { (index, feedback) in
@@ -31,7 +33,7 @@ struct ScriptDashboardTopLeftContents: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
+        Group {
             if !feedbacks.isEmpty {
                 Chart(chartData) { point in
                     LineMark(
@@ -76,15 +78,13 @@ struct ScriptDashboardTopLeftContents: View {
                         AxisValueLabel()
                     }
                 }
-//                .padding(.leading, 20)
-//                .padding(.bottom, 16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
             } else {
                 VStack {
                     Spacer()
                     Text("데이터가 충분하지 않아요")
-                        .font(.labelBold16)
+                        .font(.system(size: metrics.font16, weight: .bold))
                         .foregroundStyle(.normalBlack900)
                     
                     Spacer()
@@ -92,11 +92,10 @@ struct ScriptDashboardTopLeftContents: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-//        .background(
-//            RoundedRectangle(cornerRadius: 20)
-//                .fill(.primaryBlue50)
-//        )
-        .dashboardCardStyle(top: 24, leading: 24, bottom: 16, trailing: 16,
-                            relativeTo: .body, style: .fill(.primaryBlue50))
+        .dashboardCardStyle(top: metrics.cardPadding24,
+                            leading: metrics.cardPadding24,
+                            bottom: metrics.cardPadding16,
+                            trailing: metrics.cardPadding16,
+                            style: .fill(.primaryBlue50))
     }
 }

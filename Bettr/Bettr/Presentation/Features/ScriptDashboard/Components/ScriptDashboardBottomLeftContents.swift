@@ -9,18 +9,17 @@ import SwiftUI
 
 struct ScriptDashboardBottomLeftContents: View {
     @Environment(NavigationRouter.self) var router
+    @Environment(\.metrics) var metrics
     
     var recentFeedbacks: [FeedbackSummary]
     var allFeedbacks: [FeedbackSummary]
-    
-    @ScaledMetric(relativeTo: .title2) var listSpacing: CGFloat = 20
-    
+        
     var body: some View {
         
         VStack(spacing: 8) {
             HStack {
                 Text("최근 생성된 피드백")
-                    .font(.subbodyBold24)
+                    .font(.system(size: metrics.font24, weight: .bold))
                 
                 Spacer()
                 
@@ -32,16 +31,16 @@ struct ScriptDashboardBottomLeftContents: View {
                             Text("더보기")
                             Image(systemName: "chevron.right")
                         }
-                        .font(.labelRegular14)
+                        .font(.system(size: metrics.font14, weight: .regular))
                     }
                 }
             }
             .padding(8)
             .foregroundStyle(.normalBlack900)
             
-            VStack(spacing: listSpacing) {
+            VStack(spacing: metrics.listSpacing) {
                 if recentFeedbacks.isEmpty {
-                    VStack(spacing: 20) {
+                    VStack(spacing: metrics.listSpacing) {
                         ForEach(0..<5, id: \.self) { _ in
                             FeedbackSummaryCardPlaceholderView()
                         }
@@ -51,7 +50,7 @@ struct ScriptDashboardBottomLeftContents: View {
                         VStack {
                             Spacer()
                             Text("데이터가 충분하지 않아요")
-                                .font(.labelBold16)
+                                .font(.system(size: metrics.font16, weight: .bold))
                                 .foregroundStyle(.normalBlack900)
                             Spacer()
                         }
@@ -72,8 +71,7 @@ struct ScriptDashboardBottomLeftContents: View {
                 }
             }
             .dashboardCardStyle(
-                padding: 36,
-                relativeTo: .title2,
+                padding: metrics.cardPadding36,
                 style: .border(.primaryBlue200)
             )
         }

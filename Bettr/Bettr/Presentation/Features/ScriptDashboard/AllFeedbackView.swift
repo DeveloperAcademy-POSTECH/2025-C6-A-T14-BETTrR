@@ -25,7 +25,6 @@ struct AllFeedbackView: View {
                 }
                 .dashboardCardStyle(
                     padding: 36,
-                    relativeTo: .title2,
                     style: .border(.primaryBlue200)
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -41,7 +40,6 @@ struct AllFeedbackView: View {
                 }
                 .dashboardCardStyle(
                     padding: 36,
-                    relativeTo: .title2,
                     style: .border(.primaryBlue200)
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

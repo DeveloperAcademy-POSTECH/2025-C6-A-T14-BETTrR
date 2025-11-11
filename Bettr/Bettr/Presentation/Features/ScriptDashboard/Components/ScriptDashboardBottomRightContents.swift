@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ScriptDashboardBottomRightContents: View {
     @Environment(NavigationRouter.self) var router
+    @Environment(\.metrics) var metrics
+
     var scriptId: Int64
     var sentences: [ScriptDashboardSentenceModel]
     
@@ -19,7 +21,7 @@ struct ScriptDashboardBottomRightContents: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(combinedSentences)
-                .font(.calloutRegular20)
+                .font(.system(size: metrics.font20, weight: .regular))
                 .foregroundStyle(.normalBlack900)
                 .lineLimit(nil)
                 .truncationMode(.tail)
@@ -28,7 +30,6 @@ struct ScriptDashboardBottomRightContents: View {
         }
         .dashboardCardStyle(
             top: 25, leading: 36, bottom: 25, trailing: 36,
-            relativeTo: .title3,
             style: .fill(.primaryBlue50)
         )
         .overlay(alignment:. center) {
@@ -40,6 +41,7 @@ struct ScriptDashboardBottomRightContents: View {
                     router.push(Route.memorization(scriptId: scriptId))
                 }) {
                     Text("암기하기")
+                        .font(.system(size: metrics.font16, weight: .bold))
                 }
                 .buttonStyle(.general)
             }
