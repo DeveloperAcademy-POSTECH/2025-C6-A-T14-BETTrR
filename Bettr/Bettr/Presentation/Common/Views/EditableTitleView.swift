@@ -24,10 +24,8 @@ struct EditableTitleView: View {
                         "",
                         text: $editedTitle,
                         prompt: Text("제목을 입력하세요")
-                            .font(.subtitleSemibold24)
                             .foregroundStyle(.normalGray600)
                     )
-                    .font(.subtitleSemibold24)
                     .foregroundStyle(.normalBlack900)
                     .textFieldStyle(.plain)
                     .focused($isFocused)
@@ -39,7 +37,7 @@ struct EditableTitleView: View {
                             editedTitle = ""
                         }) {
                             Image(systemName: "xmark.circle.fill")
-                                .font(.subtitleSemibold24)
+                                .font(.system(size: 12))
                                 .foregroundStyle(.primaryBlue300)
                         }
                     }
@@ -59,13 +57,11 @@ struct EditableTitleView: View {
                 // --- 수정 중이 아닐 때 ---
                 HStack(spacing: 4) {
                     Text(title)
-                        .font(.subtitleSemibold24)
                         .foregroundStyle(.normalBlack900)
                     
                     if showEditIcon {
                         Image(systemName: "chevron.down.circle.fill")
-                            .font(.subtitleSemibold24)
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 12))
                             .foregroundStyle(.primaryBlue300)
                     }
                 }

@@ -16,30 +16,12 @@ struct ScriptDashboardView: View {
     }
     
     var body: some View {
-        Group {
-            if viewModel.scriptDashboardData != nil {
-                GeometryReader { geometry in
-                    VStack(alignment: .leading, spacing: 35) {
-                        
-                        ScriptDashboardTopContents(viewModel: viewModel)
-                            .frame(height: geometry.size.height * 0.3325 - 17.5)
-                        
-                        ScriptDashboardBottomContents(viewModel: viewModel)
-                            .frame(height: geometry.size.height * 0.6675 - 17.5)
-                    }
-                }
-            } else {
-                // 로딩, 에러 뷰
-                LoadingView(
-                    isLoading: viewModel.isLoading,
-                    errorMessage: viewModel.errorMessage
-                )
-            }
+        GeometryReader { geo in
+            let metrics = LayoutMetrics(width: geo.size.width)
+            
+            dashboardContent(metrics: metrics)
+                .environment(\.metrics, metrics)
         }
-        .padding(.horizontal, 84)
-        .padding(.top, 36)
-        .padding(.bottom, 48)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onTapGesture {
             isTitleEditing = false
         }
@@ -56,5 +38,48 @@ struct ScriptDashboardView: View {
         .onAppear {
             viewModel.onAppear()
         }
+    }
+    
+    @ViewBuilder
+    private func dashboardContent(metrics: LayoutMetrics) -> some View {
+        Group {
+            if viewModel.scriptDashboardData != nil {
+                
+                Grid(horizontalSpacing: metrics.gridHorizontalSpacing,
+                     verticalSpacing: metrics.gridVerticalSpacing) {
+                    GridRow {
+                        ScriptDashboardTopLeftContents(feedbacks: viewModel.scriptDashboardData!.recentFeedbacks)
+                        
+                        ScriptDashboardTopRightContents(
+                            feedbackCount: viewModel.scriptDashboardData!.feedbackCount,
+                            top3IncorrectWords: viewModel.scriptDashboardData!.top3IncorrectWords,
+                            averagePracticeDuration: viewModel.scriptDashboardData!.averagePracticeDuration,
+                            recentFeedbackCount: viewModel.scriptDashboardData!.recentFeedbackCount
+                        )
+                    }
+                    
+                    GridRow {
+                        ScriptDashboardBottomLeftContents(
+                            recentFeedbacks: viewModel.scriptDashboardData!.recentFeedbacks,
+                            allFeedbacks: viewModel.scriptDashboardData!.allFeedbacks
+                        )
+                        
+                        ScriptDashboardBottomRightContents(
+                            scriptId: viewModel.scriptId,
+                            sentences: viewModel.scriptDashboardData!.sentences
+                        )
+                    }
+                }
+            } else {
+                LoadingView(
+                    isLoading: viewModel.isLoading,
+                    errorMessage: viewModel.errorMessage
+                )
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, metrics.horizontalPadding)
+        .padding(.top, metrics.topPadding)
+        .padding(.bottom, metrics.bottomPadding)
     }
 }

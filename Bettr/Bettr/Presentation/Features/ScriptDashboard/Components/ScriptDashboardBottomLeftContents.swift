@@ -9,16 +9,17 @@ import SwiftUI
 
 struct ScriptDashboardBottomLeftContents: View {
     @Environment(NavigationRouter.self) var router
+    @Environment(\.metrics) var metrics
     
     var recentFeedbacks: [FeedbackSummary]
     var allFeedbacks: [FeedbackSummary]
-    
+        
     var body: some View {
         
         VStack(spacing: 8) {
             HStack {
                 Text("최근 생성된 피드백")
-                    .font(.subbodyBold24)
+                    .font(.system(size: metrics.font24, weight: .bold))
                 
                 Spacer()
                 
@@ -30,35 +31,49 @@ struct ScriptDashboardBottomLeftContents: View {
                             Text("더보기")
                             Image(systemName: "chevron.right")
                         }
-                        .font(.labelRegular14)
+                        .font(.system(size: metrics.font14, weight: .regular))
                     }
                 }
             }
             .padding(8)
             .foregroundStyle(.normalBlack900)
             
-            if recentFeedbacks.count > 0 {
-                VStack(spacing: 20) {
+            VStack(spacing: metrics.listSpacing) {
+                if recentFeedbacks.isEmpty {
+                    VStack(spacing: metrics.listSpacing) {
+                        ForEach(0..<5, id: \.self) { _ in
+                            FeedbackSummaryCardPlaceholderView()
+                        }
+                        Spacer()
+                    }
+                    .overlay(
+                        VStack {
+                            Spacer()
+                            Text("데이터가 충분하지 않아요")
+                                .font(.system(size: metrics.font16, weight: .bold))
+                                .foregroundStyle(.normalBlack900)
+                            Spacer()
+                        }
+                    )
+                } else {
                     ForEach(recentFeedbacks, id: \.id) { feedback in
                         FeedbackSummaryCard(feedback: feedback)
                     }
-                    Spacer()
-                }
-                .dashboardCardStyle(padding: 36)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            else {
-                VStack {
-                    Spacer()
-                    Text("데이터가 충분하지 않아요")
-                        .font(.labelBold16)
-                        .foregroundStyle(.normalBlack900)
+                    
+                    let placeholderCount = 5 - recentFeedbacks.count
+                    if placeholderCount > 0 {
+                        ForEach(0..<placeholderCount, id: \.self) { _ in
+                            FeedbackSummaryCardPlaceholderView()
+                        }
+                    }
                     
                     Spacer()
                 }
-                .dashboardCardStyle(padding: 36)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .dashboardCardStyle(
+                padding: metrics.cardPadding36,
+                style: .border(.primaryBlue200)
+            )
         }
     }
 }
