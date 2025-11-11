@@ -28,6 +28,7 @@ final class ScriptGeminiCall {
                                # 목표
                                입력된 영어 스크립트를 문장 단위로 분할하고, 각 문장을 의미 단위 청크로 나눈 뒤 1:1로 한국어 번역을 정렬합니다.
                                또한 각 문장의 자연스러운 전체 번역을 생성합니다.
+                               title은 그냥 "title"를 기본 제목으로 사용합니다.
                                
                                # 출력 형식 (중요)
                                - 반드시 **순수 JSON 하나만** 출력합니다.
@@ -60,6 +61,65 @@ final class ScriptGeminiCall {
                                4) 호흡/리듬 고려
                                5) 커버리지 100% (단어/구두점 누락 금지, 순서 보존)
                                
+                               **# 청크 번역 스타일 (강화)**
+                               - 청크 번역(`chunks[].koreanText`)은 영어 구조와 의미에 **직접적으로 대응**하는 **직역 기반**으로 생성하여 영어 학습에 도움이 되도록 합니다.
+                               - 전체 문장 번역(`koreanText`)은 **가장 자연스러운 한국어**로 완성합니다.
+                                
+                               # Few-Shot 예시 1
+                                
+                               # 입력 스크립트 예시
+                               "The most significant advantage of this new technology lies in its potential to revolutionize sustainable energy sources, which is a major concern globally."
+                                
+                               # 출력 JSON 예시
+                               {
+                                 "title": "title",
+                                 "sentences": [
+                                   {
+                                     "orderIndex": 0,
+                                     "englishText": "The most significant advantage of this new technology lies in its potential to revolutionize sustainable energy sources, which is a major concern globally.",
+                                     "koreanText": "이 새로운 기술의 가장 중요한 장점은 전 세계적인 주요 관심사인 지속 가능한 에너지원을 혁신할 잠재력에 있다는 것이다.",
+                                     "chunks": [
+                                       { "orderIndex": 0, "englishText": "The most significant advantage", "koreanText": "가장 중요한 장점은" },
+                                       { "orderIndex": 1, "englishText": "of this new technology", "koreanText": "이 새로운 기술의" },
+                                       { "orderIndex": 2, "englishText": "lies in its potential", "koreanText": "그 잠재력에 있다" },
+                                       { "orderIndex": 3, "englishText": "to revolutionize sustainable energy sources,", "koreanText": "지속 가능한 에너지원을 혁신할," },
+                                       { "orderIndex": 4, "englishText": "which is a major concern globally.", "koreanText": "그것은 전 세계적인 주요 관심사이다." }
+                                     ]
+                                   }
+                                 ]
+                               }
+                                
+                               # Few-Shot 예시 2
+                                
+                               # 입력 스크립트 예시
+                               "Despite the challenging weather, the team successfully completed the mission. Their dedication was truly remarkable."
+                                
+                               # 출력 JSON 예시
+                               {
+                                 "title": "title",
+                                 "sentences": [
+                                   {
+                                     "orderIndex": 0,
+                                     "englishText": "Despite the challenging weather, the team successfully completed the mission.",
+                                     "koreanText": "어려운 날씨에도 불구하고, 팀은 임무를 성공적으로 완수했다.",
+                                     "chunks": [
+                                       { "orderIndex": 0, "englishText": "Despite the challenging weather,", "koreanText": "어려운 날씨에도 불구하고," },
+                                       { "orderIndex": 1, "englishText": "the team successfully completed", "koreanText": "그 팀은 성공적으로 완수했다" },
+                                       { "orderIndex": 2, "englishText": "the mission.", "koreanText": "그 임무를." }
+                                     ]
+                                   },
+                                   {
+                                     "orderIndex": 1,
+                                     "englishText": "Their dedication was truly remarkable.",
+                                     "koreanText": "그들의 헌신은 정말 놀라웠다.",
+                                     "chunks": [
+                                       { "orderIndex": 0, "englishText": "Their dedication", "koreanText": "그들의 헌신은" },
+                                       { "orderIndex": 1, "englishText": "was truly remarkable.", "koreanText": "진정으로 놀라웠다." }
+                                     ]
+                                   }
+                                 ]
+                               }
+                                
                                # 입력 스크립트
                                \(scriptContent)
                                """
