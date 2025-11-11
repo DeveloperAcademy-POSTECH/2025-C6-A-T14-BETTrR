@@ -98,17 +98,17 @@ class ScriptRepository {
     
     func createFeedbackSummaryWithDetails(
         scriptId: Int64,
-        totalScore: Double,
+        accuracy: Double,
         missingWordCount: Int,
         addedWordCount: Int,
         replacedWordCount: Int,
         practiceDuration: Double,
-        feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]
+        feedbackDetailsData: [(wordDiff: WordDiff, originalText: String?, sentenceIndex: Int, wordIndex: Int)]
     ) throws -> FeedbackSummary {
         try dbQueue.write { db in
             var summary = FeedbackSummary(
                 scriptId: scriptId,
-                totalScore: totalScore,
+                accuracy: accuracy,
                 missingWordCount: missingWordCount,
                 addedWordCount: addedWordCount,
                 replacedWordCount: replacedWordCount,
@@ -124,11 +124,22 @@ class ScriptRepository {
             for detailData in feedbackDetailsData {
                 var detail = FeedbackDetail(
                     feedbackSummaryId: summaryId,
-                    errorType: detailData.errorType,
-                    originalText: detailData.originalText,
-                    spokenText: detailData.spokenText,
-                    startTime: detailData.startTime,
-                    endTime: detailData.endTime
+                    wordDiffType: detailData.wordDiff.dbTypeValue,
+                    wordDiffExpected: {
+                        switch detailData.wordDiff {
+                        case .missing(let expected), .replaced(let expected, _): return expected
+                        default: return nil
+                        }
+                    }(),
+                    wordDiffActual: {
+                        switch detailData.wordDiff {
+                        case .extra(let actual), .replaced(_, let actual): return actual
+                        default: return nil
+                        }
+                    }(),
+                    originalText: detailData.originalText, // Keep originalText
+                    sentenceIndex: detailData.sentenceIndex,
+                    wordIndex: detailData.wordIndex
                 )
                 try detail.save(db)
             }

@@ -112,17 +112,19 @@ struct RecordingView: View {
                     .padding(.horizontal)
                 }
             }
-            .onChange(of: speechRecognizer.feedbackResult) { _, newSummary in
-                if let summary = newSummary {
+            .onChange(of: speechRecognizer.analyzedDiffs) { _, newDiffs in
+                if let diffs = newDiffs, let practiceDuration = speechRecognizer.analyzedPracticeDuration {
                     // 1. 결과 화면으로 이동
                     modalRouter.push(ModalRoute.feedbackResult(
-                        result: summary,
+                        diffs: diffs,
+                        practiceDuration: practiceDuration,
                         sentences: speechRecognizer.sentences
                     ))
                     
                     // 2. 이동 직후, 다음 세션을 위해 상태를 초기화합니다.
-                    //   (transcript와 feedbackResult를 모두 초기화하는 함수 사용)
                     speechRecognizer.clearTranscript()
+                    speechRecognizer.analyzedDiffs = nil // Clear after use
+                    speechRecognizer.analyzedPracticeDuration = nil // Clear after use
                 }
             }
             .alert("알림", isPresented: $showEmptyTranscriptAlert) {
@@ -133,11 +135,12 @@ struct RecordingView: View {
             .cancelToolbar()
             .navigationDestination(for: ModalRoute.self) { route in
                 switch route {
-                case .feedbackResult(let result, let sentences):
+                case .feedbackResult(let diffs, let practiceDuration, let sentences):
                     let viewModel = FeedbackViewModel(
                         scriptId: self.scriptId,
-                        feedbackResult: result,
+                        diffs: diffs,
                         sentences: sentences,
+                        practiceDuration: practiceDuration,
                         scriptManagementService: container.scriptManagementService
                     )
                     

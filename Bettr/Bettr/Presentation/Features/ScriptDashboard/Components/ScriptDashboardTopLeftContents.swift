@@ -22,7 +22,7 @@ struct ScriptDashboardTopLeftContents: View {
     // 차트 데이터 계산
     private var chartData: [FeedbackChartDataPoint] {
         feedbacks.enumerated().map { (index, feedback) in
-            FeedbackChartDataPoint(session: index + 1, score: feedback.totalScore * 100)
+            FeedbackChartDataPoint(session: index + 1, score: feedback.accuracy * 100)
         }
     }
     

@@ -15,17 +15,16 @@ protocol ScriptManagementServiceProtocol {
     
     func createFeedbackSummary(
         scriptId: Int64,
-        totalScore: Double,
+        accuracy: Double,
         missingWordCount: Int,
         addedWordCount: Int,
         replacedWordCount: Int,
         practiceDuration: Double,
         feedbackDetailsData: [(
-            errorType: FeedbackErrorType,
+            wordDiff: WordDiff,
             originalText: String?,
-            spokenText: String?,
-            startTime: Double,
-            endTime: Double
+            sentenceIndex: Int,
+            wordIndex: Int
         )]
     ) throws -> FeedbackSummary
     

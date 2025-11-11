@@ -14,8 +14,7 @@ class FeedbackViewModel {
     
     // MARK: - Published Properties (UI용)
     
-    /// SpeechRecognizer로부터 받은 원본 피드백 결과
-    let feedbackResult: FeedbackResultModel?
+
     
     /// DB에 저장 중인지 여부 (예: 로딩 스피너 표시용)
     var isSaving = false
@@ -36,6 +35,18 @@ class FeedbackViewModel {
     
     /// 대체된 단어(Replaced) 개수
     let replacedCount: Int
+
+    /// 정확도 (Computed Property)
+    var accuracy: Double {
+        let totalOriginalWords = sentences.reduce(0) { $0 + analyzer.normalize($1).count }
+        let matchedCount = sentenceDiffs.reduce(0) { total, sentenceData in
+            total + sentenceData.diffs.filter {
+                if case .matched = $0 { return true }
+                return false
+            }.count
+        }
+        return totalOriginalWords == 0 ? 0 : Double(matchedCount) / Double(totalOriginalWords)
+    }
     
     /// 원본 인덱스를 유지하면서 틀린 문장만 필터링한 배열 (Computed Property)
     var filteredSentenceDiffs: [(index: Int, data: (original: String, diffs: [WordDiff]))] {
@@ -60,6 +71,7 @@ class FeedbackViewModel {
     // MARK: - Private Properties
     private let scriptId: Int64
     private let sentences: [String]
+    let practiceDuration: Double
     private let scriptManagementService: ScriptManagementServiceProtocol
     private let analyzer = SpeechAnalyzer()
     
@@ -67,16 +79,17 @@ class FeedbackViewModel {
     
     init(
         scriptId: Int64,
-        feedbackResult: FeedbackResultModel?,
+        diffs: [WordDiff], // New parameter
         sentences: [String],
+        practiceDuration: Double, // Add this
         scriptManagementService: ScriptManagementServiceProtocol
     ) {
         self.scriptId = scriptId
-        self.feedbackResult = feedbackResult
         self.sentences = sentences
+        self.practiceDuration = practiceDuration // Assign this
         self.scriptManagementService = scriptManagementService
         
-        var tempDiffs = feedbackResult?.diffs ?? []
+        var tempDiffs = diffs // Use the new diffs parameter
         var chunkedResult: [(original: String, diffs: [WordDiff])] = []
         
         for sentence in sentences {
@@ -109,14 +122,13 @@ class FeedbackViewModel {
         }
         self.sentenceDiffs = chunkedResult
 
-        let diffs = feedbackResult?.diffs ?? []
-        self.missingCount = diffs.filter {
+        self.missingCount = diffs.filter { // Use the new diffs parameter
             if case .missing = $0 { return true }; return false
         }.count
-        self.extraCount = diffs.filter {
+        self.extraCount = diffs.filter { // Use the new diffs parameter
             if case .extra = $0 { return true }; return false
         }.count
-        self.replacedCount = diffs.filter {
+        self.replacedCount = diffs.filter { // Use the new diffs parameter
             if case .replaced = $0 { return true }; return false
         }.count
     }
@@ -124,39 +136,55 @@ class FeedbackViewModel {
     
     // MARK: - Core Logic (DB Save)
     
-    func saveFeedbackResult() async {
-        guard let feedback = feedbackResult else {
-            print("저장할 피드백 결과(feedbackResult)가 nil입니다.")
-            return
-        }
-        
+    func saveFeedbackResult(practiceDuration: Double) async {
         isSaving = true
         saveError = nil
         
         // --- 데이터 변환 로직 (빠르므로 메인 스레드에서 수행) ---
         var detailsData: [(
-            errorType: FeedbackErrorType,
+            wordDiff: WordDiff,
             originalText: String?,
-            spokenText: String?,
-            startTime: Double,
-            endTime: Double
+            sentenceIndex: Int,
+            wordIndex: Int
         )] = []
         
         // (카운트는 init에서 이미 계산 완료)
         
-        for diff in feedback.diffs {
-            switch diff {
-            case .matched:
-                break // 에러 아님
-                
-            case .missing(let expected):
-                detailsData.append((.missingWord, expected, nil, 0.0, 0.0))
-                
-            case .extra(let actual):
-                detailsData.append((.addedWord, nil, actual, 0.0, 0.0))
-                
-            case .replaced(let expected, let actual):
-                detailsData.append((.replacedWord, expected, actual, 0.0, 0.0))
+        // `feedback.diffs`는 전체 스크립트에 대한 WordDiff 배열이므로,
+        // 각 WordDiff에 해당하는 sentenceIndex와 wordIndex를 찾아야 합니다.
+        // 이를 위해 `sentenceDiffs`를 활용합니다.
+        var globalWordIndex = 0
+        for (sIdx, sentenceData) in sentenceDiffs.enumerated() {
+            for (wIdx, diff) in sentenceData.diffs.enumerated() {
+                switch diff {
+                case .matched:
+                    break // 에러 아님
+                    
+                case .missing(let expected):
+                    detailsData.append((
+                        wordDiff: diff,
+                        originalText: expected,
+                        sentenceIndex: sIdx,
+                        wordIndex: wIdx
+                    ))
+                    
+                case .extra(let actual):
+                    detailsData.append((
+                        wordDiff: diff,
+                        originalText: nil,
+                        sentenceIndex: sIdx,
+                        wordIndex: wIdx
+                    ))
+                    
+                case .replaced(let expected, let actual):
+                    detailsData.append((
+                        wordDiff: diff,
+                        originalText: expected,
+                        sentenceIndex: sIdx,
+                        wordIndex: wIdx
+                    ))
+                }
+                globalWordIndex += 1
             }
         }
         
@@ -166,11 +194,11 @@ class FeedbackViewModel {
             let summary = try await Task.detached {
                 try await self.scriptManagementService.createFeedbackSummary(
                     scriptId: self.scriptId,
-                    totalScore: feedback.accuracy,
+                    accuracy: self.accuracy,
                     missingWordCount: self.missingCount,
                     addedWordCount: self.extraCount,
                     replacedWordCount: self.replacedCount,
-                    practiceDuration: feedback.totalRecordingTime,
+                    practiceDuration: practiceDuration,
                     feedbackDetailsData: detailsData
                 )
             }.value // .value를 사용해 백그라운드 작업이 끝나고 결과를 받음

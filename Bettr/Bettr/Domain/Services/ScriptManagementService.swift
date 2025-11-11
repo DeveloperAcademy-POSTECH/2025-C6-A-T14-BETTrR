@@ -117,16 +117,16 @@ class ScriptManagementService {
     // MARK: - Feedback Create
     func createFeedbackSummary(
         scriptId: Int64,
-        totalScore: Double,
+        accuracy: Double,
         missingWordCount: Int,
         addedWordCount: Int,
         replacedWordCount: Int,
         practiceDuration: Double,
-        feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)]
+        feedbackDetailsData: [(wordDiff: WordDiff, originalText: String?, sentenceIndex: Int, wordIndex: Int)]
     ) throws -> FeedbackSummary {
         try scriptRepository.createFeedbackSummaryWithDetails(
             scriptId: scriptId,
-            totalScore: totalScore,
+            accuracy: accuracy,
             missingWordCount: missingWordCount,
             addedWordCount: addedWordCount,
             replacedWordCount: replacedWordCount,

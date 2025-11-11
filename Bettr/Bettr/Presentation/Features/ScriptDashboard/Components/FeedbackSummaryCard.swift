@@ -18,9 +18,9 @@ struct FeedbackSummaryCard: View {
             router.push(Route.historicalFeedback(summary: feedback))
         }) {
             HStack {
-                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                    Text("\(Int(feedback.totalScore * 100))%")
-                        .font(.system(size: metrics.font24, weight: .semibold))
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("\(Int(feedback.accuracy * 100))%")
+                        .font(.subtitleSemibold24)
                     
                     HStack(spacing: metrics.cardSpacing) {
                         Text("누락된 단어 \(feedback.missingWordCount)")
