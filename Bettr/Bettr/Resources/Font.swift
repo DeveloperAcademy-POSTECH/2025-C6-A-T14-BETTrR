@@ -66,3 +66,60 @@ extension Font {
         return .sfPro(weight: .regular, size: 11)
     }
 }
+
+
+//private static func sfPro(style: Font.TextStyle, weight: Font.Weight) -> Font {
+//return .system(style, weight: weight)
+//}
+//
+//static var labelMedium64: Font {
+//    return .system(size: 64, weight: .medium)
+//}
+//
+//static var subtitleBold32: Font {
+//    return .sfPro(style: .largeTitle, weight: .bold)
+//}
+//
+//static var bodyRegular28: Font {
+//    return .sfPro(style: .title, weight: .regular)
+//}
+//
+//static var subbodyBold24: Font {
+//    return .sfPro(style: .title2, weight: .semibold)
+//}
+//
+//static var subtitleSemibold24: Font {
+//    return .sfPro(style: .title2, weight: .regular)
+//}
+//
+//static var bodyRegular24: Font {
+//    return .sfPro(style: .title3, weight: .bold)
+//}
+//
+//static var iconBold20: Font {
+//    return .sfPro(style: .title3, weight: .regular)
+//}
+//
+//static var subbodyRegular20: Font {
+//    return .sfPro(style: .title3, weight: .regular)
+//}
+//
+//static var calloutRegular20: Font {
+//    return .sfPro(style: .title3, weight: .regular)
+//}
+//
+//static var labelBold16: Font {
+//    return .sfPro(style: .callout, weight: .bold)
+//}
+//
+//static var calloutRegular16: Font {
+//    return .sfPro(style: .callout, weight: .regular)
+//}
+//
+//static var labelRegular14: Font {
+//    return .sfPro(style: .footnote, weight: .regular)
+//}
+//
+//static var footerRegular11: Font {
+//    return .sfPro(style: .caption2, weight: .regular)
+//}
