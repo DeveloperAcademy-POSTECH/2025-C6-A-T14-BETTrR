@@ -61,19 +61,12 @@ private struct AddButtonView: View {
     @Binding var showMenu: Bool
     
     var body: some View {
-        Button(action: {
+        Button("스크립트 추가") {
             withAnimation(.spring(response: 0.3)) {
                 showMenu = true
             }
-        }) {
-            Text("스크립트 추가")
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding(.horizontal, 32)
-                .padding(.vertical, 12)
-                .background(Color.blue)
-                .cornerRadius(25)
         }
+        .buttonStyle(.general)
         .overlay(alignment: .top) {
             if showMenu {
                 AddScriptMenu(
