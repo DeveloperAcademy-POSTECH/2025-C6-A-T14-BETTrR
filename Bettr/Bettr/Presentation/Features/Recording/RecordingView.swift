@@ -42,24 +42,26 @@ struct RecordingView: View {
                 
                 HStack {
                     let isRecording = speechRecognizer.isRecording
-                    let isReviewing = speechRecognizer.hasRecorded && !isRecording
+                    let hasRecorded = speechRecognizer.hasRecorded
+                    
+                    let isReadyToRecord = !isRecording && !hasRecorded
+                    let didFinishRecording = hasRecorded && !isRecording
                     
                     Button(action: { speechRecognizer.cancelRecording() }) {
                         Image(systemName: "arrow.clockwise")
                     }
                     .buttonStyle(SecondaryRecordingButtonStyle())
-                    .disabled(!isReviewing)
+                    .disabled(!didFinishRecording)
 
                     Spacer()
                     
-                    // 녹음 중지 버튼 (중앙)
-                    Button(action: { speechRecognizer.startRecording() }) {
-                        Image(systemName: isRecording || isReviewing ? "stop.fill" : "microphone")
+                    Button(action: { speechRecognizer.toggleRecording() }) {
+                        Image(systemName: isReadyToRecord ? "microphone" : "stop.fill")
                     }
                     .buttonStyle(RecordingButtonStyle(isRecording: isRecording))
                     .disabled(speechRecognizer.authorizationStatus != .authorized ||
                               speechRecognizer.microphoneAuthorizationStatus != .granted ||
-                              isReviewing
+                              didFinishRecording
                     )
                     
                     Spacer()
@@ -68,7 +70,7 @@ struct RecordingView: View {
                         Image(systemName: "arrow.right")
                     }
                     .buttonStyle(RecordingButtonStyle(isRecording: false))
-                    .disabled(!isReviewing)
+                    .disabled(!didFinishRecording)
                 }
                 
                 Spacer()

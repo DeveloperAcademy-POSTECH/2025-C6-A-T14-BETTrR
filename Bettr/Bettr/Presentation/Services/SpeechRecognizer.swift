@@ -71,8 +71,8 @@ class SpeechRecognizer: ObservableObject {
         }
     }
     
-    // MARK: - 녹음 시작
-    func startRecording() {
+    // MARK: - 녹음 상태 변경 (녹음 중인 경우: 녹음을 끝냄, 녹음 중이 아닌 경우: 녹음을 시작)
+    func toggleRecording() {
         if audioEngine.isRunning {
             stopRecording()
             return
@@ -110,10 +110,6 @@ class SpeechRecognizer: ObservableObject {
                 self.timer?.invalidate()
                 self.timer = nil
                 
-                //                // 최종 녹음 시간 계산
-                //                let endTime = Date()
-                //                let totalTime = self.recordingStartTime.map { endTime.timeIntervalSince($0) } ?? 0.0
-                
                 self.audioEngine.stop()
                 inputNode.removeTap(onBus: 0)
                 self.recognitionRequest = nil
@@ -130,10 +126,6 @@ class SpeechRecognizer: ObservableObject {
                     self.lastTranscription = result?.bestTranscription
                     self.lastRecordedDuration = totalTime
                     
-                    //                    if let result = result {
-                    //                        _ = self.analyzeFullScript(with: result.bestTranscription, totalTime: totalTime)
-                    //                        self.hasRecorded = true
-                    //                    }
                     if finalTranscript.isEmpty {
                         self.recordingDidFinishEmpty = true
                     }

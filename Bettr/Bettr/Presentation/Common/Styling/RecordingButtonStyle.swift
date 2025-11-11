@@ -26,17 +26,18 @@ struct RecordingButtonStyle: ButtonStyle {
     
     @Environment(\.isEnabled) private var isEnabled
     
-    func makeBody(configuration: Configuration) -> some View {
-        let backgroundColor: Color
+    private var backgroundColor: Color {
         if !isEnabled {
-            backgroundColor = Color.defaultWhite50
+            return .defaultWhite50
         } else if isRecording {
-            backgroundColor = Color.alertRed01
+            return .alertRed01
         } else {
-            backgroundColor = Color.primaryBlue500
+            return .primaryBlue500
         }
-        
-        return configuration.label
+    }
+    
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
             .foregroundStyle(isEnabled ? .defaultWhite50 : .primaryBlue50)
             .modifier(RecordingButtonBaseModifier(isPressed: configuration.isPressed))
             .background(backgroundColor)
@@ -50,8 +51,7 @@ struct SecondaryRecordingButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     
     func makeBody(configuration: Configuration) -> some View {
-        
-        return configuration.label
+        configuration.label
             .foregroundStyle(isEnabled ? .secondaryBlue700 : .primaryBlue50)
             .modifier(RecordingButtonBaseModifier(isPressed: configuration.isPressed))
             .background(.defaultWhite50)
