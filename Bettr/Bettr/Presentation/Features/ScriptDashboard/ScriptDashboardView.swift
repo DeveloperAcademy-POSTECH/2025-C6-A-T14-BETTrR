@@ -11,6 +11,10 @@ struct ScriptDashboardView: View {
     @State var viewModel: ScriptDashboardViewModel
     @State private var isTitleEditing: Bool = false
     
+    @ScaledMetric(relativeTo: .body) var horizontalPadding: CGFloat = 84
+    @ScaledMetric(relativeTo: .body) var topPadding: CGFloat = 36
+    @ScaledMetric(relativeTo: .body) var bottomPadding: CGFloat = 48
+    
     init(viewModel: ScriptDashboardViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
@@ -19,7 +23,7 @@ struct ScriptDashboardView: View {
         Group {
             if viewModel.scriptDashboardData != nil {
                 
-                Grid(horizontalSpacing: 16, verticalSpacing: 16) {
+                Grid(alignment: .top, horizontalSpacing: 16, verticalSpacing: 16) {
                     GridRow {
                         ScriptDashboardTopLeftContents(feedbacks: viewModel.scriptDashboardData!.recentFeedbacks)
                         
@@ -44,17 +48,18 @@ struct ScriptDashboardView: View {
                     }
                 }
             } else {
-                // 로딩, 에러 뷰
                 LoadingView(
                     isLoading: viewModel.isLoading,
                     errorMessage: viewModel.errorMessage
                 )
             }
         }
-        .padding(.horizontal, 84)
-        .padding(.top, 36)
-        .padding(.bottom, 48)
+        .border(Color.blue)
         .frame(maxWidth: .infinity)
+        .padding(.horizontal, horizontalPadding)
+        .padding(.top, topPadding)
+        .padding(.bottom, bottomPadding)
+        .border(Color.red)
         .onTapGesture {
             isTitleEditing = false
         }

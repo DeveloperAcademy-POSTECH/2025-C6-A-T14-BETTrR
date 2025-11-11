@@ -13,6 +13,8 @@ struct ScriptDashboardBottomLeftContents: View {
     var recentFeedbacks: [FeedbackSummary]
     var allFeedbacks: [FeedbackSummary]
     
+    @ScaledMetric(relativeTo: .title2) var listSpacing: CGFloat = 20
+    
     var body: some View {
         
         VStack(spacing: 8) {
@@ -37,7 +39,7 @@ struct ScriptDashboardBottomLeftContents: View {
             .padding(8)
             .foregroundStyle(.normalBlack900)
             
-            VStack(spacing: 20) {
+            VStack(spacing: listSpacing) {
                 if recentFeedbacks.isEmpty {
                     VStack(spacing: 20) {
                         ForEach(0..<5, id: \.self) { _ in
@@ -49,7 +51,7 @@ struct ScriptDashboardBottomLeftContents: View {
                         VStack {
                             Spacer()
                             Text("데이터가 충분하지 않아요")
-                                .font(.labelBold16)                            
+                                .font(.labelBold16)
                                 .foregroundStyle(.normalBlack900)
                             Spacer()
                         }
@@ -69,7 +71,11 @@ struct ScriptDashboardBottomLeftContents: View {
                     Spacer()
                 }
             }
-            .dashboardCardStyle(padding: 36)
+            .dashboardCardStyle(
+                padding: 36,
+                relativeTo: .title2,
+                style: .border(.primaryBlue200)
+            )
         }
     }
 }

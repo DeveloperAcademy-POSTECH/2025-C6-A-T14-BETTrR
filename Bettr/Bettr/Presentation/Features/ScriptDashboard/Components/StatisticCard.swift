@@ -24,6 +24,10 @@ struct StatisticCard<Content: View>: View {
                 content()
             }
         }
-        .dashboardCardStyle(top: 24, leading: 24, bottom: 24, trailing: 16)
+        .dashboardCardStyle(
+            top: 24, leading: 24, bottom: 24, trailing: 16,
+            relativeTo: .callout,
+            style: .border(.primaryBlue200)
+        )
     }
 }

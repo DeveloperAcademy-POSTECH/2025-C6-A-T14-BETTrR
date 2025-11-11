@@ -25,7 +25,7 @@ struct ScriptDashboardTopRightContents: View {
                 Text("자주 틀린 단어 Top 3")
                     .font(.calloutRegular16)
                     .foregroundStyle(.normalBlack900)
-
+                
                 Spacer()
                 
                 VStack(alignment: .center) {
@@ -46,7 +46,11 @@ struct ScriptDashboardTopRightContents: View {
                 
                 Spacer()
             }
-            .dashboardCardStyle()
+            .dashboardCardStyle(
+                padding: 24,
+                relativeTo: .callout,
+                style: .border(.primaryBlue200)
+            )
             
             // 누적 피드백, 평균 녹음 시간
             VStack(spacing: verticalSpacing) {

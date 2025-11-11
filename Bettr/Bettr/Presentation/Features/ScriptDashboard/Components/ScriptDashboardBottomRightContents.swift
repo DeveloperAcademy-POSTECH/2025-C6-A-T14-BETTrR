@@ -17,30 +17,32 @@ struct ScriptDashboardBottomRightContents: View {
     }
     
     var body: some View {
-        Text(combinedSentences)
-            .font(.calloutRegular20)
-            .foregroundStyle(.normalBlack900)
-            .lineLimit(nil)
-            .truncationMode(.tail)
-            .padding(.vertical, 25)
-            .padding(.horizontal, 36)
-            .frame(maxHeight: .infinity)
-            .background(
+        VStack(alignment: .leading, spacing: 0) {
+            Text(combinedSentences)
+                .font(.calloutRegular20)
+                .foregroundStyle(.normalBlack900)
+                .lineLimit(nil)
+                .truncationMode(.tail)
+            
+            Spacer(minLength: 0)
+        }
+        .dashboardCardStyle(
+            top: 25, leading: 36, bottom: 25, trailing: 36,
+            relativeTo: .title3,
+            style: .fill(.primaryBlue50)
+        )
+        .overlay(alignment:. center) {
+            ZStack {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.primaryBlue50)
-            )
-            .overlay(alignment:. center) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.defaultWhite50.opacity(0.3))
-                    
-                    Button(action: {
-                        router.push(Route.memorization(scriptId: scriptId))
-                    }) {
-                        Text("암기하기")
-                    }
-                    .buttonStyle(.general)
+                    .fill(.defaultWhite50.opacity(0.3))
+                
+                Button(action: {
+                    router.push(Route.memorization(scriptId: scriptId))
+                }) {
+                    Text("암기하기")
                 }
+                .buttonStyle(.general)
             }
+        }
     }
 }

@@ -76,8 +76,8 @@ struct ScriptDashboardTopLeftContents: View {
                         AxisValueLabel()
                     }
                 }
-                .padding(.leading, 20)
-                .padding(.bottom, 16)
+//                .padding(.leading, 20)
+//                .padding(.bottom, 16)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
             } else {
@@ -92,9 +92,11 @@ struct ScriptDashboardTopLeftContents: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.primaryBlue50)
-        )
+//        .background(
+//            RoundedRectangle(cornerRadius: 20)
+//                .fill(.primaryBlue50)
+//        )
+        .dashboardCardStyle(top: 24, leading: 24, bottom: 16, trailing: 16,
+                            relativeTo: .body, style: .fill(.primaryBlue50))
     }
 }

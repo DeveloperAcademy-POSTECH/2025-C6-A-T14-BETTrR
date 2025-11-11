@@ -23,7 +23,11 @@ struct AllFeedbackView: View {
                     }
                     Spacer()
                 }
-                .dashboardCardStyle(padding: 36)
+                .dashboardCardStyle(
+                    padding: 36,
+                    relativeTo: .title2,
+                    style: .border(.primaryBlue200)
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             else {
@@ -35,7 +39,11 @@ struct AllFeedbackView: View {
                     
                     Spacer()
                 }
-                .dashboardCardStyle(padding: 36)
+                .dashboardCardStyle(
+                    padding: 36,
+                    relativeTo: .title2,
+                    style: .border(.primaryBlue200)
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
