@@ -20,7 +20,7 @@ struct FeedbackSummaryCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("\(Int(feedback.accuracy * 100))%")
-                        .font(.subtitleSemibold24)
+                        .font(.system(size: metrics.font24, weight: .semibold))
                     
                     HStack(spacing: metrics.cardSpacing) {
                         Text("누락된 단어 \(feedback.missingWordCount)")
