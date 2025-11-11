@@ -36,7 +36,7 @@ class WordExtractionService {
         
         let maxRetry = 2
         let ai = FirebaseAI.firebaseAI(backend: .googleAI())
-        let model = ai.generativeModel(modelName: "gemini-2.0-flash-lite")
+        let model = ai.generativeModel(modelName: "gemini-2.5-flash-lite")
         
         do {
             // 1️⃣ 스크립트 불러오기
