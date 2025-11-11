@@ -13,7 +13,10 @@ import Foundation
 final class LocalRateLimiter {
     static let shared = LocalRateLimiter()
     
-    private var timestamps: [Date] = []
+    private let uuid = DeviceUUIDProvider.shared.uuid //uuid 추가
+
+//    private var timestamps: [Date] = []
+    private var timestamps: [String: [Date]] = [:]
     private let limit = 3           // 1분에 3번까지 허용
     private let window: TimeInterval = 60 // 60초
     
@@ -23,15 +26,28 @@ final class LocalRateLimiter {
     func canCall() -> Bool {
         let now = Date()
         // 1분 이내의 호출만 필터링
-        timestamps = timestamps.filter { now.timeIntervalSince($0) < window }
+//        timestamps = timestamps.filter { now.timeIntervalSince($0) < window }
+//        
+//        if timestamps.count >= limit {
+//            print("🚫 [LocalRateLimiter] 1분 내 \(limit)회 초과 호출 — 차단됨")
+//            return false
+//        }
+//        
+//        timestamps.append(now)
+//        print("✅ [LocalRateLimiter] 호출 허용 (\(timestamps.count)/\(limit))")
+//        return true
         
-        if timestamps.count >= limit {
-            print("🚫 [LocalRateLimiter] 1분 내 \(limit)회 초과 호출 — 차단됨")
+        timestamps[uuid, default: []] = timestamps[uuid, default: []].filter {
+            now.timeIntervalSince($0) < window
+        }
+        
+        if timestamps[uuid]!.count >= limit {
+            print("🚫 [RateLimiter] \(uuid) — 1분 내 \(limit)회 초과 호출 차단")
             return false
         }
         
-        timestamps.append(now)
-        print("✅ [LocalRateLimiter] 호출 허용 (\(timestamps.count)/\(limit))")
+        timestamps[uuid]?.append(now)
+        print("✅ [RateLimiter] \(uuid) 호출 허용 (\(timestamps[uuid]!.count)/\(limit))")
         return true
     }
     
