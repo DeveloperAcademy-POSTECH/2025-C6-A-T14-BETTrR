@@ -20,8 +20,8 @@ struct FeedbackResultDisplayView: View {
     /// (index: 원본 인덱스, data: (original: 원본 문장, diffs: [WordDiff]))
     let filteredSentenceDiffs: [(index: Int, data: (original: String, diffs: [WordDiff]))]
     
-    // '완벽합니다' 메시지를 표시할지 여부를 결정
-    let hasSentences: Bool
+    /// 원본 문장 데이터 자체가 로드되었는지 여부 (문장 0개 스크립트 방어용)
+    let hasOriginalSentences: Bool
     
     var body: some View {
         ScrollView {
@@ -74,7 +74,7 @@ struct FeedbackResultDisplayView: View {
                 
                 Divider()
                 
-                if !hasSentences {
+                if !hasOriginalSentences {
                     Text("분석 결과가 없습니다.")
                         .foregroundColor(.gray)
                     
@@ -134,49 +134,6 @@ struct FeedbackResultDisplayView: View {
             .padding()
         }
     }
-    
-    /// WordDiff 배열을 하이라이트된 SwiftUI Text로 변환하는 헬퍼 함수
-    /// (ViewModel에서 이곳으로 이동)
-    private func buildHighlightText(from diffs: [WordDiff]) -> Text {
-        if diffs.isEmpty {
-            return Text("(발화 내용 없음)")
-                .foregroundStyle(.gray)
-        } else {
-            var components: [Text] = []
-            
-            for diff in diffs {
-                switch diff {
-                case .matched(let word):
-                    components.append(Text(word)
-                        .foregroundColor(.primary))
-                    
-                case .missing(let expected):
-                    components.append(Text(expected)
-                        .foregroundColor(.green)
-                        .strikethrough(true, color: .green))
-                    
-                case .extra(let actual):
-                    components.append(Text(actual)
-                        .foregroundColor(.red))
-                    
-                case .replaced(let expected, let actual):
-                    components.append(Text(expected)
-                        .foregroundColor(.gray)
-                        .strikethrough(true, color: .gray))
-                    components.append(Text(actual)
-                        .foregroundColor(.blue))
-                }
-            }
-            
-            guard let first = components.first else {
-                return Text("")
-            }
-            
-            return components.dropFirst().reduce(first) { result, component in
-                Text("\(result) \(component)")
-            }
-        }
-    }
 }
 
 // MARK: - Preview
@@ -207,7 +164,7 @@ struct FeedbackResultDisplayView: View {
                 .missing(expected: "you")
             ]))
         ],
-        hasSentences: true
+        hasOriginalSentences: true
     )
 }
 
@@ -221,7 +178,7 @@ struct FeedbackResultDisplayView: View {
         extraCount: 0,
         replacedCount: 0,
         filteredSentenceDiffs: [],
-        hasSentences: true
+        hasOriginalSentences: true
     )
 }
 
@@ -235,6 +192,6 @@ struct FeedbackResultDisplayView: View {
         extraCount: 0,
         replacedCount: 0,
         filteredSentenceDiffs: [],
-        hasSentences: false
+        hasOriginalSentences: false
     )
 }
