@@ -42,6 +42,7 @@ struct LayoutMetrics {
     let font20: CGFloat
     let font24: CGFloat
     let font32: CGFloat
+    let font64: CGFloat
     
     
     init(width: CGFloat) {
@@ -72,6 +73,7 @@ struct LayoutMetrics {
         self.font20 = 20.0 * scaleFactor
         self.font24 = 24.0 * scaleFactor
         self.font32 = 32.0 * scaleFactor
+        self.font64 = 64.00 * scaleFactor
     }
 }
 

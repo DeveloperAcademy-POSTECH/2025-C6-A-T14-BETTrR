@@ -18,12 +18,18 @@ struct RecordingView: View {
     @State private var showEmptyTranscriptAlert = false
     
     private let scriptId: Int64
+    private let scriptTitle: String
+    private let currentFeedbackCount: Int
     
     init(
         scriptId: Int64,
         sentences: [String],
+        scriptTitle: String,
+        currentFeedbackCount: Int
     ) {
         self.scriptId = scriptId
+        self.scriptTitle = scriptTitle
+        self.currentFeedbackCount = currentFeedbackCount
         _speechRecognizer = StateObject(wrappedValue: SpeechRecognizer(sentences: sentences))
     }
     
@@ -52,7 +58,7 @@ struct RecordingView: View {
                     }
                     .buttonStyle(SecondaryRecordingButtonStyle())
                     .disabled(!didFinishRecording)
-
+                    
                     Spacer()
                     
                     Button(action: { speechRecognizer.toggleRecording() }) {
@@ -82,7 +88,9 @@ struct RecordingView: View {
                     modalRouter.push(ModalRoute.feedbackResult(
                         diffs: diffs,
                         practiceDuration: practiceDuration,
-                        sentences: speechRecognizer.sentences
+                        sentences: speechRecognizer.sentences,
+                        scriptTitle: self.scriptTitle,
+                        currentFeedbackCount: self.currentFeedbackCount
                     ))
                     
                     // 이동 직후, 다음 세션을 위해 상태를 초기화합니다.
@@ -105,9 +113,11 @@ struct RecordingView: View {
             .cancelToolbar()
             .navigationDestination(for: ModalRoute.self) { route in
                 switch route {
-                case .feedbackResult(let diffs, let practiceDuration, let sentences):
+                case .feedbackResult(let diffs, let practiceDuration, let sentences, let scriptTitle, let currentFeedbackCount):
                     let viewModel = FeedbackViewModel(
                         scriptId: self.scriptId,
+                        scriptTitle: scriptTitle,
+                        currentFeedbackCount: currentFeedbackCount,
                         diffs: diffs,
                         sentences: sentences,
                         practiceDuration: practiceDuration,

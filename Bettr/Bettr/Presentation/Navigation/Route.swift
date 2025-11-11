@@ -11,11 +11,17 @@ enum Route: Hashable {
     case home
     case scriptConfirm(initialText: String?, initialTitle: String?)
     case scriptDashboard(scriptId: Int64)
-    case memorization(scriptId: Int64)
-    case historicalFeedback(summary: FeedbackSummary)
-    case allFeedback(feedbacks: [FeedbackSummary])
+    case memorization(scriptId: Int64, scriptTitle: String, currentFeedbackNumber: Int)
+    case historicalFeedback(summary: FeedbackSummary, scriptTitle: String, feedbackNumber: Int)
+    case allFeedback(feedbacks: [FeedbackSummary], scriptTitle: String, feedbackNumber: Int)
 }
 
 enum ModalRoute: Hashable {
-    case feedbackResult(diffs: [WordDiff], practiceDuration: Double, sentences: [String])
+    case feedbackResult(
+        diffs: [WordDiff],
+        practiceDuration: Double,
+        sentences: [String],
+        scriptTitle: String,
+        currentFeedbackCount: Int
+    )
 }

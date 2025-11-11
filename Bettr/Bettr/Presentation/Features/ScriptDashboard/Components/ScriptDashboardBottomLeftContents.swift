@@ -13,6 +13,8 @@ struct ScriptDashboardBottomLeftContents: View {
     
     var recentFeedbacks: [FeedbackSummary]
     var allFeedbacks: [FeedbackSummary]
+    let scriptTitle: String
+    let feedbackNumber: Int
         
     var body: some View {
         
@@ -25,7 +27,7 @@ struct ScriptDashboardBottomLeftContents: View {
                 
                 if allFeedbacks.count > 5 {
                     Button(action: {
-                        router.push(Route.allFeedback(feedbacks: allFeedbacks))
+                        router.push(Route.allFeedback(feedbacks: allFeedbacks, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber))
                     }) {
                         HStack(spacing: 4) {
                             Text("더보기")
@@ -57,7 +59,7 @@ struct ScriptDashboardBottomLeftContents: View {
                     )
                 } else {
                     ForEach(recentFeedbacks, id: \.id) { feedback in
-                        FeedbackSummaryCard(feedback: feedback)
+                        FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber)
                     }
                     
                     let placeholderCount = 5 - recentFeedbacks.count

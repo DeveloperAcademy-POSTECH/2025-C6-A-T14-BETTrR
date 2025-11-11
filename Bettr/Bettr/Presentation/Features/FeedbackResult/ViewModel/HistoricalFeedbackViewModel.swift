@@ -8,43 +8,94 @@
 import Foundation
 import SwiftUI
 
+/// 과거의 피드백(`FeedbackSummary`)을 선택했을 때,
+/// 상세 내역(`FeedbackDetail`)과 원본 스크립트(`Script`/`Sentence`)를 DB에서 불러와
+/// 피드백 결과 화면을 재구성하는 뷰모델입니다.
 @Observable
 @MainActor
 class HistoricalFeedbackViewModel {
     
-    // MARK: - UI State
+    // MARK: - 1. UI State Properties
+    
+    /// 상세 데이터(Script, FeedbackDetail)를 로드 중인지 여부
     var isLoading = true
+    
+    /// 데이터 로드 실패 시 발생하는 에러
     var loadError: Error?
     
-    // MARK: - Display Properties
+    // MARK: - 2. Display Properties (View Data)
+    
+    /// 피드백 대상 스크립트의 제목
+    var scriptTitle: String
+    
+    /// 이 피드백이 몇 번째 피드백인지
+    var feedbackNumber: Int
+    
+    /// 피드백 정확도 (Summary에서 직접 가져옴)
     var accuracy: Double = 0
+    
+    /// 총 연습 시간 (Summary에서 직접 가져옴)
     var totalRecordingTime: TimeInterval = 0
+    
+    /// 누락된 단어 수 (Summary에서 직접 가져옴)
     var missingCount: Int = 0
+    
+    /// 추가된 단어 수 (Summary에서 직접 가져옴)
     var extraCount: Int = 0
+    
+    /// 대체된 단어 수 (Summary에서 직접 가져옴)
     var replacedCount: Int = 0
     
+    /// DB에서 재구성한 "틀린 문장" 목록 (뷰에 최종 표시될 데이터)
+    /// `FeedbackViewModel`의 `filteredSentenceDiffs`와 동일한 형식을 가집니다.
     var filteredSentenceDiffs: [(index: Int, data: (original: String, diffs: [WordDiff]))] = []
+    
+    /// 재구성된 문장이 하나라도 있는지 여부
     var hasSentences: Bool = false
     
-    // MARK: - Dependencies
-    private let summary: FeedbackSummary
-    private let scriptManagementService: ScriptManagementServiceProtocol
-    private let analyzer = SpeechAnalyzer()
+    // MARK: - 3. Dependencies & Private Properties
     
+    /// 뷰에서 선택한 원본 피드백 요약 객체
+    private let summary: FeedbackSummary
+    
+    /// 데이터베이스 통신을 위한 서비스 객체
+    private let scriptManagementService: ScriptManagementServiceProtocol
+    
+    /// (로직에는 필요 없으나 `SpeechAnalyzer` 인스턴스화가 필요할 경우 사용)
+    // private let analyzer = SpeechAnalyzer()
+    
+    // MARK: - 4. Initializer
+    
+    /// `HistoricalFeedbackViewModel`을 초기화합니다.
+    /// - Parameters:
+    ///   - summary: 사용자가 목록에서 선택한 `FeedbackSummary` 객체
+    ///   - scriptTitle: 스크립트 제목 (이전 뷰에서 전달)
+    ///   - feedbackNumber: 이 피드백의 순번 (이전 뷰에서 전달, 예: 5)
+    ///   - scriptManagementService: DB 조회를 위한 서비스 객체
     init(
         summary: FeedbackSummary,
+        scriptTitle: String,
+        feedbackNumber: Int,
         scriptManagementService: ScriptManagementServiceProtocol
     ) {
         self.summary = summary
         self.scriptManagementService = scriptManagementService
         
+        // 1. Summary 및 전달받은 메타데이터 즉시 할당
+        self.scriptTitle = scriptTitle
+        self.feedbackNumber = feedbackNumber
         self.accuracy = summary.accuracy
         self.totalRecordingTime = summary.practiceDuration
         self.missingCount = summary.missingWordCount
         self.extraCount = summary.addedWordCount
         self.replacedCount = summary.replacedWordCount
+        
+        // 2. 상세 내역(filteredSentenceDiffs)은 `loadFeedbackData()`를 통해 비동기로 로드
     }
     
+    // MARK: - 5. Core Logic (Data Loading & Reconstruction)
+    
+    /// 뷰가 나타날 때(`.task`) 호출되어, 상세 피드백 데이터를 비동기로 로드하고 재구성합니다.
     func loadFeedbackData() async {
         guard let summaryId = summary.id else {
             // (방어 코드) Summary 객체에 ID가 없는 비정상적인 경우
@@ -57,75 +108,61 @@ class HistoricalFeedbackViewModel {
         self.loadError = nil
         
         do {
-            // --- 1. DB에서 상세 데이터 병렬 로드 ---
+            // --- 1. DB에서 원본 스크립트와 피드백 상세 내역을 병렬로 로드 ---
             async let scriptTask = scriptManagementService.fetchScriptWithSentences(id: summary.scriptId)
             async let detailsTask = scriptManagementService.fetchFeedbackDetails(forFeedbackSummaryId: summaryId)
             
-            let originalScript = try await scriptTask
-            let feedbackDetails = try await detailsTask // (DB에 저장된 '오류' 목록)
+            // 두 작업이 모두 완료될 때까지 대기
+            let originalScriptData = try await scriptTask
+            let feedbackDetails = try await detailsTask // (DB에 저장된 '모든' diff 목록)
             
-            
-            
-            let originalSentences = originalScript?.sentences ?? []
-            
-            // (sentenceIndex, wordIndex)를 키로 하는 FeedbackDetail 맵 생성
-            var feedbackDetailMap: [String: FeedbackDetail] = [:]
-            for detail in feedbackDetails {
-                let key = "\(detail.sentenceIndex)-\(detail.wordIndex)"
-                feedbackDetailMap[key] = detail
+            // --- 2. 원본 문장 데이터 준비 ---
+            let originalSentences = originalScriptData?.sentences ?? []
+            // (원본 문장 텍스트를 `sentenceIndex`로 빠르게 찾기 위한 맵)
+            var sentenceTextMap: [Int: String] = [:]
+            for (sIdx, sentence) in originalSentences.enumerated() {
+                // DB의 `orderIndex`가 0부터 시작한다는 가정 (만약 다르다면 sentence.orderIndex를 키로 사용)
+                sentenceTextMap[sIdx] = sentence.englishText
             }
             
+            // --- 3. [핵심 로직] FeedbackDetail을 문장별 WordDiff로 재조립 ---
+            // `FeedbackViewModel`의 `sentenceDiffs`와 동일한 형태를 복원합니다.
+            
+            // 3a. Details를 `sentenceIndex` -> `wordIndex` 순으로 정렬
+            let sortedDetails = feedbackDetails.sorted {
+                if $0.sentenceIndex != $1.sentenceIndex {
+                    return $0.sentenceIndex < $1.sentenceIndex // 문장 인덱스 우선
+                }
+                return $0.wordIndex < $1.wordIndex // 그 다음 단어 인덱스
+            }
+            
+            // 3b. 정렬된 Details를 `sentenceIndex`를 키로 하여 그룹화
+            let detailsBySentence = Dictionary(grouping: sortedDetails, by: { $0.sentenceIndex })
+            
+            // 재구성된 결과를 담을 배열
             var reconstructedSentenceDiffs: [(original: String, diffs: [WordDiff])] = []
             
-            for (sIdx, sentence) in originalSentences.enumerated() {
-                let originalWords = analyzer.normalize(sentence.englishText)
-                var sentenceDiffs: [WordDiff] = []
+            // 3c. *원본 문장 순서*대로 순회하며 데이터 재조립
+            // (originalSentences.count 또는 sentenceTextMap의 최대 인덱스 기준)
+            for sIdx in 0..<originalSentences.count {
+                let originalText = sentenceTextMap[sIdx] ?? "" // 원본 문장 텍스트
                 
-                // Create a temporary array to hold the diffs, initially filled with matched words
-                var tempSentenceDiffs: [WordDiff] = []
-                for word in originalWords {
-                    tempSentenceDiffs.append(.matched(word: word))
-                }
-                
-                // Apply errors (missing, replaced)
-                for (wIdx, word) in originalWords.enumerated() {
-                    let key = "\(sIdx)-\(wIdx)"
-                    if let detail = feedbackDetailMap[key] {
-                        // Only apply if it's a missing or replaced word
-                        switch detail.wordDiff {
-                        case .missing, .replaced:
-                            // Replace the matched word with the error
-                            if wIdx < tempSentenceDiffs.count {
-                                tempSentenceDiffs[wIdx] = detail.wordDiff
-                            }
-                        default:
-                            break // Extra words are handled separately
-                        }
-                    }
-                }
-                
-                // Insert extra words
-                let extraDetails = feedbackDetailMap.values.filter { detail in
-                    detail.sentenceIndex == sIdx && { if case .extra = detail.wordDiff { return true } else { return false } }()
-                }.sorted { $0.wordIndex < $1.wordIndex } // Sort by wordIndex to insert in order
-                
-                var offset = 0 // To account for insertions
-                for extraDetail in extraDetails {
-                    let insertIndex = extraDetail.wordIndex + offset // wordIndex is the index of the original word *before* the extra word
+                if let detailsForSentence = detailsBySentence[sIdx] {
+                    // 이 문장에 해당하는 `FeedbackDetail` 목록 (이미 wordIndex 순으로 정렬됨)
                     
-                    // Ensure insertIndex is within bounds
-                    if insertIndex <= tempSentenceDiffs.count {
-                        tempSentenceDiffs.insert(extraDetail.wordDiff, at: insertIndex)
-                        offset += 1
-                    } else {
-                        tempSentenceDiffs.append(extraDetail.wordDiff) // Append if index is out of bounds (e.g., at the very end)
-                    }
+                    // 3d. [FeedbackDetail] -> [WordDiff]로 변환
+                    //      (FeedbackDetail 모델의 `wordDiff` computed property 활용)
+                    let diffs = detailsForSentence.map { $0.wordDiff }
+                    reconstructedSentenceDiffs.append((original: originalText, diffs: diffs))
+                    
+                } else {
+                    // (방어 코드) 이 문장에 해당하는 피드백 상세 내역이 없는 경우
+                    reconstructedSentenceDiffs.append((original: originalText, diffs: []))
                 }
-                
-                sentenceDiffs = tempSentenceDiffs
-                reconstructedSentenceDiffs.append((original: sentence.englishText, diffs: sentenceDiffs))
             }
-            // --- 3. 가공된 데이터를 UI가 사용할 형태로 필터링 ---
+            
+            // --- 4. 가공된 데이터를 UI가 사용할 형태로 필터링 ---
+            // 이 로직은 FeedbackViewModel의 `filteredSentenceDiffs`와 완전히 동일합니다.
             self.hasSentences = !reconstructedSentenceDiffs.isEmpty
             
             // '.matched' 외의 오류가 있는 문장만 필터링
@@ -146,7 +183,7 @@ class HistoricalFeedbackViewModel {
             self.isLoading = false // 로딩 완료
             
         } catch {
-            // --- 4. 에러 처리 ---
+            // --- 5. 에러 처리 ---
             print("피드백 상세 정보 불러오기 실패: \(error)")
             self.loadError = error
             self.isLoading = false

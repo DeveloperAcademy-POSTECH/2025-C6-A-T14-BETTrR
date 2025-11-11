@@ -19,13 +19,15 @@ struct FeedbackResultView: View {
     var body: some View {
         VStack {
             FeedbackResultDisplayView(
+                scriptTitle: viewModel.scriptTitle,
+                feedbackNumber: viewModel.newFeedbackNumber,
                 accuracy: viewModel.accuracy,
                 totalRecordingTime: viewModel.practiceDuration,
                 missingCount: viewModel.missingCount,
                 extraCount: viewModel.extraCount,
                 replacedCount: viewModel.replacedCount,
                 filteredSentenceDiffs: viewModel.filteredSentenceDiffs,
-                hasSentences: !viewModel.sentenceDiffs.isEmpty
+                hasOriginalSentences: !viewModel.sentenceDiffs.isEmpty
             )
         }
         .navigationBarBackButtonHidden()
