@@ -20,7 +20,7 @@ struct WordkListView: View {
             if isLoading {
                 VStack(spacing: 36) {
                     ProgressView()
-                        .controlSize(.large)
+                        .frame(width: 30, height: 30)
                         .foregroundStyle(.secondaryBlue700)
                     
                     VStack(spacing: 12) {
@@ -73,10 +73,10 @@ struct WordkListView: View {
                                                 .fill(Color.clear)
                                                 .overlay(
                                                     RoundedRectangle(cornerRadius: 4)
-                                                        .stroke(.primaryBlue500, lineWidth: 1) // FIXME: 나중에 정식 컬러로 변경
+                                                        .stroke(.primaryBlue500, lineWidth: 1)
                                                 )
                                         )
-                                        .foregroundStyle(.primaryBlue500) // FIXME: 나중에 정식 컬러로 변경
+                                        .foregroundStyle(.primaryBlue500)
                                     Spacer(minLength: 0)
                                 }
                                 
@@ -108,7 +108,7 @@ struct WordkListView: View {
                             if index != words.count - 1 {
                                 Rectangle()
                                     .frame(height: 1)
-                                    .foregroundStyle(.primaryBlue50) // FIXME: 나중에 정식 컬러로 변경
+                                    .foregroundStyle(.primaryBlue50)
                             }
 
                         }
