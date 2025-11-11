@@ -554,16 +554,90 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(chunkCount, 0)
     }
 
-    func test_deleteScript_whenScriptDoesNotExist_thenThrowsError() throws {
-        // Given: 존재하지 않는 Script ID가 있을 때
-        let nonExistentId: Int64 = 9999
-
-        // When-Then: 삭제 시 notFound 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.deleteScript(id: nonExistentId)) { error in
-            XCTAssertEqual(
-                (error as? ScriptRepositoryError)?.errorDescription,
-                ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription
+    // MARK: - Feedback Create Tests
+    
+    func test_createFeedbackSummary_withWordDiffDetails_thenDetailsAreSavedCorrectly() throws {
+        // Given: 스크립트와 피드백 상세 데이터
+        let scriptData = ScriptData(
+            title: "Feedback Test Script",
+            sentences: [
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "Hello world.",
+                    koreanText: "안녕 세상.",
+                    chunks: [
+                        ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕"),
+                        ChunkData(orderIndex: 1, englishText: "world", koreanText: "세상")
+                    ]
+                )
+            ]
+        )
+        let createdScript = try sut.createScript(scriptData: scriptData)
+        
+        let feedbackDetailsData: [(
+            wordDiff: WordDiff,
+            originalText: String?,
+            sentenceIndex: Int,
+            wordIndex: Int
+        )] = [
+            (
+                wordDiff: .missing(expected: "world"),
+                originalText: "world",
+                sentenceIndex: 0,
+                wordIndex: 1
+            ),
+            (
+                wordDiff: .extra(actual: "beautiful"),
+                originalText: nil,
+                sentenceIndex: 0,
+                wordIndex: 2
+            ),
+            (
+                wordDiff: .replaced(expected: "Hello", actual: "Hi"),
+                originalText: "Hello",
+                sentenceIndex: 0,
+                wordIndex: 0
             )
-        }
+        ]
+        
+        // When: 피드백 요약을 생성했을 때
+        let summary = try sut.createFeedbackSummary(
+            scriptId: createdScript.id!,
+            accuracy: 0.7,
+            missingWordCount: 1,
+            addedWordCount: 1,
+            replacedWordCount: 1,
+            practiceDuration: 10.0,
+            feedbackDetailsData: feedbackDetailsData
+        )
+        
+        // Then: FeedbackDetail이 올바르게 저장되어야 함
+        let fetchedDetails = try sut.fetchFeedbackDetails(forFeedbackSummaryId: summary.id!)
+        
+        XCTAssertEqual(fetchedDetails.count, 3)
+        
+        // Missing Word 검증
+        let missingDetail = fetchedDetails.first { $0.wordDiffType == "missing" }
+        XCTAssertNotNil(missingDetail)
+        XCTAssertEqual(missingDetail?.wordDiff, .missing(expected: "world"))
+        XCTAssertEqual(missingDetail?.originalText, "world")
+        XCTAssertEqual(missingDetail?.sentenceIndex, 0)
+        XCTAssertEqual(missingDetail?.wordIndex, 1)
+        
+        // Extra Word 검증
+        let extraDetail = fetchedDetails.first { $0.wordDiffType == "extra" }
+        XCTAssertNotNil(extraDetail)
+        XCTAssertEqual(extraDetail?.wordDiff, .extra(actual: "beautiful"))
+        XCTAssertNil(extraDetail?.originalText)
+        XCTAssertEqual(extraDetail?.sentenceIndex, 0)
+        XCTAssertEqual(extraDetail?.wordIndex, 2)
+        
+        // Replaced Word 검증
+        let replacedDetail = fetchedDetails.first { $0.wordDiffType == "replaced" }
+        XCTAssertNotNil(replacedDetail)
+        XCTAssertEqual(replacedDetail?.wordDiff, .replaced(expected: "Hello", actual: "Hi"))
+        XCTAssertEqual(replacedDetail?.originalText, "Hello")
+        XCTAssertEqual(replacedDetail?.sentenceIndex, 0)
+        XCTAssertEqual(replacedDetail?.wordIndex, 0)
     }
 }

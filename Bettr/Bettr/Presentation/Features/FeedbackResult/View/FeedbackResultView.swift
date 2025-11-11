@@ -18,26 +18,15 @@ struct FeedbackResultView: View {
     
     var body: some View {
         VStack {
-            if let feedback = viewModel.feedbackResult {
-                FeedbackResultDisplayView(
-                    accuracy: feedback.accuracy,
-                    totalRecordingTime: feedback.totalRecordingTime,
-                    missingCount: viewModel.missingCount,
-                    extraCount: viewModel.extraCount,
-                    replacedCount: viewModel.replacedCount,
-                    filteredSentenceDiffs: viewModel.filteredSentenceDiffs,
-                    hasSentences: !viewModel.sentenceDiffs.isEmpty
-                )
-            } else {
-                // viewModel.feedbackResult가 nil일 경우(ex. 분석 실패)를 대비
-                VStack {
-                    Text("오류")
-                        .font(.largeTitle)
-                    Text("피드백 결과를 불러오는 데 실패했습니다.")
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
+            FeedbackResultDisplayView(
+                accuracy: viewModel.accuracy,
+                totalRecordingTime: viewModel.practiceDuration,
+                missingCount: viewModel.missingCount,
+                extraCount: viewModel.extraCount,
+                replacedCount: viewModel.replacedCount,
+                filteredSentenceDiffs: viewModel.filteredSentenceDiffs,
+                hasSentences: !viewModel.sentenceDiffs.isEmpty
+            )
         }
         .navigationBarBackButtonHidden()
         .cancelToolbar()
@@ -45,7 +34,7 @@ struct FeedbackResultView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {
-                await viewModel.saveFeedbackResult()
+                await viewModel.saveFeedbackResult(practiceDuration: viewModel.practiceDuration)
             }
         }
     }
