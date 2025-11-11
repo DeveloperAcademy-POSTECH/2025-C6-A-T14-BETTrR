@@ -15,110 +15,14 @@ struct WordkListView: View {
     
     var body: some View {
         VStack {
-            Spacer()
             
             if isLoading {
-                VStack(spacing: 36) {
-                    ProgressView()
-                        .frame(width: 30, height: 30)
-                        .foregroundStyle(.secondaryBlue700)
-                    
-                    VStack(spacing: 12) {
-                        Text("단어장을 불러오는 중입니다.")
-                            .font(.iconBold20)
-                            .foregroundStyle(.normalBlack900)
-                        
-                        Text("잠시 기다려주세요.")
-                            .font(.calloutRegular16)
-                            .foregroundStyle(.normalBlack900)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
+                WordLoadingView()
             } else if words.isEmpty {
-                VStack(spacing: 36) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.bodyRegular24)
-                        .foregroundStyle(.normalBlack900)
-                    
-                    VStack(spacing: 12) {
-                        Text("단어장이 비어있어요!")
-                            .font(.iconBold20)
-                            .foregroundStyle(.normalBlack900)
-                        
-                        Text("추출된 단어가 없습니다.")
-                            .font(.calloutRegular16)
-                            .foregroundStyle(.normalBlack900)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                EmptyWordListView()
             } else {
-                ScrollView {
-                    VStack {
-                        ForEach(Array(words.enumerated()), id: \.element.id) { index, word in
-                            VStack(alignment: .leading, spacing: 8) {
-                                // Title + POS badge
-                                HStack(alignment: .center, spacing: 8) {
-                                    Text(word.lemma)
-                                        .font(.subbodyBold24)
-                                        .foregroundStyle(.normalBlack900)
-                                        .padding(.trailing, 4)
-                                    // POS capsule badge (한글 축약은 상위 레이어에서 처리되어 있다고 가정)
-                                    Text(word.pos)
-                                        .font(.footerRegular11)
-                                        .padding(.horizontal, 4)
-                                        .padding(.vertical, 2)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 10)
-                                                .fill(Color.clear)
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 4)
-                                                        .stroke(.primaryBlue500, lineWidth: 1)
-                                                )
-                                        )
-                                        .foregroundStyle(.primaryBlue500)
-                                    Spacer(minLength: 0)
-                                }
-                                
-                                if word.meaning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                    Text("번역 준비중…")
-                                        .font(.callout)
-                                        .foregroundStyle(.secondary)
-                                } else {
-                                    let parts = word.meaning
-                                        .components(separatedBy: .newlines)
-                                        .flatMap { $0.components(separatedBy: " / ") }
-                                        .flatMap { $0.components(separatedBy: "; ") }
-                                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                                        .filter { !$0.isEmpty }
-                                    
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        ForEach(parts, id: \.self) { item in
-                                            Text(item)
-                                                .font(.labelRegular14)
-                                                .foregroundStyle(.primary)
-                                                .multilineTextAlignment(.leading)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(.top, 16)
-                            .padding(.bottom, 7)
-                            
-                            if index != words.count - 1 {
-                                Rectangle()
-                                    .frame(height: 1)
-                                    .foregroundStyle(.primaryBlue50)
-                            }
-
-                        }
-                        .padding(.leading, 36)
-                    }
-                }
-                .scrollIndicators(.hidden)
+                WordListContentView(words: $words)
             }
-            
-            Spacer()
         }
         .padding(.top, 12)
         .frame(maxWidth: 360, maxHeight: .infinity, alignment: .topLeading)
@@ -130,6 +34,132 @@ struct WordkListView: View {
         .glassEffect(in: .rect(cornerRadius: 35))
     }
 }
+
+
+// MARK: - LoadingView (단어 로딩중일 때 뷰)
+private struct WordLoadingView: View {
+    var body: some View {
+        VStack(spacing: 36) {
+            ProgressView()
+                .frame(width: 30, height: 30)
+                .foregroundStyle(.secondaryBlue700)
+            
+            VStack(spacing: 12) {
+                Text("단어장을 불러오는 중입니다.")
+                    .font(.iconBold20)
+                    .foregroundStyle(.normalBlack900)
+                
+                Text("잠시 기다려주세요.")
+                    .font(.calloutRegular16)
+                    .foregroundStyle(.normalBlack900)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - EmptyWordListView (단어 비었을 때 뷰)
+private struct EmptyWordListView: View {
+    var body: some View {
+        VStack(spacing: 36) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.bodyRegular24)
+                .foregroundStyle(.normalBlack900)
+            
+            VStack(spacing: 12) {
+                Text("단어장이 비어있어요!")
+                    .font(.iconBold20)
+                    .foregroundStyle(.normalBlack900)
+                
+                Text("추출된 단어가 없습니다.")
+                    .font(.calloutRegular16)
+                    .foregroundStyle(.normalBlack900)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - WordListContent (단어 목록 스크롤 뷰)
+private struct WordListContentView: View {
+    @Binding var words: [Word]
+    
+    var body: some View {
+        ScrollView {
+            VStack {
+                ForEach(Array(words.enumerated()), id: \.element.id) { index, word in
+                    WordRow(word: word)
+                        .padding(.top, 16)
+                        .padding(.bottom, 7)
+                    
+                    if index != words.count - 1 {
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundStyle(.primaryBlue50)
+                    }
+
+                }
+                .padding(.leading, 36)
+            }
+        }
+        .scrollIndicators(.hidden)
+    }
+}
+
+// MARK: - WordRow (개별 단어 항목)
+private struct WordRow: View {
+    let word: Word
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Title + POS badge
+            HStack(alignment: .center, spacing: 8) {
+                Text(word.lemma)
+                    .font(.subbodyBold24)
+                    .foregroundStyle(.normalBlack900)
+                    .padding(.trailing, 4)
+                // POS capsule badge (한글 축약은 상위 레이어에서 처리되어 있다고 가정)
+                Text(word.pos)
+                    .font(.footerRegular11)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.clear)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(.primaryBlue500, lineWidth: 1)
+                            )
+                    )
+                    .foregroundStyle(.primaryBlue500)
+                Spacer(minLength: 0)
+            }
+            
+            if word.meaning.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text("번역 준비중…")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            } else {
+                let parts = word.meaning
+                    .components(separatedBy: .newlines)
+                    .flatMap { $0.components(separatedBy: " / ") }
+                    .flatMap { $0.components(separatedBy: "; ") }
+                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty }
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(parts, id: \.self) { item in
+                        Text(item)
+                            .font(.labelRegular14)
+                            .foregroundStyle(.primary)
+                            .multilineTextAlignment(.leading)
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 //#Preview {
 //    WordkListView(scriptId: 1, words: .constant([]), isLoading: .constant(false))
