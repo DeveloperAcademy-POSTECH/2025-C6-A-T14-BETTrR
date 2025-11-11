@@ -17,7 +17,7 @@ struct FeedbackSummaryCard: View {
         }) {
             HStack {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("\(Int(feedback.totalScore * 100))%")
+                    Text("\(Int(feedback.accuracy * 100))%")
                         .font(.subtitleSemibold24)
                     
                     HStack(spacing: 12) {

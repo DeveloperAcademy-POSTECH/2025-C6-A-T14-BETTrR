@@ -218,14 +218,14 @@ struct DemoDataGenerator {
             let script = try scriptManagementService.createScript(scriptData: scriptData)
             guard let scriptId = script.id else { continue }
             
-            let feedbackDetailsData: [(errorType: FeedbackErrorType, originalText: String?, spokenText: String?, startTime: Double, endTime: Double)] = [
-                (errorType: .missingWord, originalText: "preview", spokenText: nil, startTime: 1.0, endTime: 1.5),
-                (errorType: .addedWord, originalText: nil, spokenText: "extra", startTime: 2.0, endTime: 2.5)
+            let feedbackDetailsData: [(wordDiff: WordDiff, originalText: String?, sentenceIndex: Int, wordIndex: Int)] = [
+                (wordDiff: .missing(expected: "preview"), originalText: "preview", sentenceIndex: 0, wordIndex: 0),
+                (wordDiff: .extra(actual: "extra"), originalText: nil, sentenceIndex: 0, wordIndex: 1)
             ]
             
             _ = try scriptManagementService.createFeedbackSummary(
                 scriptId: scriptId,
-                totalScore: 60.0 + Double(index * 10),
+                accuracy: (60.0 + Double(index * 10)) / 100.0, // Convert to accuracy (0.0 - 1.0)
                 missingWordCount: 1,
                 addedWordCount: 1,
                 replacedWordCount: 0,

@@ -17,7 +17,9 @@ class SpeechRecognizer: ObservableObject {
     @Published var isRecording = false
     @Published var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
     @Published var microphoneAuthorizationStatus: AVAudioApplication.recordPermission = .undetermined
-    @Published var feedbackResult: FeedbackResultModel? = nil
+    @Published var analyzedDiffs: [WordDiff]? = nil
+    @Published var analyzedPracticeDuration: TimeInterval? = nil
+
     
     // 실시간 경과 시간
     @Published var elapsedTime: TimeInterval = 0.0
@@ -115,7 +117,7 @@ class SpeechRecognizer: ObservableObject {
                 Task { @MainActor in
                     self.isRecording = false
                     if let result = result {
-                        self.analyzeFullScript(with: result.bestTranscription, totalTime: totalTime)
+                        _ = self.analyzeFullScript(with: result.bestTranscription, totalTime: totalTime)
                     }
                 }
             }
@@ -129,7 +131,6 @@ class SpeechRecognizer: ObservableObject {
         audioEngine.prepare()
         do {
             self.transcript = ""
-            self.feedbackResult = nil
             try audioEngine.start()
             
             // 녹음 시작 시간 기록 및 타이머 시작
@@ -176,25 +177,22 @@ class SpeechRecognizer: ObservableObject {
         // 상태를 수동으로 리셋
         isRecording = false
         transcript = ""
-        feedbackResult = nil
     }
     
     // MARK: - 분석 초기화
     func clearTranscript() {
         transcript = ""
-        feedbackResult = nil
     }
     
     // MARK: - 전체 스크립트 분석
-    func analyzeFullScript(with transcription: SFTranscription, totalTime: TimeInterval) {
+    func analyzeFullScript(with transcription: SFTranscription, totalTime: TimeInterval) -> [WordDiff] {
         let analyzer = SpeechAnalyzer()
-        // 10. feedback을 var로 변경
-        var feedback = analyzer.analyze(reference: fullScript, transcription: transcription)
+        let diffs = analyzer.analyze(reference: fullScript, transcription: transcription)
         
-        // 11. FeedbackSummary에 최종 시간 주입
-        feedback.totalRecordingTime = totalTime
+        self.analyzedDiffs = diffs
+        self.analyzedPracticeDuration = totalTime
         
-        feedbackResult = feedback
+        return diffs
     }
 }
 
