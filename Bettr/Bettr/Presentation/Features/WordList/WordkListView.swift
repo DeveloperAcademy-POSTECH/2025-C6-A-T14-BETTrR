@@ -21,14 +21,15 @@ struct WordkListView: View {
                 VStack(spacing: 36) {
                     ProgressView()
                         .controlSize(.large)
+                        .foregroundStyle(.secondaryBlue700)
                     
                     VStack(spacing: 12) {
                         Text("단어장을 불러오는 중입니다.")
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.iconBold20)
                             .foregroundStyle(.normalBlack900)
                         
                         Text("잠시 기다려주세요.")
-                            .font(.system(size: 16))
+                            .font(.calloutRegular16)
                             .foregroundStyle(.normalBlack900)
                     }
                 }
@@ -37,15 +38,16 @@ struct WordkListView: View {
             } else if words.isEmpty {
                 VStack(spacing: 36) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 24))
+                        .font(.bodyRegular24)
+                        .foregroundStyle(.normalBlack900)
                     
                     VStack(spacing: 12) {
                         Text("단어장이 비어있어요!")
-                            .font(.system(size: 20, weight: .bold))
+                            .font(.iconBold20)
                             .foregroundStyle(.normalBlack900)
                         
                         Text("추출된 단어가 없습니다.")
-                            .font(.system(size: 16))
+                            .font(.calloutRegular16)
                             .foregroundStyle(.normalBlack900)
                     }
                 }
@@ -58,12 +60,12 @@ struct WordkListView: View {
                                 // Title + POS badge
                                 HStack(alignment: .center, spacing: 8) {
                                     Text(word.lemma)
-                                        .font(.system(size: 24, weight: .bold))
+                                        .font(.subbodyBold24)
                                         .foregroundStyle(.normalBlack900)
                                         .padding(.trailing, 4)
                                     // POS capsule badge (한글 축약은 상위 레이어에서 처리되어 있다고 가정)
                                     Text(word.pos)
-                                        .font(.system(size: 11, weight: .regular))
+                                        .font(.footerRegular11)
                                         .padding(.horizontal, 4)
                                         .padding(.vertical, 2)
                                         .background(
@@ -93,7 +95,7 @@ struct WordkListView: View {
                                     VStack(alignment: .leading, spacing: 6) {
                                         ForEach(parts, id: \.self) { item in
                                             Text(item)
-                                                .font(.system(size: 14))
+                                                .font(.labelRegular14)
                                                 .foregroundStyle(.primary)
                                                 .multilineTextAlignment(.leading)
                                         }
