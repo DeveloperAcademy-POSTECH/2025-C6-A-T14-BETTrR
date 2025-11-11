@@ -25,6 +25,12 @@ class HistoricalFeedbackViewModel {
     
     // MARK: - 2. Display Properties (View Data)
     
+    /// 피드백 대상 스크립트의 제목
+    var scriptTitle: String
+    
+    /// 이 피드백이 몇 번째 피드백인지
+    var feedbackNumber: Int
+    
     /// 피드백 정확도 (Summary에서 직접 가져옴)
     var accuracy: Double = 0
     
@@ -63,15 +69,21 @@ class HistoricalFeedbackViewModel {
     /// `HistoricalFeedbackViewModel`을 초기화합니다.
     /// - Parameters:
     ///   - summary: 사용자가 목록에서 선택한 `FeedbackSummary` 객체
+    ///   - scriptTitle: 스크립트 제목 (이전 뷰에서 전달)
+    ///   - feedbackNumber: 이 피드백의 순번 (이전 뷰에서 전달, 예: 5)
     ///   - scriptManagementService: DB 조회를 위한 서비스 객체
     init(
         summary: FeedbackSummary,
+        scriptTitle: String,
+        feedbackNumber: Int,
         scriptManagementService: ScriptManagementServiceProtocol
     ) {
         self.summary = summary
         self.scriptManagementService = scriptManagementService
         
-        // 1. Summary에 이미 있는 정보는 즉시 할당
+        // 1. Summary 및 전달받은 메타데이터 즉시 할당
+        self.scriptTitle = scriptTitle
+        self.feedbackNumber = feedbackNumber
         self.accuracy = summary.accuracy
         self.totalRecordingTime = summary.practiceDuration
         self.missingCount = summary.missingWordCount

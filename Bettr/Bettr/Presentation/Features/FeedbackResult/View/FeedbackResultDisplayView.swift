@@ -9,6 +9,8 @@ import Foundation
 import SwiftUI
 
 struct FeedbackResultDisplayView: View {
+    let scriptTitle: String
+    let feedbackNumber: Int
     let accuracy: Double
     let totalRecordingTime: TimeInterval
     let missingCount: Int
@@ -32,6 +34,17 @@ struct FeedbackResultDisplayView: View {
                     .font(.title)
                     .foregroundColor(.blue)
                     .bold()
+                
+                
+                Text("스크립트 제목: \(scriptTitle)")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 5)
+                
+                Text("\(feedbackNumber)번")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                    .padding(.bottom, 5)
                 
                 Text("총 녹음 시간: \(totalRecordingTime.toMMSSms())")
                     .font(.headline)
@@ -166,8 +179,12 @@ struct FeedbackResultDisplayView: View {
     }
 }
 
+// MARK: - Preview
+
 #Preview("일반 피드백") {
     FeedbackResultDisplayView(
+        scriptTitle: "Preview Script Title",
+        feedbackNumber: 5,
         accuracy: 0.75,
         totalRecordingTime: 120.5,
         missingCount: 2,
@@ -196,6 +213,8 @@ struct FeedbackResultDisplayView: View {
 
 #Preview("완벽한 발음") {
     FeedbackResultDisplayView(
+        scriptTitle: "Perfect Script",
+        feedbackNumber: 1,
         accuracy: 1.0,
         totalRecordingTime: 60.0,
         missingCount: 0,
@@ -208,6 +227,8 @@ struct FeedbackResultDisplayView: View {
 
 #Preview("분석 결과 없음") {
     FeedbackResultDisplayView(
+        scriptTitle: "Empty Script",
+        feedbackNumber: 0,
         accuracy: 0.0,
         totalRecordingTime: 0.0,
         missingCount: 0,
@@ -217,5 +238,3 @@ struct FeedbackResultDisplayView: View {
         hasSentences: false
     )
 }
-
-

@@ -80,7 +80,9 @@ struct MemorizationView: View {
         .fullScreenCover(isPresented: $viewModel.showFeedbackModal) {
             RecordingView(
                 scriptId: viewModel.scriptId,
-                sentences: viewModel.referenceSentences
+                sentences: viewModel.referenceSentences,
+                scriptTitle: viewModel.currentTitle,
+                currentFeedbackCount: viewModel.currentFeedbackCount
             )
         }
         .onAppear {

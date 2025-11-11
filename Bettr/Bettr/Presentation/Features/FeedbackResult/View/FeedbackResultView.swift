@@ -19,6 +19,8 @@ struct FeedbackResultView: View {
     var body: some View {
         VStack {
             FeedbackResultDisplayView(
+                scriptTitle: viewModel.scriptTitle,
+                feedbackNumber: viewModel.newFeedbackNumber,
                 accuracy: viewModel.accuracy,
                 totalRecordingTime: viewModel.practiceDuration,
                 missingCount: viewModel.missingCount,

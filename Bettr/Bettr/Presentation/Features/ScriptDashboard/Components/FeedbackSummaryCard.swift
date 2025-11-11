@@ -12,10 +12,12 @@ struct FeedbackSummaryCard: View {
     @Environment(\.metrics) var metrics
     
     let feedback: FeedbackSummary
+    let scriptTitle: String
+    let feedbackNumber: Int
     
     var body: some View {
         Button(action: {
-            router.push(Route.historicalFeedback(summary: feedback))
+            router.push(Route.historicalFeedback( summary: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber))
         }) {
             HStack {
                 VStack(alignment: .leading, spacing: 12) {

@@ -29,22 +29,27 @@ struct ContentView: View {
                             scriptService: container.scriptManagementService
                         )
                         ScriptDashboardView(viewModel: viewModel)
-                    case .memorization(let scriptId):
+                    case .memorization(let scriptId, let scriptTitle, let currentFeedbackCount):
                         let viewModel = MemorizationViewModel(
                             scriptId: scriptId,
+                            scriptTitle: scriptTitle,
+                            currentFeedbackCount: currentFeedbackCount,
                             scriptService: container.scriptManagementService,
                             audioService: audioService,
                             wordExtractionService: container.wordExtractionService
                         )
                         MemorizationView(viewModel: viewModel)
-                    case .historicalFeedback(let summary):
+                    case .historicalFeedback(let summary, let scriptTitle, let feedbackNumber):
                         let viewModel = HistoricalFeedbackViewModel(
                             summary: summary,
+                            scriptTitle: scriptTitle,
+                            feedbackNumber: feedbackNumber,
                             scriptManagementService: container.scriptManagementService
                         )
                         HistoricalFeedbackView(viewModel: viewModel)
-                    case .allFeedback(let feedbacks):
-                        AllFeedbackView(feedbacks: feedbacks)
+                    case .allFeedback(let feedbacks, let scriptTitle, let feedbackNumber):
+                        AllFeedbackView(feedbacks: feedbacks, scriptTitle: scriptTitle,
+                                        feedbackNumber: feedbackNumber,)
                     }
                 }
         }

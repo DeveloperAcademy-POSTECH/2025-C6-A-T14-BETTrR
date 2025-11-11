@@ -196,7 +196,8 @@ struct ScriptConfirmView: View {
                     await MainActor.run {
                         router.reset() // Go back to HomeView
                         router.push(Route.scriptDashboard(scriptId: scriptId))
-                        router.push(Route.memorization(scriptId: scriptId))                    }
+                        router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle, currentFeedbackNumber: 0))
+                    }
                 }
             } catch {
                 print("🔥 스크립트 저장 오류:", error.localizedDescription)

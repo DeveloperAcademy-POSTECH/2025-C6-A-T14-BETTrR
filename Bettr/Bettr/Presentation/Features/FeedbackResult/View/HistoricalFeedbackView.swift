@@ -29,6 +29,8 @@ struct HistoricalFeedbackView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 FeedbackResultDisplayView(
+                    scriptTitle: viewModel.scriptTitle,
+                    feedbackNumber: viewModel.feedbackNumber,
                     accuracy: viewModel.accuracy,
                     totalRecordingTime: viewModel.totalRecordingTime,
                     missingCount: viewModel.missingCount,
@@ -42,7 +44,9 @@ struct HistoricalFeedbackView: View {
         .navigationTitle("분석 결과")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            await viewModel.loadFeedbackData()
+            if viewModel.filteredSentenceDiffs.isEmpty && viewModel.hasSentences == false {
+                await viewModel.loadFeedbackData()
+            }
         }
     }
 }

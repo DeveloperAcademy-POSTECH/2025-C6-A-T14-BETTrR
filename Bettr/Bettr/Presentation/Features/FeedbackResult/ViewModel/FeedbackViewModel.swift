@@ -24,6 +24,12 @@ class FeedbackViewModel {
     
     // MARK: - 2. View-Specific Logic Properties
     
+    /// 피드백 대상 스크립트의 제목
+    let scriptTitle: String
+    
+    /// 이 피드백이 몇 번째 피드백인지
+    let newFeedbackNumber: Int
+    
     /// 원본 문장별로 분할된(re-chunked) `WordDiff` 배열입니다.
     /// `[(original: "원본 문장", diffs: [분석 결과 WordDiff 배열])]` 형태입니다.
     let sentenceDiffs: [(original: String, diffs: [WordDiff])]
@@ -39,7 +45,7 @@ class FeedbackViewModel {
     
     /// 연습에 소요된 총 시간 (초)
     let practiceDuration: Double
-
+    
     // MARK: - 3. Computed Properties
     
     /// 전체 정확도를 계산하는 연산 프로퍼티입니다.
@@ -65,7 +71,7 @@ class FeedbackViewModel {
     /// - 형태: `[(index: 원본 문장 인덱스, data: (original: 원본 문장, diffs: [WordDiff] 배열))]`
     var filteredSentenceDiffs: [(index: Int, data: (original: String, diffs: [WordDiff]))] {
         sentenceDiffs.enumerated()
-            // 1. .matched 외의 오류가 하나라도 있는지 확인하여 문장 필터링
+        // 1. .matched 외의 오류가 하나라도 있는지 확인하여 문장 필터링
             .filter { (index, data) in
                 data.diffs.contains { diff in
                     switch diff {
@@ -76,7 +82,7 @@ class FeedbackViewModel {
                     }
                 }
             }
-            // 2. 필터링된 문장의 *원본 데이터*를 뷰가 사용하기 쉬운 형태로 매핑
+        // 2. 필터링된 문장의 *원본 데이터*를 뷰가 사용하기 쉬운 형태로 매핑
             .map { (offset, element) in
                 // element.data.diffs는 .matched를 포함한 *전체* diffs 배열입니다.
                 return (index: offset, data: element)
@@ -98,86 +104,80 @@ class FeedbackViewModel {
     private let analyzer = SpeechAnalyzer()
     
     // MARK: - 5. Initializer
-    
-    /// `FeedbackViewModel`을 초기화합니다.
-    /// - Parameters:
-    ///   - scriptId: 피드백이 속한 스크립트의 ID
-    ///   - diffs: `SpeechAnalyzer`가 반환한 *전체* `WordDiff` 배열 (평탄화된 상태)
-    ///   - sentences: `SpeechAnalyzer`에 전달됐던 *원본* 문장 배열
-    ///   - practiceDuration: 총 연습 시간
-    ///   - scriptManagementService: DB 저장을 위한 서비스 객체
-    init(
-        scriptId: Int64,
-        diffs: [WordDiff],
-        sentences: [String],
-        practiceDuration: Double,
-        scriptManagementService: ScriptManagementServiceProtocol
-    ) {
-        self.scriptId = scriptId
-        self.sentences = sentences
-        self.practiceDuration = practiceDuration
-        self.scriptManagementService = scriptManagementService
-        
-        // --- (핵심 로직) 재-청크화(Re-chunking) ---
-        // `SpeechAnalyzer`는 문장 구분을 무시하고 하나의 긴 [WordDiff] 배열을 반환합니다.
-        // 이 배열을 `sentences` 원본 배열을 기준으로 다시 문장별로 '잘라' `sentenceDiffs`를 생성합니다.
-        
-        var tempDiffs = diffs // 소비할 전체 diffs 배열
-        var chunkedResult: [(original: String, diffs: [WordDiff])] = []
-        
-        // 원본 문장 배열 순서대로 순회
-        for sentence in sentences {
-            // 1. 원본 문장을 *동일한 방식*으로 정규화하여 원본 단어 개수를 셈
-            let wordCount = analyzer.normalize(sentence).count
-            var chunk: [WordDiff] = []
-            var wordsTaken = 0 // 현재 문장에서 가져온 단어 수
-            
-            // 2. `wordCount`에 도달할 때까지 `tempDiffs`에서 diff를 꺼내 `chunk`에 추가
-            while wordsTaken < wordCount && !tempDiffs.isEmpty {
-                let diff = tempDiffs.removeFirst()
-                chunk.append(diff)
-                
-                // .extra(추가된 단어)는 원본 단어 수(wordsTaken)에 포함되지 않음
-                switch diff {
-                case .matched, .missing, .replaced:
-                    wordsTaken += 1
-                case .extra:
-                    break
-                }
-            }
-            
-            // 3. 문장의 끝에 .extra가 더 붙어있는 경우 모두 가져와 chunk에 추가
-            while let nextDiff = tempDiffs.first, case .extra = nextDiff {
-                chunk.append(tempDiffs.removeFirst())
-            }
-            
-            // 4. 완성된 chunk를 원본 문장과 짝지어 저장
-            chunkedResult.append((original: sentence, diffs: chunk))
-        }
-        
-        // 5. (방어 코드) 모든 문장을 순회했는데 `tempDiffs`에 남은 것이 있다면, 마지막 문장에 붙임
-        if !tempDiffs.isEmpty {
-            if chunkedResult.isEmpty {
-                chunkedResult.append((original: "", diffs: tempDiffs))
-            } else {
-                chunkedResult[chunkedResult.count - 1].diffs.append(contentsOf: tempDiffs)
-            }
-        }
-        self.sentenceDiffs = chunkedResult
-        // --- 재-청크화 완료 ---
+       
+       /// `FeedbackViewModel`을 초기화합니다.
+       /// - Parameters:
+       ///   - scriptId: 피드백이 속한 스크립트의 ID
+       ///   - scriptTitle: 스크립트 제목 (이전 뷰에서 전달)
+       ///   - currentFeedbackCount: *현재* 저장된 피드백 개수 (이전 뷰에서 전달, 예: 4)
+       ///   - diffs: `SpeechAnalyzer`가 반환한 *전체* `WordDiff` 배열 (평탄화된 상태)
+       ///   - sentences: `SpeechAnalyzer`에 전달됐던 *원본* 문장 배열
+       ///   - practiceDuration: 총 연습 시간
+       ///   - scriptManagementService: DB 저장을 위한 서비스 객체
+       init(
+           scriptId: Int64,
+           scriptTitle: String,
+           currentFeedbackCount: Int,
+           diffs: [WordDiff],
+           sentences: [String],
+           practiceDuration: Double,
+           scriptManagementService: ScriptManagementServiceProtocol
+       ) {
+           self.scriptId = scriptId
+           self.sentences = sentences
+           self.practiceDuration = practiceDuration
+           self.scriptManagementService = scriptManagementService
+           self.scriptTitle = scriptTitle
+           self.newFeedbackNumber = currentFeedbackCount + 1
+           
+           // --- (핵심 로직) 재-청크화(Re-chunking) ---
+           // (... 동일한 재-청크화 로직 ...)
+           var tempDiffs = diffs
+           var chunkedResult: [(original: String, diffs: [WordDiff])] = []
+           
+           for sentence in sentences {
+               let wordCount = analyzer.normalize(sentence).count
+               var chunk: [WordDiff] = []
+               var wordsTaken = 0
+               
+               while wordsTaken < wordCount && !tempDiffs.isEmpty {
+                   let diff = tempDiffs.removeFirst()
+                   chunk.append(diff)
+                   
+                   switch diff {
+                   case .matched, .missing, .replaced:
+                       wordsTaken += 1
+                   case .extra:
+                       break
+                   }
+               }
+               
+               while let nextDiff = tempDiffs.first, case .extra = nextDiff {
+                   chunk.append(tempDiffs.removeFirst())
+               }
+               chunkedResult.append((original: sentence, diffs: chunk))
+           }
+           
+           if !tempDiffs.isEmpty {
+               if chunkedResult.isEmpty {
+                   chunkedResult.append((original: "", diffs: tempDiffs))
+               } else {
+                   chunkedResult[chunkedResult.count - 1].diffs.append(contentsOf: tempDiffs)
+               }
+           }
+           self.sentenceDiffs = chunkedResult
 
-        // 오류 개수 카운트는 전체 diffs 배열을 기준으로 계산
-        self.missingCount = diffs.filter {
-            if case .missing = $0 { return true }; return false
-        }.count
-        self.extraCount = diffs.filter {
-            if case .extra = $0 { return true }; return false
-        }.count
-        self.replacedCount = diffs.filter {
-            if case .replaced = $0 { return true }; return false
-        }.count
-    }
-    
+           // --- (오류 카운트 로직 - 동일) ---
+           self.missingCount = diffs.filter {
+               if case .missing = $0 { return true }; return false
+           }.count
+           self.extraCount = diffs.filter {
+               if case .extra = $0 { return true }; return false
+           }.count
+           self.replacedCount = diffs.filter {
+               if case .replaced = $0 { return true }; return false
+           }.count
+       }
     
     // MARK: - 6. Core Logic (DB Save)
     
@@ -239,7 +239,7 @@ class FeedbackViewModel {
                     feedbackDetailsData: detailsData
                 )
             }.value // 백그라운드 작업이 끝나고 결과를 받음
-
+            
             // 성공
             print("피드백 저장 성공. Summary ID: \(summary.id ?? -1)")
             isSaving = false
