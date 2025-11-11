@@ -14,7 +14,7 @@ struct AddNewScriptCard: View {
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
     
-    @State private var showMenu = false
+    @Binding var showMenu: Bool
     
     var body: some View {
         ZStack {
@@ -51,6 +51,6 @@ struct AddNewScriptCard: View {
 }
 
 #Preview {
-    AddNewScriptCard(onSelectPhoto: {}, onTakePhoto: {}, onSelectFile: {})
+    AddNewScriptCard(onSelectPhoto: {}, onTakePhoto: {}, onSelectFile: {}, showMenu: .constant(false))
         .frame(width: 200)
 }

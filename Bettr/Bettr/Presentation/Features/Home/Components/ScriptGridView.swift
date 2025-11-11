@@ -9,13 +9,16 @@ struct ScriptGridView: View {
     let onSelectFile: () -> Void
     let requestDelete: (Script) -> Void
     
+    @Binding var showMenu: Bool
+    
     var body: some View {
         VStack {
             LazyVGrid(columns: columns, spacing: 20) {
                 AddNewScriptCard(
                     onSelectPhoto: onSelectPhoto,
                     onTakePhoto: onTakePhoto,
-                    onSelectFile: onSelectFile
+                    onSelectFile: onSelectFile,
+                    showMenu: $showMenu
                 )
                 
                 ForEach(container.scripts) { script in
@@ -38,7 +41,8 @@ struct ScriptGridView: View {
         onSelectPhoto: {},
         onTakePhoto: {},
         onSelectFile: {},
-        requestDelete: { _ in }
+        requestDelete: { _ in },
+        showMenu: .constant(false)
     )
     .environment(DatabaseContainer.getForPreview())
     .environment(NavigationRouter())

@@ -5,6 +5,8 @@ struct EmptyScriptsView: View {
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
     
+    @Binding var showMenu: Bool
+    
     var body: some View {
         VStack(spacing: 36) {
             VStack(spacing: 16) {
@@ -16,7 +18,8 @@ struct EmptyScriptsView: View {
             AddButtonView(
                 onSelectPhoto: onSelectPhoto,
                 onTakePhoto: onTakePhoto,
-                onSelectFile: onSelectFile
+                onSelectFile: onSelectFile,
+                showMenu: $showMenu
             )
         }
     }
@@ -55,7 +58,7 @@ private struct AddButtonView: View {
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
     
-    @State private var showMenu = false
+    @Binding var showMenu: Bool
     
     var body: some View {
         Button(action: {
@@ -88,6 +91,7 @@ private struct AddButtonView: View {
     EmptyScriptsView(
         onSelectPhoto: { print("Select photo") },
         onTakePhoto: { print("Take photo") },
-        onSelectFile: { print("Select file") }
+        onSelectFile: { print("Select file") },
+        showMenu: .constant(false)
     )
 }

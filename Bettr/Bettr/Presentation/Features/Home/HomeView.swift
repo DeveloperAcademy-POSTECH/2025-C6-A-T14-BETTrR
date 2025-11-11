@@ -5,6 +5,7 @@ struct HomeView: View {
     @Environment(NavigationRouter.self) var router
     @Environment(DatabaseContainer.self) var container
     
+    @State private var showMenu = false
     @State private var selectedPhoto: PhotosPickerItem? = nil
     @State private var showingPhotoPicker = false
     @State private var isShowingCamera = false
@@ -34,12 +35,23 @@ struct HomeView: View {
                 onSelectPhoto: { showingPhotoPicker = true },
                 onTakePhoto: { isShowingCamera = true },
                 onSelectFile: { isShowingDocumentPicker = true },
-                requestDelete: requestDelete
+                requestDelete: requestDelete,
+                showMenu: $showMenu
             )
             
             Spacer()
         }
         .padding(.top, 48)
+        .overlay {
+            if showMenu {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        showMenu = false
+                    }
+            }
+        }
         .onAppear {
             container.refreshScripts()
         }
