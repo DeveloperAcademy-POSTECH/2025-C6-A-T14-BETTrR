@@ -28,6 +28,9 @@ struct ScriptConfirmView: View {
     // 🔹 추가됨: Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
     private let geminiCaller = ScriptGeminiCall()  // 🔹 추가됨
     
+    //Local Rate Limiter(사용자의 호출 제한)
+    private let rateLimiter = LocalRateLimiter.shared
+    
     init(initialText: String?, initialTitle: String?) {
         let content = initialText ?? ""
         _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
@@ -70,6 +73,13 @@ struct ScriptConfirmView: View {
             // 분석 및 저장 버튼
             Button(action: {
                 Task {
+                    // LocalRateLimiter 검사 추가
+                    guard rateLimiter.canCall() else {
+                        await MainActor.run {
+                            showErrorAlert("요청이 너무 잦습니다.\n잠시 후 다시 시도해주세요.")
+                        }
+                        return
+                    }
                     await callGemini()
                 }
             }) {
