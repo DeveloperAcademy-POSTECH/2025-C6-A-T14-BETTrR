@@ -55,22 +55,32 @@ private struct AddButtonView: View {
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
     
+    @State private var showMenu = false
+    
     var body: some View {
-        Text("스크립트 추가")
-            .font(.headline)
-            .foregroundColor(.white)
-            .padding(.horizontal, 32)
-            .padding(.vertical, 12)
-            .background(Color.blue)
-            .cornerRadius(25)
-            .glassEffect()
-            .overlay {
-                AddScriptMenuView(
+        Button(action: {
+            withAnimation(.spring(response: 0.3)) {
+                showMenu.toggle()
+            }
+        }) {
+            Text("스크립트 추가")
+                .font(.headline)
+                .foregroundColor(.white)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 12)
+                .background(Color.blue)
+                .cornerRadius(25)
+        }
+        .overlay(alignment: .top) {
+            if showMenu {
+                AddScriptMenu(
                     onSelectPhoto: onSelectPhoto,
                     onTakePhoto: onTakePhoto,
-                    onSelectFile: onSelectFile
+                    onSelectFile: onSelectFile,
+                    showMenu: $showMenu
                 )
             }
+        }
     }
 }
 

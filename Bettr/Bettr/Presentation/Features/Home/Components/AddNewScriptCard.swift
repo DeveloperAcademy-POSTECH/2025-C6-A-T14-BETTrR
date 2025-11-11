@@ -14,31 +14,39 @@ struct AddNewScriptCard: View {
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
     
+    @State private var showMenu = false
+    
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
                 .foregroundColor(Color.gray.opacity(0.3))
-            
-            Circle()
-                .fill(Color.blue)
-                .frame(width: 56, height: 56)
-                .overlay(
-                    Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(.white)
-                )
-                .glassEffect()
+            Button(action: {
+                showMenu = true
+            }) {
+                Circle()
+                    .fill(Color.blue)
+                    .frame(width: 56, height: 56)
+                    .overlay(
+                        Image(systemName: "plus")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(.white)
+                    )
+                    .glassEffect()
+            }
+            .overlay(alignment: .top) {
+                if showMenu {
+                    AddScriptMenu(
+                        onSelectPhoto: onSelectPhoto,
+                        onTakePhoto: onTakePhoto,
+                        onSelectFile: onSelectFile,
+                        showMenu: $showMenu
+                    )
+                }
+            }
         }
         .aspectRatio(1, contentMode: .fit)
         .contentShape(Rectangle())
-        .overlay {
-            AddScriptMenuView(
-                onSelectPhoto: onSelectPhoto,
-                onTakePhoto: onTakePhoto,
-                onSelectFile: onSelectFile
-            )
-        }
     }
 }
 
