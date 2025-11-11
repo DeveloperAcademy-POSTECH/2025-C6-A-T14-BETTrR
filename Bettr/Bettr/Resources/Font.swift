@@ -74,6 +74,10 @@ extension Font {
         return .system(size: 64, weight: .medium)
     }
     
+    static var labelRegular48: Font {
+        return .system(size: 48, weight: .regular)
+    }
+    
     static var subtitleBold32: Font {
         return .sfPro(style: .largeTitle, weight: .bold)
     }
