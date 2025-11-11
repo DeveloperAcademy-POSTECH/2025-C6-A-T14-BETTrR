@@ -40,84 +40,40 @@ struct RecordingView: View {
                 
                 Spacer()
                 
-                // 버튼
-                HStack(spacing: 300) {
-                    if speechRecognizer.isRecording {
-                        // MARK: - 상태 1: 녹음 중
-                        
-                        Button(action: { }) {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                        .buttonStyle(SecondaryRecordingButtonStyle())
-                        .disabled(true)
-                        
-                        // 녹음 중지 버튼 (중앙)
-                        Button(action: { speechRecognizer.startRecording() }) { // startRecording이 stopRecording 호출
-                            Image(systemName: "stop.fill")
-                        }
-                        .buttonStyle(RecordingButtonStyle(isRecording: true))
-                        
-                        Button(action: { }) {
-                            Image(systemName: "arrow.right")
-                        }
-                        .buttonStyle(SecondaryRecordingButtonStyle())
-                        .disabled(true)
-                        
-                    } else if speechRecognizer.hasRecorded {
-                        // MARK: - 상태 2: 검토 (녹음 완료, 스크린샷 상태)
-                        
-                        // 분석 취소(초기화) 버튼 (좌)
-                        Button(action: { speechRecognizer.cancelRecording() }) {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                        .buttonStyle(SecondaryRecordingButtonStyle())
-                        
-                        // 녹음 버튼 (비활성화) (중앙)
-                        Button(action: {}) {
-                            Image(systemName: "stop.fill")
-                        }
-                        .buttonStyle(RecordingButtonStyle(isRecording: false))
-                        .disabled(true)
-                        
-                        // 분석 완료 버튼 (우)
-                        Button(action: {
-                            speechRecognizer.triggerAnalysis() // [수정] 수동 분석 트리거
-                        }) {
-                            Image(systemName: "arrow.right")
-                        }
-                        .buttonStyle(RecordingButtonStyle(isRecording: false))
-                        
-                    } else {
-                        // MARK: - 상태 3: 준비 (초기 상태)
-                        
-                        // 초기화 버튼 (비활성화) (좌)
-                        Button(action: {}) {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                        .buttonStyle(SecondaryRecordingButtonStyle())
-                        .disabled(true)
-                        
-                        // 녹음 시작 버튼 (중앙)
-                        Button(action: { speechRecognizer.startRecording() }) {
-                            Image(systemName: "microphone")
-                        }
-                        .buttonStyle(RecordingButtonStyle(isRecording: false))
-                        .disabled(
-                            speechRecognizer.authorizationStatus != .authorized ||
-                            speechRecognizer.microphoneAuthorizationStatus != .granted
-                        )
-                        
-                        // 분석 버튼 (비활성화) (우)
-                        Button(action: {}) {
-                            Image(systemName: "arrow.right")
-                        }
-                        .buttonStyle(SecondaryRecordingButtonStyle())
-                        .disabled(true)
+                HStack {
+                    let isRecording = speechRecognizer.isRecording
+                    let isReviewing = speechRecognizer.hasRecorded && !isRecording
+                    
+                    Button(action: { speechRecognizer.cancelRecording() }) {
+                        Image(systemName: "arrow.clockwise")
                     }
+                    .buttonStyle(SecondaryRecordingButtonStyle())
+                    .disabled(!isReviewing)
+
+                    Spacer()
+                    
+                    // 녹음 중지 버튼 (중앙)
+                    Button(action: { speechRecognizer.startRecording() }) {
+                        Image(systemName: isRecording || isReviewing ? "stop.fill" : "microphone")
+                    }
+                    .buttonStyle(RecordingButtonStyle(isRecording: isRecording))
+                    .disabled(speechRecognizer.authorizationStatus != .authorized ||
+                              speechRecognizer.microphoneAuthorizationStatus != .granted ||
+                              isReviewing
+                    )
+                    
+                    Spacer()
+                    
+                    Button(action: { speechRecognizer.triggerAnalysis() }) {
+                        Image(systemName: "arrow.right")
+                    }
+                    .buttonStyle(RecordingButtonStyle(isRecording: false))
+                    .disabled(!isReviewing)
                 }
                 
                 Spacer()
             }
+            .padding(.horizontal, 144)
             .onChange(of: speechRecognizer.analyzedDiffs) { _, newDiffs in
                 if let diffs = newDiffs, let practiceDuration = speechRecognizer.analyzedPracticeDuration {
                     // 결과 화면으로 이동

@@ -7,6 +7,20 @@
 
 import SwiftUI
 
+// 공통 스타일
+private struct RecordingButtonBaseModifier: ViewModifier {
+    let isPressed: Bool
+    
+    func body(content: Content) -> some View {
+        content
+            .font(.labelRegular48)
+            .frame(width: 160, height: 160)
+            .scaleEffect(isPressed ? 0.95 : 1.0)
+            .animation(.spring(duration: 0.2), value: isPressed)
+    }
+}
+
+// 메인 버튼 (빨강, 파랑, 비활성화)
 struct RecordingButtonStyle: ButtonStyle {
     var isRecording: Bool
     
@@ -14,42 +28,34 @@ struct RecordingButtonStyle: ButtonStyle {
     
     func makeBody(configuration: Configuration) -> some View {
         let backgroundColor: Color
-        
         if !isEnabled {
-            // 비활성화 색상
             backgroundColor = Color.defaultWhite50
         } else if isRecording {
-            // 녹음중 색상
             backgroundColor = Color.alertRed01
         } else {
-            // 기본 색상
             backgroundColor = Color.primaryBlue500
         }
         
         return configuration.label
-            .font(.labelRegular48)
             .foregroundStyle(isEnabled ? .defaultWhite50 : .primaryBlue50)
-            .frame(width: 160, height: 160)
+            .modifier(RecordingButtonBaseModifier(isPressed: configuration.isPressed))
             .background(backgroundColor)
             .clipShape(Circle())
             .glassEffect()
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .animation(.spring(duration: 0.2), value: configuration.isPressed)
     }
 }
 
+// 보조 버튼
 struct SecondaryRecordingButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.labelRegular48)
+        
+        return configuration.label
             .foregroundStyle(isEnabled ? .secondaryBlue700 : .primaryBlue50)
-            .frame(width: 160, height: 160)
+            .modifier(RecordingButtonBaseModifier(isPressed: configuration.isPressed))
             .background(.defaultWhite50)
             .clipShape(Circle())
             .glassEffect()
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-            .animation(.spring(duration: 0.2), value: configuration.isPressed)
     }
 }
