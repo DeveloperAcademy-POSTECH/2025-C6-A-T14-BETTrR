@@ -41,7 +41,7 @@ class DatabaseMigrator {
                 t.column("scriptId", .integer)
                     .notNull()
                     .references(Script.databaseTableName, onDelete: .cascade)
-                t.column("totalScore", .double).notNull()
+                t.column("accuracy", .double).notNull()
                 t.column("missingWordCount", .integer).notNull()
                 t.column("addedWordCount", .integer).notNull()
                 t.column("replacedWordCount", .integer).notNull()
@@ -55,11 +55,12 @@ class DatabaseMigrator {
                 t.column("feedbackSummaryId", .integer)
                     .notNull()
                     .references(FeedbackSummary.databaseTableName, onDelete: .cascade)
-                t.column("errorType", .text).notNull()
-                t.column("originalText", .text)
-                t.column("spokenText", .text)
-                t.column("startTime", .double).notNull()
-                t.column("endTime", .double).notNull()
+                t.column("wordDiffType", .text).notNull()
+                t.column("wordDiffExpected", .text)
+                t.column("wordDiffActual", .text)
+                t.column("originalText", .text) // Keep originalText
+                t.column("sentenceIndex", .integer).notNull()
+                t.column("wordIndex", .integer).notNull()
             }
             
             // Word 테이블
