@@ -22,7 +22,9 @@ struct AddNewScriptCard: View {
                 .stroke(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
                 .foregroundColor(Color.gray.opacity(0.3))
             Button(action: {
-                showMenu = true
+                withAnimation(.spring(response: 0.3)) {
+                    showMenu = true
+                }
             }) {
                 Circle()
                     .fill(Color.blue)

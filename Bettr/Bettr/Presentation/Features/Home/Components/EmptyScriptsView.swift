@@ -63,7 +63,7 @@ private struct AddButtonView: View {
     var body: some View {
         Button(action: {
             withAnimation(.spring(response: 0.3)) {
-                showMenu.toggle()
+                showMenu = true
             }
         }) {
             Text("스크립트 추가")

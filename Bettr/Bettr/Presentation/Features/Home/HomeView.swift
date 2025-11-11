@@ -48,7 +48,9 @@ struct HomeView: View {
                     .contentShape(Rectangle())
                     .ignoresSafeArea()
                     .onTapGesture {
-                        showMenu = false
+                        withAnimation(.spring(response: 0.3)) {
+                            showMenu = false
+                        }
                     }
             }
         }
