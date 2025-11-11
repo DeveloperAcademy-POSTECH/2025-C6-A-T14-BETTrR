@@ -9,6 +9,8 @@ import Foundation
 import SwiftUI
 
 struct FeedbackResultDisplayView: View {
+    let scriptTitle: String
+    let feedbackNumber: Int
     let accuracy: Double
     let totalRecordingTime: TimeInterval
     let missingCount: Int
@@ -18,50 +20,95 @@ struct FeedbackResultDisplayView: View {
     /// (index: 원본 인덱스, data: (original: 원본 문장, diffs: [WordDiff]))
     let filteredSentenceDiffs: [(index: Int, data: (original: String, diffs: [WordDiff]))]
     
-    // '완벽합니다' 메시지를 표시할지 여부를 결정
-    let hasSentences: Bool
+    /// 원본 문장 데이터 자체가 로드되었는지 여부 (문장 0개 스크립트 방어용)
+    let hasOriginalSentences: Bool
+    
+    @Environment(\.metrics) var metrics
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("📊 피드백 결과")
-                    .font(.largeTitle).bold()
-                    .padding(.bottom, 10)
-                
-                Text("전체 정확도: \(Int(accuracy * 100))%")
-                    .font(.title)
-                    .foregroundColor(.blue)
-                    .bold()
-                
-                Text("총 녹음 시간: \(totalRecordingTime.toMMSSms())")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 5)
-                
-                HStack(spacing: 12) {
-                    Text("오류 분석:")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: 60) {
+                // 상단 섹션
+                VStack(alignment: .leading, spacing: 20) {
+                    Text("피드백 결과")
+                        .font(.subtitleBold32)
+                        .foregroundStyle(.normalBlack900)
                     
-                    Text("누락: \(missingCount)개")
-                        .font(.callout.bold())
-                        .foregroundColor(.green)
-                    
-                    Text("추가: \(extraCount)개")
-                        .font(.callout.bold())
-                        .foregroundColor(.red)
-                    
-                    Text("대체: \(replacedCount)개")
-                        .font(.callout.bold())
-                        .foregroundColor(.blue)
-                    
-                    Spacer()
+                    HStack(spacing: 16) {
+                        VStack(spacing: 16) {
+                            HStack(spacing: 16) {
+                                StatisticCard(title: "스크립트 제목") {
+                                    HStack(alignment: .bottom, spacing: 4) {
+                                        Text(scriptTitle)
+                                            .font(.system(size: metrics.font24, weight: .bold))
+                                    }
+                                }
+                                
+                                StatisticCard(title: "피드백 회차") {
+                                    HStack(alignment: .bottom, spacing: 4) {
+                                        Text("\(feedbackNumber)")
+                                            .font(.system(size: metrics.font32, weight: .bold))
+                                        
+                                        Text("번")
+                                            .font(.system(size: metrics.font20, weight: .regular))
+                                    }
+                                }
+                            }
+                            
+                            HStack(spacing: 16) {
+                                StatisticCard(title: "총 녹음 시간") {
+                                    HStack(alignment: .bottom, spacing: 4) {
+                                        Text(totalRecordingTime.toMMSSms())
+                                            .font(.system(size: metrics.font24, weight: .bold))
+                                    }
+                                }
+                                
+                                StatisticCard(title: "누락된 단어") {
+                                    HStack(alignment: .bottom, spacing: 4) {
+                                        Text("\(missingCount)")
+                                            .font(.system(size: metrics.font24, weight: .bold))
+                                        
+                                        Text("개")
+                                            .font(.system(size: metrics.font16, weight: .regular))
+                                    }
+                                }
+                                
+                                StatisticCard(title: "대체된 단어") {
+                                    HStack(alignment: .bottom, spacing: 4) {
+                                        Text("\(replacedCount)")
+                                            .font(.system(size: metrics.font24, weight: .bold))
+                                        
+                                        Text("개")
+                                            .font(.system(size: metrics.font16, weight: .regular))
+                                    }
+                                }
+                                
+                                StatisticCard(title: "추가된 단어") {
+                                    HStack(alignment: .bottom, spacing: 4) {
+                                        Text("\(extraCount)")
+                                            .font(.system(size: metrics.font24, weight: .bold))
+                                        
+                                        Text("개")
+                                            .font(.system(size: metrics.font16, weight: .regular))
+                                    }
+                                }
+                            }
+                        }
+                        
+                        StatisticCard(title: "종합 평가 점수") {
+                            HStack(alignment: .bottom, spacing: 4) {
+                                Text("\(Int(accuracy * 100))")
+                                    .font(.system(size: metrics.font64, weight: .bold))
+                                
+                                Text("%")
+                                    .font(.system(size: metrics.font24, weight: .regular))
+                            }
+                        }
+                    }
                 }
-                .padding(.bottom, 5)
                 
-                Divider()
-                
-                if !hasSentences {
+                // 하단 섹션
+                if !hasOriginalSentences {
                     Text("분석 결과가 없습니다.")
                         .foregroundColor(.gray)
                     
@@ -78,96 +125,52 @@ struct FeedbackResultDisplayView: View {
                     .padding(.vertical, 20)
                     
                 } else {
-                    ForEach(filteredSentenceDiffs, id: \.index) { (originalIndex, sentenceData) in
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("오답 체크")
+                            .font(.subbodyBold24)
+                            .foregroundStyle(.normalBlack900)
                         
-                        // (1) 원본 문장
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("영어 원문 \(originalIndex + 1)")
-                                .font(.headline)
-                                .foregroundColor(.gray)
-                            Text(sentenceData.original)
-                                .font(.title3)
-                                .bold()
+                        VStack(spacing: 0) {
+                            ForEach(filteredSentenceDiffs, id: \.index) { (originalIndex, sentenceData) in
+                                HStack {
+                                    HighlightedTextView(diffs: sentenceData.diffs)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(36)
+                                    
+                                    Spacer()
+                                    
+                                    Divider()
+                                        .foregroundStyle(.primaryBlue200)
+                                    
+                                    Spacer()
+                                    
+                                    Text(sentenceData.original)
+                                        .font(.subbodyRegular20)
+                                        .padding(36)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            }
                         }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        
-                        // (2) 사용자 발화 (하이라이트)
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("내 발음 \(originalIndex + 1)")
-                                .font(.headline)
-                                .foregroundColor(.gray)
-                            
-                            HighlightedTextView(diffs: sentenceData.diffs)
-                                .font(.title3)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .multilineTextAlignment(.leading)
-                                .lineSpacing(6)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.systemGray5))
-                        .cornerRadius(10)
-                        
-                        if originalIndex != filteredSentenceDiffs.last?.index {
-                            Divider()
-                                .padding(.vertical, 10)
-                        }
+                        .dashboardCardStyle(
+                            padding: 0,
+                            style: .border(.primaryBlue200)
+                        )
                     }
                 }
             }
-            .padding()
-        }
-    }
-    
-    /// WordDiff 배열을 하이라이트된 SwiftUI Text로 변환하는 헬퍼 함수
-    /// (ViewModel에서 이곳으로 이동)
-    private func buildHighlightText(from diffs: [WordDiff]) -> Text {
-        if diffs.isEmpty {
-            return Text("(발화 내용 없음)")
-                .foregroundStyle(.gray)
-        } else {
-            var components: [Text] = []
-            
-            for diff in diffs {
-                switch diff {
-                case .matched(let word):
-                    components.append(Text(word)
-                        .foregroundColor(.primary))
-                    
-                case .missing(let expected):
-                    components.append(Text(expected)
-                        .foregroundColor(.green)
-                        .strikethrough(true, color: .green))
-                    
-                case .extra(let actual):
-                    components.append(Text(actual)
-                        .foregroundColor(.red))
-                    
-                case .replaced(let expected, let actual):
-                    components.append(Text(expected)
-                        .foregroundColor(.gray)
-                        .strikethrough(true, color: .gray))
-                    components.append(Text(actual)
-                        .foregroundColor(.blue))
-                }
-            }
-            
-            guard let first = components.first else {
-                return Text("")
-            }
-            
-            return components.dropFirst().reduce(first) { result, component in
-                Text("\(result) \(component)")
-            }
+            .padding(.horizontal, 96)
+            .padding(.top, 36)
+            .padding(.bottom, 48)
         }
     }
 }
 
+// MARK: - Preview
+
 #Preview("일반 피드백") {
     FeedbackResultDisplayView(
+        scriptTitle: "Preview Script Title",
+        feedbackNumber: 5,
         accuracy: 0.75,
         totalRecordingTime: 120.5,
         missingCount: 2,
@@ -190,32 +193,34 @@ struct FeedbackResultDisplayView: View {
                 .missing(expected: "you")
             ]))
         ],
-        hasSentences: true
+        hasOriginalSentences: true
     )
 }
 
 #Preview("완벽한 발음") {
     FeedbackResultDisplayView(
+        scriptTitle: "Perfect Script",
+        feedbackNumber: 1,
         accuracy: 1.0,
         totalRecordingTime: 60.0,
         missingCount: 0,
         extraCount: 0,
         replacedCount: 0,
         filteredSentenceDiffs: [],
-        hasSentences: true
+        hasOriginalSentences: true
     )
 }
 
 #Preview("분석 결과 없음") {
     FeedbackResultDisplayView(
+        scriptTitle: "Empty Script",
+        feedbackNumber: 0,
         accuracy: 0.0,
         totalRecordingTime: 0.0,
         missingCount: 0,
         extraCount: 0,
         replacedCount: 0,
         filteredSentenceDiffs: [],
-        hasSentences: false
+        hasOriginalSentences: false
     )
 }
-
-

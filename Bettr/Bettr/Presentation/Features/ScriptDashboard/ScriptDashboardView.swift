@@ -61,12 +61,16 @@ struct ScriptDashboardView: View {
                     GridRow {
                         ScriptDashboardBottomLeftContents(
                             recentFeedbacks: viewModel.scriptDashboardData!.recentFeedbacks,
-                            allFeedbacks: viewModel.scriptDashboardData!.allFeedbacks
+                            allFeedbacks: viewModel.scriptDashboardData!.allFeedbacks,
+                            scriptTitle: viewModel.currentTitle,
+                            feedbackNumber: viewModel.scriptDashboardData!.feedbackCount
                         )
                         
                         ScriptDashboardBottomRightContents(
                             scriptId: viewModel.scriptId,
-                            sentences: viewModel.scriptDashboardData!.sentences
+                            sentences: viewModel.scriptDashboardData!.sentences,
+                            scriptTitle: viewModel.currentTitle,
+                            currentFeedbackNumber: viewModel.scriptDashboardData!.feedbackCount
                         )
                     }
                 }

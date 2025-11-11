@@ -11,17 +11,20 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     let audioService: AudioPlaybackServiceProtocol
     let wordExtractionService: WordExtractionService
     
+    /// 현재까지 저장된 피드백의 총 개수 (이 뷰모델이 직접 사용하진 않고, RecordingView로 전달하기 위해 보관)
+        let currentFeedbackCount: Int
+    
     // MARK: - State (뷰에서 사용될 상태)
     
     // 원본 데이터
     var scriptData: ScriptData?
     
     // 스크립트 제목
-    var currentTitle: String = "Loading..." {
-        didSet {
-            handleTitleChange(oldValue: oldValue, newValue: currentTitle)
+    var currentTitle: String {
+            didSet {
+                handleTitleChange(oldValue: oldValue, newValue: currentTitle)
+            }
         }
-    }
     
     // 오류 상태
     var showingError = false
@@ -73,11 +76,15 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     init(
         scriptId: Int64,
+        scriptTitle: String,
+        currentFeedbackCount: Int,
         scriptService: ScriptManagementServiceProtocol,
         audioService: AudioPlaybackServiceProtocol,
         wordExtractionService: WordExtractionService
     ) {
         self.scriptId = scriptId
+        self.currentTitle = scriptTitle
+        self.currentFeedbackCount = currentFeedbackCount
         self.scriptService = scriptService
         self.audioService = audioService
         self.wordExtractionService = wordExtractionService

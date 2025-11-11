@@ -13,6 +13,8 @@ struct ScriptDashboardBottomRightContents: View {
 
     var scriptId: Int64
     var sentences: [ScriptDashboardSentenceModel]
+    let scriptTitle: String
+    let currentFeedbackNumber: Int
     
     private var combinedSentences: String {
         sentences.map { $0.englishText }.joined(separator: "\n\n")
@@ -38,7 +40,7 @@ struct ScriptDashboardBottomRightContents: View {
                     .fill(.defaultWhite50.opacity(0.3))
                 
                 Button(action: {
-                    router.push(Route.memorization(scriptId: scriptId))
+                    router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle, currentFeedbackNumber: currentFeedbackNumber))
                 }) {
                     Text("암기하기")
                         .font(.system(size: metrics.font16, weight: .bold))

@@ -9,6 +9,8 @@ import SwiftUI
 
 struct AllFeedbackView: View {
     let feedbacks: [FeedbackSummary]
+    let scriptTitle: String
+    let feedbackNumber: Int
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -19,7 +21,7 @@ struct AllFeedbackView: View {
             if feedbacks.count > 0 {
                 VStack(spacing: 20) {
                     ForEach(feedbacks, id: \.id) { feedback in
-                        FeedbackSummaryCard(feedback: feedback)
+                        FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber)
                     }
                     Spacer()
                 }
