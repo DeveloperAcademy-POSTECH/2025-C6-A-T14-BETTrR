@@ -29,22 +29,13 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 16) {
             MainHeaderView()
             
-            if container.scripts.isEmpty {
-                EmptyScriptsView(
-                    onSelectPhoto: { showingPhotoPicker = true },
-                    onTakePhoto: { isShowingCamera = true },
-                    onSelectFile: { isShowingDocumentPicker = true }
-                )
-                .frame(height: 500) // 적절한 높이 설정
-            } else {
-                ScriptGridView(
-                    columns: columns,
-                    onSelectPhoto: { showingPhotoPicker = true },
-                    onTakePhoto: { isShowingCamera = true },
-                    onSelectFile: { isShowingDocumentPicker = true },
-                    requestDelete: requestDelete
-                )
-            }
+            HomeContentView(
+                columns: columns,
+                onSelectPhoto: { showingPhotoPicker = true },
+                onTakePhoto: { isShowingCamera = true },
+                onSelectFile: { isShowingDocumentPicker = true },
+                requestDelete: requestDelete
+            )
             
             Spacer()
         }

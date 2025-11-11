@@ -33,11 +33,13 @@ class DatabaseContainer {
         }
     }
     
-    static func getForPreview() -> DatabaseContainer {
+    static func getForPreview(withMockData: Bool = true) -> DatabaseContainer {
         do {
             let db = try AppDatabase.makeInMemory()
             let container = DatabaseContainer(database: db)
-            try DemoDataGenerator.generate(into: db)
+            if withMockData {
+                try DemoDataGenerator.generate(into: db)
+            }
             container.refreshScripts()
             return container
         } catch {
