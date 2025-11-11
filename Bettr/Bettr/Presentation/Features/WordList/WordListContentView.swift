@@ -6,11 +6,9 @@ struct WordListContentView: View {
     
     var body: some View {
         ScrollView {
-            VStack {
+            VStack(alignment: .leading, spacing: 24) {
                 ForEach(Array(words.enumerated()), id: \.element.id) { index, word in
                     WordRow(word: word)
-                        .padding(.top, 16)
-                        .padding(.bottom, 7)
                     
                     if index != words.count - 1 {
                         Rectangle()

@@ -24,7 +24,7 @@ struct WordkListView: View {
                 WordListContentView(words: $words)
             }
         }
-        .padding(.top, 12)
+        .padding(.top, 36)
         .padding(.bottom, 36)
         .frame(maxWidth: 360, maxHeight: .infinity, alignment: .topLeading)
         .clipShape(RoundedRectangle(cornerRadius: 35))
@@ -81,11 +81,6 @@ private struct EmptyWordListView: View {
     }
 }
 
-
-//#Preview {
-//    WordkListView(scriptId: 1, words: .constant([]), isLoading: .constant(false))
-//        .environment(DatabaseContainer(database: AppDatabase.shared))
-//}
 
 #Preview {
     // MARK: - 목업 데이터를 Preview 내부에서 정의
