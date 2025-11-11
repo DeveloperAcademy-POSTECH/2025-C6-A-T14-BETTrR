@@ -5,7 +5,7 @@ import GRDB
 struct FeedbackSummary: Identifiable, Codable, Equatable, Hashable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
     var scriptId: Int64
-    var totalScore: Double
+    var accuracy: Double
     var missingWordCount: Int
     var addedWordCount: Int
     var replacedWordCount: Int

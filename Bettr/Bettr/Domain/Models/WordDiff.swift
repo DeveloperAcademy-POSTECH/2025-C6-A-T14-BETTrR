@@ -1,8 +1,8 @@
 //
-//  FeedbackResultModel.swift
+//  WordDiff.swift
 //  Bettr
 //
-//  Created by 길정수 on 10/30/25.
+//  Created by 길정수 on 11/11/25.
 //
 
 import Foundation
@@ -18,19 +18,14 @@ enum WordDiff: Hashable {
     case extra(actual: String)
     // 원본의 단어가 다른 단어로 대체된 경우
     case replaced(expected: String, actual: String)
-}
 
-// MARK: - 분석 결과 모델
-struct FeedbackResultModel: Hashable {
-    // 전체 스크립트에 대한 WordDiff 배열 (순서 보장)
-    let diffs: [WordDiff]
-    
-    // 전체 정확도
-    let accuracy: Double
-    
-    // 원본 스크립트의 총 단어 수
-    let totalOriginalWords: Int
-    
-    // 총 녹음 시간
-    var totalRecordingTime: TimeInterval = 0.0
+    // DB 저장 시 사용될 타입 식별자
+    var dbTypeValue: String {
+        switch self {
+        case .matched: return "matched"
+        case .missing: return "missing"
+        case .extra: return "extra"
+        case .replaced: return "replaced"
+        }
+    }
 }
