@@ -33,19 +33,11 @@ struct AddNewScriptCard: View {
         .aspectRatio(1, contentMode: .fit)
         .contentShape(Rectangle())
         .overlay {
-            Menu {
-                Button(action: onSelectPhoto) {
-                    Label("사진 보관함", systemImage: "photo")
-                }
-                Button(action: onTakePhoto) {
-                    Label("사진 찍기", systemImage: "camera")
-                }
-                Button(action: onSelectFile) {
-                    Label("파일 선택", systemImage: "doc")
-                }
-            } label: {
-                Color.clear
-            }
+            AddScriptMenuView(
+                onSelectPhoto: onSelectPhoto,
+                onTakePhoto: onTakePhoto,
+                onSelectFile: onSelectFile
+            )
         }
     }
 }

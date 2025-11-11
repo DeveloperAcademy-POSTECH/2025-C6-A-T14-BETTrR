@@ -26,26 +26,21 @@ struct EmptyScriptsView: View {
             }
             
             // 스크립트 추가 메뉴
-            Menu {
-                Button(action: onSelectPhoto) {
-                    Label("사진 보관함", systemImage: "photo")
+            Text("스크립트 추가")
+                .font(.headline)
+                .foregroundColor(.white)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 12)
+                .background(Color.blue)
+                .cornerRadius(25)
+                .glassEffect()
+                .overlay {
+                    AddScriptMenuView(
+                        onSelectPhoto: onSelectPhoto,
+                        onTakePhoto: onTakePhoto,
+                        onSelectFile: onSelectFile
+                    )
                 }
-                Button(action: onTakePhoto) {
-                    Label("사진 찍기", systemImage: "camera")
-                }
-                Button(action: onSelectFile) {
-                    Label("파일 선택", systemImage: "doc")
-                }
-            } label: {
-                Text("스크립트 추가")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 12)
-                    .background(Color.blue)
-                    .cornerRadius(25)
-                    .glassEffect()
-            }
             
             Spacer()
         }
