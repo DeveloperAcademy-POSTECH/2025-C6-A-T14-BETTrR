@@ -25,6 +25,7 @@ struct WordkListView: View {
             }
         }
         .padding(.top, 12)
+        .padding(.bottom, 36)
         .frame(maxWidth: 360, maxHeight: .infinity, alignment: .topLeading)
         .clipShape(RoundedRectangle(cornerRadius: 35))
         .background(
