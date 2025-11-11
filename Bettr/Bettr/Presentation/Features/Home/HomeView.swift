@@ -116,8 +116,14 @@ struct HomeView: View {
     }
 }
 
-#Preview {
+#Preview("Empty Scripts") {
     HomeView()
-        .environment(DatabaseContainer.getForPreview())
+        .environment(DatabaseContainer.getForPreview(withMockData: false))
+        .environment(NavigationRouter())
+}
+
+#Preview("With Scripts") {
+    HomeView()
+        .environment(DatabaseContainer.getForPreview(withMockData: true))
         .environment(NavigationRouter())
 }
