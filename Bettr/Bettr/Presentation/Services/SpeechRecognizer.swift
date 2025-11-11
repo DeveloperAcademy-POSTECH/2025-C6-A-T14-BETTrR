@@ -15,11 +15,13 @@ import Combine
 class SpeechRecognizer: ObservableObject {
     @Published var transcript = ""
     @Published var isRecording = false
+    @Published var hasRecorded: Bool = false
+    @Published var recordingDidFinishEmpty: Bool = false
     @Published var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
     @Published var microphoneAuthorizationStatus: AVAudioApplication.recordPermission = .undetermined
     @Published var analyzedDiffs: [WordDiff]? = nil
     @Published var analyzedPracticeDuration: TimeInterval? = nil
-
+    
     
     // 실시간 경과 시간
     @Published var elapsedTime: TimeInterval = 0.0
@@ -39,6 +41,9 @@ class SpeechRecognizer: ObservableObject {
     var fullScript: String {
         sentences.joined(separator: " ")
     }
+    
+    private var lastTranscription: SFTranscription?
+    private var lastRecordedDuration: TimeInterval = 0.0
     
     init(sentences: [String]) {
         self.sentences = sentences
@@ -66,8 +71,8 @@ class SpeechRecognizer: ObservableObject {
         }
     }
     
-    // MARK: - 녹음 시작
-    func startRecording() {
+    // MARK: - 녹음 상태 변경 (녹음 중인 경우: 녹음을 끝냄, 녹음 중이 아닌 경우: 녹음을 시작)
+    func toggleRecording() {
         if audioEngine.isRunning {
             stopRecording()
             return
@@ -105,19 +110,24 @@ class SpeechRecognizer: ObservableObject {
                 self.timer?.invalidate()
                 self.timer = nil
                 
-                // 최종 녹음 시간 계산
-                let endTime = Date()
-                let totalTime = self.recordingStartTime.map { endTime.timeIntervalSince($0) } ?? 0.0
-                
                 self.audioEngine.stop()
                 inputNode.removeTap(onBus: 0)
                 self.recognitionRequest = nil
                 self.recognitionTask = nil
                 
+                let totalTime = self.recordingStartTime.map { Date().timeIntervalSince($0) } ?? 0.0
+                let finalTranscript = result?.bestTranscription.formattedString ?? ""
+                
                 Task { @MainActor in
                     self.isRecording = false
-                    if let result = result {
-                        _ = self.analyzeFullScript(with: result.bestTranscription, totalTime: totalTime)
+                    self.hasRecorded = true
+                    self.transcript = finalTranscript
+                    
+                    self.lastTranscription = result?.bestTranscription
+                    self.lastRecordedDuration = totalTime
+                    
+                    if finalTranscript.isEmpty {
+                        self.recordingDidFinishEmpty = true
                     }
                 }
             }
@@ -177,22 +187,38 @@ class SpeechRecognizer: ObservableObject {
         // 상태를 수동으로 리셋
         isRecording = false
         transcript = ""
+        self.hasRecorded = false
+        elapsedTime = 0.0
+        
+        lastTranscription = nil
+        lastRecordedDuration = 0.0
+        recordingDidFinishEmpty = false
     }
     
     // MARK: - 분석 초기화
     func clearTranscript() {
         transcript = ""
+        self.hasRecorded = false
+        elapsedTime = 0.0
+        
+        lastTranscription = nil
+                lastRecordedDuration = 0.0
+                recordingDidFinishEmpty = false
     }
     
-    // MARK: - 전체 스크립트 분석
-    func analyzeFullScript(with transcription: SFTranscription, totalTime: TimeInterval) -> [WordDiff] {
+    // MARK: - 녹음 분석
+    @MainActor
+    func triggerAnalysis() {
+        guard let transcription = lastTranscription else {
+            print("분석할 트랜스크립션이 없습니다.")
+            return
+        }
+        
         let analyzer = SpeechAnalyzer()
         let diffs = analyzer.analyze(reference: fullScript, transcription: transcription)
         
         self.analyzedDiffs = diffs
-        self.analyzedPracticeDuration = totalTime
-        
-        return diffs
+        self.analyzedPracticeDuration = self.lastRecordedDuration
     }
 }
 

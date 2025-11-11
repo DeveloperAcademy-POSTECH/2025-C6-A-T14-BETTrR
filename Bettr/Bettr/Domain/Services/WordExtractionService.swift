@@ -36,7 +36,7 @@ class WordExtractionService {
         
         let maxRetry = 2
         let ai = FirebaseAI.firebaseAI(backend: .googleAI())
-        let model = ai.generativeModel(modelName: "gemini-2.0-flash-lite")
+        let model = ai.generativeModel(modelName: "gemini-2.5-flash-lite")
         
         do {
             // 1️⃣ 스크립트 불러오기
@@ -61,7 +61,7 @@ class WordExtractionService {
 - 학술·논리 어휘: AWL(학술 어휘 목록) 수준 이상의 연결어, 추론·대조·원인/결과 신호어를 포함한다.  
 - 다의어·혼동어: 문맥에 따라 의미가 달라질 수 있는 학습 가치 높은 어휘를 포함한다.  
 - 문법 기능 표현: 수동, 분사구문, 가정법, 도치 등 고등 수준 문법 구조를 형성하는 표현도 포함한다.  
-- 기초어휘 제외: A1~A2 수준의 쉬운 어휘는 제외하되, 문맥상 핵심이면 포함 가능하다.  
+- **기초어휘 최소 기준:** **CEFR B1 레벨 이상**의 어휘를 우선적으로 선별한다. A1~A2 수준의 기초 어휘는 **'다의어', '숙어', '구동사'**로 사용되는 등 문맥에서 **고유의 핵심 의미**를 가질 때만 예외적으로 포함한다.
 - 고유명사/숫자/기호 제외: 인명, 지명, 수치, 기호는 제외한다.  
 - meaning 필드는 짧고 핵심적인 한국어 뜻(2~5어절)만 제시한다.  
 - 출력 시 모든 필드 값은 문자열이며, 여분의 공백이나 대문자는 제거한다.
