@@ -25,9 +25,11 @@ struct WordkListView: View {
                     VStack(spacing: 12) {
                         Text("단어장을 불러오는 중입니다.")
                             .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(.normalBlack900)
                         
                         Text("잠시 기다려주세요.")
                             .font(.system(size: 16))
+                            .foregroundStyle(.normalBlack900)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -40,9 +42,11 @@ struct WordkListView: View {
                     VStack(spacing: 12) {
                         Text("단어장이 비어있어요!")
                             .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(.normalBlack900)
                         
                         Text("추출된 단어가 없습니다.")
                             .font(.system(size: 16))
+                            .foregroundStyle(.normalBlack900)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -55,7 +59,7 @@ struct WordkListView: View {
                                 HStack(alignment: .center, spacing: 8) {
                                     Text(word.lemma)
                                         .font(.system(size: 24, weight: .bold))
-                                        .foregroundStyle(.primary)
+                                        .foregroundStyle(.normalBlack900)
                                         .padding(.trailing, 4)
                                     // POS capsule badge (한글 축약은 상위 레이어에서 처리되어 있다고 가정)
                                     Text(word.pos)
@@ -67,10 +71,10 @@ struct WordkListView: View {
                                                 .fill(Color.clear)
                                                 .overlay(
                                                     RoundedRectangle(cornerRadius: 4)
-                                                        .stroke(Color.indigo, lineWidth: 1) // FIXME: 나중에 정식 컬러로 변경
+                                                        .stroke(.primaryBlue500, lineWidth: 1) // FIXME: 나중에 정식 컬러로 변경
                                                 )
                                         )
-                                        .foregroundStyle(Color.indigo) // FIXME: 나중에 정식 컬러로 변경
+                                        .foregroundStyle(.primaryBlue500) // FIXME: 나중에 정식 컬러로 변경
                                     Spacer(minLength: 0)
                                 }
                                 
@@ -102,7 +106,7 @@ struct WordkListView: View {
                             if index != words.count - 1 {
                                 Rectangle()
                                     .frame(height: 1)
-                                    .foregroundStyle(.white) // FIXME: 나중에 정식 컬러로 변경
+                                    .foregroundStyle(.primaryBlue50) // FIXME: 나중에 정식 컬러로 변경
                             }
 
                         }
