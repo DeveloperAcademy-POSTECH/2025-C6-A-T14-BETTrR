@@ -23,56 +23,85 @@ struct FeedbackResultDisplayView: View {
     /// 원본 문장 데이터 자체가 로드되었는지 여부 (문장 0개 스크립트 방어용)
     let hasOriginalSentences: Bool
     
+    @Environment(\.metrics) var metrics
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("📊 피드백 결과")
-                    .font(.largeTitle).bold()
-                    .padding(.bottom, 10)
+                Text("피드백 결과")
+                    .font(.subtitleBold32)
                 
-                Text("전체 정확도: \(Int(accuracy * 100))%")
-                    .font(.title)
-                    .foregroundColor(.blue)
-                    .bold()
-                
-                
-                Text("스크립트 제목: \(scriptTitle)")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 5)
-                
-                Text("\(feedbackNumber)번")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 5)
-                
-                Text("총 녹음 시간: \(totalRecordingTime.toMMSSms())")
-                    .font(.headline)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 5)
-                
-                HStack(spacing: 12) {
-                    Text("오류 분석:")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
+                HStack(spacing: 16) {
+                    VStack(spacing: 16) {
+                        HStack(spacing: 16) {
+                            StatisticCard(title: "스크립트 제목") {
+                                HStack(alignment: .bottom, spacing: 4) {
+                                    Text(scriptTitle)
+                                        .font(.system(size: metrics.font24, weight: .bold))
+                                }
+                            }
+                            
+                            StatisticCard(title: "피드백 회차") {
+                                HStack(alignment: .bottom, spacing: 4) {
+                                    Text("\(feedbackNumber)")
+                                        .font(.system(size: metrics.font32, weight: .bold))
+                                    
+                                    Text("번")
+                                        .font(.system(size: metrics.font20, weight: .regular))
+                                }
+                            }
+                        }
+                        
+                        HStack(spacing: 16) {
+                            StatisticCard(title: "총 녹음 시간") {
+                                HStack(alignment: .bottom, spacing: 4) {
+                                    Text(totalRecordingTime.toMMSSms())
+                                        .font(.system(size: metrics.font24, weight: .bold))
+                                }
+                            }
+                            
+                            StatisticCard(title: "누락된 단어") {
+                                HStack(alignment: .bottom, spacing: 4) {
+                                    Text("\(missingCount)")
+                                        .font(.system(size: metrics.font24, weight: .bold))
+                                    
+                                    Text("개")
+                                        .font(.system(size: metrics.font16, weight: .regular))
+                                }
+                            }
+                            
+                            StatisticCard(title: "대체된 단어") {
+                                HStack(alignment: .bottom, spacing: 4) {
+                                    Text("\(replacedCount)")
+                                        .font(.system(size: metrics.font24, weight: .bold))
+                                    
+                                    Text("개")
+                                        .font(.system(size: metrics.font16, weight: .regular))
+                                }
+                            }
+                            
+                            StatisticCard(title: "추가된 단어") {
+                                HStack(alignment: .bottom, spacing: 4) {
+                                    Text("\(extraCount)")
+                                        .font(.system(size: metrics.font24, weight: .bold))
+                                    
+                                    Text("개")
+                                        .font(.system(size: metrics.font16, weight: .regular))
+                                }
+                            }
+                        }
+                    }
                     
-                    Text("누락: \(missingCount)개")
-                        .font(.callout.bold())
-                        .foregroundColor(.green)
-                    
-                    Text("추가: \(extraCount)개")
-                        .font(.callout.bold())
-                        .foregroundColor(.red)
-                    
-                    Text("대체: \(replacedCount)개")
-                        .font(.callout.bold())
-                        .foregroundColor(.blue)
-                    
-                    Spacer()
+                    StatisticCard(title: "종합 평가 점수") {
+                        HStack(alignment: .bottom, spacing: 4) {
+                            Text("\(Int(accuracy * 100))")
+                                .font(.system(size: metrics.font64, weight: .bold))
+                            
+                            Text("%")
+                                .font(.system(size: metrics.font24, weight: .regular))
+                        }
+                    }
                 }
-                .padding(.bottom, 5)
-                
-                Divider()
                 
                 if !hasOriginalSentences {
                     Text("분석 결과가 없습니다.")
@@ -131,7 +160,9 @@ struct FeedbackResultDisplayView: View {
                     }
                 }
             }
-            .padding()
+            .padding(.horizontal, 96)
+            .padding(.top, 36)
+            .padding(.bottom, 48)
         }
     }
 }
