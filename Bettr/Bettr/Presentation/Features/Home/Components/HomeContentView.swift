@@ -11,12 +11,21 @@ struct HomeContentView: View {
     
     var body: some View {
         if container.scripts.isEmpty {
-            EmptyScriptsView(
-                onSelectPhoto: onSelectPhoto,
-                onTakePhoto: onTakePhoto,
-                onSelectFile: onSelectFile
-            )
-            .frame(height: 500) // 적절한 높이 설정
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    EmptyScriptsView(
+                        onSelectPhoto: onSelectPhoto,
+                        onTakePhoto: onTakePhoto,
+                        onSelectFile: onSelectFile
+                    )
+                    Spacer()
+                }
+                //TODO: 동적 대응 생각해서 수정
+                .offset(y: -47)
+                Spacer()
+            }
         } else {
             ScriptGridView(
                 columns: columns,

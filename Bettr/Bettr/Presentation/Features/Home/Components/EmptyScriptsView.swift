@@ -6,42 +6,47 @@ struct EmptyScriptsView: View {
     let onSelectFile: () -> Void
     
     var body: some View {
-        VStack(spacing: 24) {
-            Spacer()
+        VStack(spacing: 36) {
+            VStack(spacing: 16) {
+                //TODO: 아이콘 바뀌면 크기도 같이 조정
+                FolderIconView(width: 221, height: 178)
+                GuidanceTextView()
+            }
             
-            FolderIconView()
-            GuidanceTextView()
             AddButtonView(
                 onSelectPhoto: onSelectPhoto,
                 onTakePhoto: onTakePhoto,
                 onSelectFile: onSelectFile
             )
-            
-            Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
 private struct FolderIconView: View {
+    let width: CGFloat
+    let height: CGFloat
+    
     var body: some View {
-        Image(systemName: "folder.badge.plus")
-            .font(.system(size: 80))
-            .foregroundColor(.gray.opacity(0.5))
+        Image(systemName: "arrow.up.folder")
+            .resizable()
+            .scaledToFit()
+            .frame(width: width, height: height)
+            .foregroundColor(.normalGray600)
     }
 }
 
 private struct GuidanceTextView: View {
     var body: some View {
         VStack(spacing: 8) {
-            Text("추가 버튼 혹은 드래그 앤 드롭으로")
-                .font(.body)
-                .foregroundColor(.secondary)
+            Text("추가 버튼을 눌러")
+                .font(.calloutRegular16)
+                .foregroundColor(.normalGray600)
             
-            Text("파일을 추가해주세요.")
-                .font(.body)
-                .foregroundColor(.secondary)
+            Text("연습할 스크립트 파일을 추가해주세요.")
+                .font(.calloutRegular16)
+                .foregroundColor(.normalGray600)
         }
+        .padding(.vertical, 16)
     }
 }
 

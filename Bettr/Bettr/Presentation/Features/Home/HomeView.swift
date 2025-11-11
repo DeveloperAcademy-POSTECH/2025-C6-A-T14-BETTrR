@@ -26,7 +26,7 @@ struct HomeView: View {
     ]
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 48) {
             MainHeaderView()
             
             HomeContentView(
