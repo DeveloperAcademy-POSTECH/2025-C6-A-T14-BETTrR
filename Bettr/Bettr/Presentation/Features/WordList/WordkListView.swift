@@ -85,14 +85,13 @@ private struct EmptyWordListView: View {
 #Preview {
     // MARK: - 목업 데이터를 Preview 내부에서 정의
     let localMockWords: [Word] = [
-        // 누락된 scriptId와 orderIndex 인자를 추가했습니다.
         Word(id: 1, scriptId: 1, lemma: "apple", pos: "명", meaning: "사과", orderIndex: 0),
         Word(id: 2, scriptId: 1, lemma: "run", pos: "동", meaning: "달리다", orderIndex: 1),
         Word(id: 3, scriptId: 1, lemma: "beautiful", pos: "형", meaning: "아름다운", orderIndex: 2),
-        Word(id: 6, scriptId: 1, lemma: "untranslated", pos: "명", meaning: "", orderIndex: 3)
+        Word(id: 6, scriptId: 1, lemma: "untranslated", pos: "명", meaning: "번역되지 않은", orderIndex: 3)
     ]
     
-    // Environment 객체도 Preview 내부에서 생성
+
     let mockContainer = DatabaseContainer(database: AppDatabase.shared)
     
     WordkListView(

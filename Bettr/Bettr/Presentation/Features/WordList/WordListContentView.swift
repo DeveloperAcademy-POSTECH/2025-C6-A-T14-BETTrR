@@ -77,3 +77,20 @@ private struct WordRow: View {
             .filter { !$0.isEmpty }
     }
 }
+
+
+#Preview {
+    let mockWords: [Word] = [
+        Word(id: 1, scriptId: 1, lemma: "post-structuralist", pos: "형", meaning: "포스트구조주의의", orderIndex: 0),
+        Word(id: 2, scriptId: 1, lemma: "philosophy", pos: "명", meaning: "철학", orderIndex: 1),
+        Word(id: 3, scriptId: 1, lemma: "led to", pos: "숙어", meaning: "~을 야기하다", orderIndex: 2),
+        Word(id: 4, scriptId: 1, lemma: "major", pos: "형", meaning: "주요한", orderIndex: 3),
+        Word(id: 5, scriptId: 1, lemma: "change", pos: "명", meaning: "변화", orderIndex: 4),
+        Word(id: 6, scriptId: 1, lemma: "viewing", pos: "동", meaning: "보는 것", orderIndex: 5),
+    ]
+    
+    return WordListContentView(
+        words: .constant(mockWords)
+    )
+    .padding()
+}
