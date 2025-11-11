@@ -77,11 +77,9 @@ struct ScriptDashboardView: View {
                 )
             }
         }
-        .border(Color.blue)
         .frame(maxWidth: .infinity)
         .padding(.horizontal, metrics.horizontalPadding)
         .padding(.top, metrics.topPadding)
         .padding(.bottom, metrics.bottomPadding)
-        .border(Color.red)
     }
 }
