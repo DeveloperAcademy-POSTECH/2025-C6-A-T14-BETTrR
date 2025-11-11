@@ -142,7 +142,7 @@ struct RecordingView: View {
             .alert("인식된 영문 텍스트가 없습니다.", isPresented: $showEmptyTranscriptAlert) {
                 Button("확인") { speechRecognizer.cancelRecording() }
             } message: {
-                Text("인식된 영문 텍스트가 없으면 피드백을 생성할 수 없습니다. 다시 녹음 해주세요.")
+                Text("피드백 생성을 위해 인식된 영문 텍스트가 있어야 합니다. 다시 녹음 해주세요.")
             }
             .cancelToolbar()
             .navigationDestination(for: ModalRoute.self) { route in
