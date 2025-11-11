@@ -24,23 +24,23 @@ extension View {
     /// 툴바 활성화
     func toolbarEnabled() -> some View {
         self.modifier(ToolbarButtonModifier(
-            foregroundColor: .black,
-            font: .bodyRegular20
+            foregroundColor: .secondaryBlue700,
+            font: .calloutRegular20
         ))
     }
     
     /// 툴바 비활성화
     func toolbarDisabled() -> some View {
         self.modifier(ToolbarButtonModifier(
-            foregroundColor: .gray.opacity(0.2),
-            font: .bodyRegular20
+            foregroundColor: .primaryBlue200,
+            font: .calloutRegular20
         ))
     }
     
     /// 툴바 강조
     func toolbarEmphasized() -> some View {
         self.modifier(ToolbarButtonModifier(
-            foregroundColor: .PP_1,
+            foregroundColor: .primaryBlue500,
             font: .iconBold20
         ))
     }

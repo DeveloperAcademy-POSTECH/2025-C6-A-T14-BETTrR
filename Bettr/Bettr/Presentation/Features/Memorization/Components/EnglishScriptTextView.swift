@@ -21,11 +21,11 @@ struct EnglishScriptTextView: View {
             .opacity(isHidden ? 0 : 1)
             .background(
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(.G_1)
+                    .fill(.normalGray200)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 2)
-                    .stroke(isHighlighted ? .pp2L2 : .clear, lineWidth: 4)
+                    .stroke(isHighlighted ? .primaryBlue300 : .clear, lineWidth: 4)
             )
             .onTapGesture(perform: onTap)
     }

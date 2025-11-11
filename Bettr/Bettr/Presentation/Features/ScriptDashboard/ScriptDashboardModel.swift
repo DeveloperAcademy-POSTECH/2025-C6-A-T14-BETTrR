@@ -13,6 +13,7 @@ struct ScriptDashboardModel: Hashable {
     let sentences: [ScriptDashboardSentenceModel]
     
     let feedbackCount: Int
+    let allFeedbacks: [FeedbackSummary]
     let recentFeedbacks: [FeedbackSummary]
     let recentFeedbackCount: Int
     let top3IncorrectWords: [IncorrectWordCount]

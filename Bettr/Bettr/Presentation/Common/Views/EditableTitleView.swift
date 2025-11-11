@@ -20,11 +20,18 @@ struct EditableTitleView: View {
             if isEditing {
                 // --- 수정 중일 때 ---
                 HStack(spacing: 8) {
-                    TextField("제목을 입력하세요", text: $editedTitle)
-                        .font(.headline)
-                        .textFieldStyle(.plain)
-                        .focused($isFocused)
-                        .onSubmit { saveAndExit() }
+                    TextField(
+                        "",
+                        text: $editedTitle,
+                        prompt: Text("제목을 입력하세요")
+                            .font(.subtitleSemibold24)
+                            .foregroundStyle(.normalGray600)
+                    )
+                    .font(.subtitleSemibold24)
+                    .foregroundStyle(.normalBlack900)
+                    .textFieldStyle(.plain)
+                    .focused($isFocused)
+                    .onSubmit { saveAndExit() }
                     
                     // 텍스트가 있을 때만 X 버튼 표시
                     if !editedTitle.isEmpty {
@@ -32,17 +39,17 @@ struct EditableTitleView: View {
                             editedTitle = ""
                         }) {
                             Image(systemName: "xmark.circle.fill")
-                                .font(.body)
-                                .foregroundStyle(.secondary)
+                                .font(.subtitleSemibold24)
+                                .foregroundStyle(.primaryBlue300)
                         }
                     }
                 }
                 .frame(minWidth: 200)
                 .padding(.horizontal, 12)
-                .padding(.vertical, 3)
+                .padding(.vertical, 6)
                 .background(
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.1))
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(.primaryBlue50)
                 )
                 .onAppear {
                     editedTitle = title
@@ -52,12 +59,14 @@ struct EditableTitleView: View {
                 // --- 수정 중이 아닐 때 ---
                 HStack(spacing: 4) {
                     Text(title)
-                        .font(.headline)
+                        .font(.subtitleSemibold24)
+                        .foregroundStyle(.normalBlack900)
                     
                     if showEditIcon {
                         Image(systemName: "chevron.down.circle.fill")
-                            .font(.caption)
+                            .font(.subtitleSemibold24)
                             .foregroundStyle(.secondary)
+                            .foregroundStyle(.primaryBlue300)
                     }
                 }
                 .contentShape(Rectangle())

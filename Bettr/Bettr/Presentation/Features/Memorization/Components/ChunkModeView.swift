@@ -58,6 +58,6 @@ struct ChunkModeView: View {
     private func chunkSeparatorText(size: CGFloat, isKoreanVisible: Bool) -> some View {
         Text("/")
             .font(.system(size: size))
-            .foregroundStyle(isKoreanVisible ? .G_1 : .clear)
+            .foregroundStyle(isKoreanVisible ? .normalGray400 : .clear)
     }
 }
