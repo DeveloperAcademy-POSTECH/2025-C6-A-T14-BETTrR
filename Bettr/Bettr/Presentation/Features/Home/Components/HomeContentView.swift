@@ -37,6 +37,7 @@ struct HomeContentView: View {
                 requestDelete: requestDelete,
                 showMenu: $showMenu
             )
+            .padding(.horizontal, 125)
         }
     }
 }

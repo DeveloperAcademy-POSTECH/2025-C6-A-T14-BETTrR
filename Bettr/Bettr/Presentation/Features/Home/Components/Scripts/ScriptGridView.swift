@@ -19,7 +19,7 @@ struct ScriptGridView: View {
     ]
     
     var body: some View {
-        VStack {
+        ScrollView {
             LazyVGrid(columns: columns, spacing: 60) {
                 AddNewScriptCard(
                     onSelectPhoto: onSelectPhoto,
@@ -37,7 +37,7 @@ struct ScriptGridView: View {
                 }
             }
         }
-        .background(Color.gray.opacity(0.1))
+        .scrollIndicators(.hidden)
     }
 }
 
