@@ -21,17 +21,18 @@ struct ScriptCard: View {
                 router.push(Route.scriptDashboard(scriptId: scriptId))
             }
         }) {
-            VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray.opacity(0.2))
-                    .aspectRatio(1, contentMode: .fit)
+            VStack(alignment: .leading, spacing: 12) {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(.primaryBlue200)
                 
                 Text(script.title)
-                    .foregroundStyle(Color.primary)
-                    .font(.caption2)
+                    .foregroundStyle(.normalBlack900)
+                    .font(.calloutRegular16)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .frame(height: 193)
+            .frame(maxWidth: .infinity)
         }
         .contextMenu {
             Button(role: .destructive, action: onDelete) {
@@ -51,6 +52,5 @@ struct ScriptCard: View {
         ),
         onDelete: {}
     )
-    .frame(width: 200)
     .environment(NavigationRouter())
 }

@@ -18,20 +18,11 @@ struct HomeView: View {
     private let textRecognitionService = TextRecognitionService()
     private let pdfTextExtractor = PDFTextExtractor()
     
-    // 4-column grid layout
-    private let columns: [GridItem] = [
-        GridItem(.flexible(), spacing: 50),
-        GridItem(.flexible(), spacing: 50),
-        GridItem(.flexible(), spacing: 50),
-        GridItem(.flexible())
-    ]
-    
     var body: some View {
         VStack(alignment: .leading, spacing: 48) {
             MainHeaderView()
             
             HomeContentView(
-                columns: columns,
                 onSelectPhoto: { showingPhotoPicker = true },
                 onTakePhoto: { isShowingCamera = true },
                 onSelectFile: { isShowingDocumentPicker = true },

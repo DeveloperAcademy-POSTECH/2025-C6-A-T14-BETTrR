@@ -3,7 +3,6 @@ import SwiftUI
 struct ScriptGridView: View {
     @Environment(DatabaseContainer.self) var container
     
-    let columns: [GridItem]
     let onSelectPhoto: () -> Void
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
@@ -11,33 +10,46 @@ struct ScriptGridView: View {
     
     @Binding var showMenu: Bool
     
+    // 4-column grid layout
+    private let columns: [GridItem] = [
+        GridItem(.flexible(), spacing: 36),
+        GridItem(.flexible(), spacing: 36),
+        GridItem(.flexible(), spacing: 36),
+        GridItem(.flexible())
+    ]
+    
     var body: some View {
-        VStack {
-            LazyVGrid(columns: columns, spacing: 20) {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 60) {
                 AddNewScriptCard(
                     onSelectPhoto: onSelectPhoto,
                     onTakePhoto: onTakePhoto,
                     onSelectFile: onSelectFile,
                     showMenu: $showMenu
                 )
+                .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
                 
                 ForEach(container.scripts) { script in
                     ScriptCard(script: script, onDelete: {
                         requestDelete(script)
                     })
+                    .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
                 }
             }
         }
-        .padding(30)
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(16)
-        .padding(.horizontal, 40)
+        .onTapGesture {
+            if showMenu {
+                withAnimation(.spring(response: 0.3)) {
+                    showMenu = false
+                }
+            }
+        }
+        .scrollIndicators(.hidden)
     }
 }
 
 #Preview {
     ScriptGridView(
-        columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
         onSelectPhoto: {},
         onTakePhoto: {},
         onSelectFile: {},
