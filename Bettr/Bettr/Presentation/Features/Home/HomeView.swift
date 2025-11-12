@@ -42,7 +42,7 @@ struct HomeView: View {
             Spacer()
         }
         .padding(.top, 48)
-        .overlay {
+        .background {
             if showMenu {
                 Color.clear
                     .contentShape(Rectangle())
@@ -52,6 +52,7 @@ struct HomeView: View {
                             showMenu = false
                         }
                     }
+                    .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .top)))
             }
         }
         .onAppear {
