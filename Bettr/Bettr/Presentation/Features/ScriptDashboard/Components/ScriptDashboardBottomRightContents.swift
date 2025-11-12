@@ -29,6 +29,7 @@ struct ScriptDashboardBottomRightContents: View {
             
             Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity)
         .cardFilled(padding: 36)
         .overlay(alignment:. center) {
             ZStack {

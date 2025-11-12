@@ -29,7 +29,6 @@ struct AllFeedbackView: View {
                     padding: 36,
                     style: .border(.primaryBlue200)
                 )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             else {
                 VStack {
@@ -44,7 +43,6 @@ struct AllFeedbackView: View {
                     padding: 36,
                     style: .border(.primaryBlue200)
                 )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .padding(.horizontal, 84)

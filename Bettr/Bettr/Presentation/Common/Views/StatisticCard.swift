@@ -18,7 +18,7 @@ struct StatisticCard<Content: View>: View {
                 .foregroundStyle(.normalBlack900)
             
             Spacer()
-            
+
             HStack {
                 Spacer()
                 content()

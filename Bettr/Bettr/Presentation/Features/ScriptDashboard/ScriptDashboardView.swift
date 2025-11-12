@@ -18,35 +18,43 @@ struct ScriptDashboardView: View {
     var body: some View {
         Group {
             if viewModel.scriptDashboardData != nil {
-                Grid(horizontalSpacing: 16,
-                     verticalSpacing: 16) {
-                    GridRow {
-                        ScriptDashboardTopLeftContents(feedbacks: viewModel.scriptDashboardData!.recentFeedbacks)
+                ScrollView {
+                    VStack(spacing: 36) {
+                        HStack(alignment: .top, spacing: 32) {
+                            ScriptDashboardTopLeftContents(feedbacks: viewModel.scriptDashboardData!.recentFeedbacks)
+                                .border(Color.red)
+                            
+                            ScriptDashboardTopRightContents(
+                                feedbackCount: viewModel.scriptDashboardData!.feedbackCount,
+                                top3IncorrectWords: viewModel.scriptDashboardData!.top3IncorrectWords,
+                                averagePracticeDuration: viewModel.scriptDashboardData!.averagePracticeDuration,
+                                recentFeedbackCount: viewModel.scriptDashboardData!.recentFeedbackCount
+                            )
+                            .border(Color.red)
+                        }
+                        .frame(maxHeight: 272)
+                        .border(Color.blue)
                         
-                        ScriptDashboardTopRightContents(
-                            feedbackCount: viewModel.scriptDashboardData!.feedbackCount,
-                            top3IncorrectWords: viewModel.scriptDashboardData!.top3IncorrectWords,
-                            averagePracticeDuration: viewModel.scriptDashboardData!.averagePracticeDuration,
-                            recentFeedbackCount: viewModel.scriptDashboardData!.recentFeedbackCount
-                        )
-                    }
-                    
-                    GridRow {
-                        ScriptDashboardBottomLeftContents(
-                            recentFeedbacks: viewModel.scriptDashboardData!.recentFeedbacks,
-                            allFeedbacks: viewModel.scriptDashboardData!.allFeedbacks,
-                            scriptTitle: viewModel.currentTitle,
-                            feedbackNumber: viewModel.scriptDashboardData!.feedbackCount
-                        )
-                        
-                        ScriptDashboardBottomRightContents(
-                            scriptId: viewModel.scriptId,
-                            sentences: viewModel.scriptDashboardData!.sentences,
-                            scriptTitle: viewModel.currentTitle,
-                            currentFeedbackNumber: viewModel.scriptDashboardData!.feedbackCount
-                        )
-                    }
-                }
+                        HStack(alignment: .top, spacing: 32) {
+                            ScriptDashboardBottomLeftContents(
+                                recentFeedbacks: viewModel.scriptDashboardData!.recentFeedbacks,
+                                allFeedbacks: viewModel.scriptDashboardData!.allFeedbacks,
+                                scriptTitle: viewModel.currentTitle,
+                                feedbackNumber: viewModel.scriptDashboardData!.feedbackCount
+                            )
+                            .border(Color.red)
+                            
+                            ScriptDashboardBottomRightContents(
+                                scriptId: viewModel.scriptId,
+                                sentences: viewModel.scriptDashboardData!.sentences,
+                                scriptTitle: viewModel.currentTitle,
+                                currentFeedbackNumber: viewModel.scriptDashboardData!.feedbackCount
+                            )
+                            .border(Color.red)
+                        }
+                        .frame(maxHeight: 546)
+                        .border(Color.blue)
+                    }                }
             } else {
                 LoadingView(
                     isLoading: viewModel.isLoading,
@@ -57,7 +65,6 @@ struct ScriptDashboardView: View {
         .safeAreaPadding(.horizontal, 84)
         .safeAreaPadding(.top, 36)
         .safeAreaPadding(.bottom, 48)
-        .frame(maxWidth: .infinity)
         .onTapGesture {
             isTitleEditing = false
         }
@@ -76,9 +83,4 @@ struct ScriptDashboardView: View {
         }
     }
     
-    @ViewBuilder
-    private func dashboardContent() -> some View {
-        
-    }
 }
-

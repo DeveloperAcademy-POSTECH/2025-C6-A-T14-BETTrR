@@ -23,7 +23,7 @@ struct FeedbackSummaryCard: View {
                     Text("\(Int(feedback.accuracy * 100))%")
                         .font(.subtitleSemibold24)
                     
-                    HStack(spacing: 12) {
+                    HStack(spacing: 6) {
                         Text("누락된 단어 \(feedback.missingWordCount)")
                         Text("|")
                         Text("추가된 단어 \(feedback.addedWordCount)")
@@ -35,11 +35,8 @@ struct FeedbackSummaryCard: View {
                 
                 Spacer()
                 
-                HStack(spacing: 8) {
-                    Text(feedback.createdAt.asAppDateString())
-                    Image(systemName: "chevron.right")
-                }
-                .font(.calloutRegular16)
+                Image(systemName: "chevron.right")
+                    .font(.calloutRegular16)
             }
             .foregroundStyle(.normalBlack900)
         }
@@ -53,8 +50,8 @@ struct FeedbackSummaryCardPlaceholderView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(" ")
                     .font(.subtitleSemibold24)
-
-                HStack(spacing: 12) {
+                
+                HStack(spacing: 6) {
                     Text(" ")
                     Text(" ")
                     Text(" ")
@@ -66,10 +63,7 @@ struct FeedbackSummaryCardPlaceholderView: View {
             
             Spacer()
             
-            HStack(spacing: 8) {
-                Text(" ")
-                Image(systemName: "chevron.right")
-            }
+            Image(systemName: "chevron.right")
             .font(.calloutRegular16)
         }
         .opacity(0)

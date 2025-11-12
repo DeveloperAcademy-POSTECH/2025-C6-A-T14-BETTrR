@@ -16,7 +16,7 @@ struct FeedbackChartDataPoint: Identifiable {
 
 struct ScriptDashboardTopLeftContents: View {
     var feedbacks: [FeedbackSummary]
-        
+    
     // 차트 데이터 계산
     private var chartData: [FeedbackChartDataPoint] {
         feedbacks.enumerated().map { (index, feedback) in
@@ -32,62 +32,48 @@ struct ScriptDashboardTopLeftContents: View {
     
     var body: some View {
         Group {
-            if !feedbacks.isEmpty {
-                Chart(chartData) { point in
-                    LineMark(
-                        x: .value("Session", point.session),
-                        y: .value("Score", point.score)
-                    )
-                    .foregroundStyle(.secondaryBlue700)
-                    .interpolationMethod(.monotone)
-                    
-                    PointMark(
-                        x: .value("Session", point.session),
-                        y: .value("Score", point.score)
-                    )
-                    .symbol {
-                        Circle()
-                            .fill(.primaryBlue50)
-                            .strokeBorder(.secondaryBlue700, lineWidth: 4)
-                            .frame(width: 16, height: 16)
-                    }
-                    
-                    RuleMark(
-                        y: .value("Average", averageScore)
-                    )
-                    .foregroundStyle(.alertRed01)
+            Chart(chartData) { point in
+                LineMark(
+                    x: .value("Session", point.session),
+                    y: .value("Score", point.score)
+                )
+                .foregroundStyle(.secondaryBlue700)
+                .interpolationMethod(.monotone)
+                
+                PointMark(
+                    x: .value("Session", point.session),
+                    y: .value("Score", point.score)
+                )
+                .symbol {
+                    Circle()
+                        .fill(.primaryBlue50)
+                        .strokeBorder(.secondaryBlue700, lineWidth: 4)
+                        .frame(width: 16, height: 16)
                 }
-                .chartXScale(domain: 0...(chartData.count + 1))
-                .chartYScale(domain: 0...100)
-                .chartXAxis {
-                    AxisMarks(values: Array(0...chartData.count)) { value in
-                        AxisGridLine()
-                        if let sessionNumber = value.as(Int.self) {
-                            if sessionNumber != 0 {
-                                AxisValueLabel("\(sessionNumber)")
-                            }
+                
+                RuleMark(
+                    y: .value("Average", averageScore)
+                )
+                .foregroundStyle(.alertRed01)
+            }
+            .chartXScale(domain: 0...(chartData.count + 1))
+            .chartYScale(domain: 0...100)
+            .chartXAxis {
+                AxisMarks(values: Array(0...chartData.count)) { value in
+                    AxisGridLine()
+                    if let sessionNumber = value.as(Int.self) {
+                        if sessionNumber != 0 {
+                            AxisValueLabel("\(sessionNumber)")
                         }
                     }
                 }
-                .chartYAxis {
-                    AxisMarks(position: .leading, values: [0, 50]) { value in
-                        AxisGridLine()
-                        AxisTick()
-                        AxisValueLabel()
-                    }
+            }
+            .chartYAxis {
+                AxisMarks(position: .leading, values: [0, 50]) { value in
+                    AxisGridLine()
+                    AxisTick()
+                    AxisValueLabel()
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-            } else {
-                VStack {
-                    Spacer()
-                    Text("데이터가 충분하지 않아요")
-                        .font(.labelBold16)
-                        .foregroundStyle(.normalBlack900)
-                    
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .cardFilled()

@@ -13,12 +13,12 @@ struct ScriptDashboardTopRightContents: View {
     let top3IncorrectWords: [IncorrectWordCount]
     let averagePracticeDuration: Double
     let recentFeedbackCount: Int
-        
+    
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(alignment: .top, spacing: 16) {
             
             // 자주 틀린 단어
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text("자주 틀린 단어 Top 3")
                     .font(.calloutRegular16)
                     .foregroundStyle(.normalBlack900)
@@ -38,8 +38,8 @@ struct ScriptDashboardTopRightContents: View {
                         }
                     }
                 }
-                .foregroundStyle(.normalBlack900)
                 .frame(maxWidth: .infinity)
+                .foregroundStyle(.normalBlack900)
                 
                 Spacer()
             }
@@ -51,7 +51,7 @@ struct ScriptDashboardTopRightContents: View {
                     HStack(alignment: .bottom, spacing: 4) {
                         Text("\(feedbackCount)")
                             .font(.subtitleBold32)
-
+                        
                         Text("회")
                             .font(.calloutRegular20)
                     }
@@ -63,6 +63,7 @@ struct ScriptDashboardTopRightContents: View {
                 }
             }
             .foregroundStyle(.normalBlack900)
+            .frame(maxWidth: 200)
         }
     }
 }
