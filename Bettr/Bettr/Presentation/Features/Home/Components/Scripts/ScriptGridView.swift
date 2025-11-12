@@ -3,13 +3,20 @@ import SwiftUI
 struct ScriptGridView: View {
     @Environment(DatabaseContainer.self) var container
     
-    let columns: [GridItem]
     let onSelectPhoto: () -> Void
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
     let requestDelete: (Script) -> Void
     
     @Binding var showMenu: Bool
+    
+    // 4-column grid layout
+    private let columns: [GridItem] = [
+        GridItem(.flexible(), spacing: 50),
+        GridItem(.flexible(), spacing: 50),
+        GridItem(.flexible(), spacing: 50),
+        GridItem(.flexible())
+    ]
     
     var body: some View {
         VStack {
@@ -37,7 +44,6 @@ struct ScriptGridView: View {
 
 #Preview {
     ScriptGridView(
-        columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
         onSelectPhoto: {},
         onTakePhoto: {},
         onSelectFile: {},

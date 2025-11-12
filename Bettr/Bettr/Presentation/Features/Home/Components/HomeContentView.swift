@@ -3,7 +3,6 @@ import SwiftUI
 struct HomeContentView: View {
     @Environment(DatabaseContainer.self) var container
     
-    let columns: [GridItem]
     let onSelectPhoto: () -> Void
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
@@ -32,7 +31,6 @@ struct HomeContentView: View {
             }
         } else {
             ScriptGridView(
-                columns: columns,
                 onSelectPhoto: onSelectPhoto,
                 onTakePhoto: onTakePhoto,
                 onSelectFile: onSelectFile,
@@ -45,7 +43,6 @@ struct HomeContentView: View {
 
 #Preview("Empty Scripts") {
     HomeContentView(
-        columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
         onSelectPhoto: {},
         onTakePhoto: {},
         onSelectFile: {},
@@ -58,7 +55,6 @@ struct HomeContentView: View {
 
 #Preview("With Scripts") {
     HomeContentView(
-        columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
         onSelectPhoto: {},
         onTakePhoto: {},
         onSelectFile: {},
