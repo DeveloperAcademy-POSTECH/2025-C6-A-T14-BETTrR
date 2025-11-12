@@ -38,7 +38,6 @@ struct HistoricalFeedbackView: View {
                 Text("데이터를 불러오지 못했습니다.")
             }
         }
-        .navigationTitle("분석 결과")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             if viewModel.resultModel == nil {

@@ -22,7 +22,6 @@ struct FeedbackResultView: View {
         }
         .navigationBarBackButtonHidden()
         .cancelToolbar()
-        .navigationTitle("분석 결과")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {

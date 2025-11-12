@@ -66,7 +66,7 @@ struct ScriptDashboardView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                EditableTitleView(
+                EditableTitle(
                     title: $viewModel.currentTitle,
                     showEditIcon: true,
                     isEditing: $isTitleEditing

@@ -111,7 +111,7 @@ struct ScriptConfirmView: View {
             }
             
             ToolbarItem(placement: .principal) {
-                EditableTitleView(
+                EditableTitle(
                     title: $scriptTitle,
                     showEditIcon: true,
                     isEditing: $isTitleEditing
