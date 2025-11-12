@@ -3,7 +3,6 @@ import SwiftUI
 struct HomeContentView: View {
     @Environment(DatabaseContainer.self) var container
     
-    let columns: [GridItem]
     let onSelectPhoto: () -> Void
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
@@ -15,6 +14,7 @@ struct HomeContentView: View {
         if container.scripts.isEmpty {
             VStack {
                 Spacer()
+                Spacer()
                 HStack {
                     Spacer()
                     EmptyScriptsView(
@@ -25,26 +25,25 @@ struct HomeContentView: View {
                     )
                     Spacer()
                 }
-                //TODO: 동적 대응 생각해서 수정
-                .offset(y: -47)
+                Spacer()
+                Spacer()
                 Spacer()
             }
         } else {
             ScriptGridView(
-                columns: columns,
                 onSelectPhoto: onSelectPhoto,
                 onTakePhoto: onTakePhoto,
                 onSelectFile: onSelectFile,
                 requestDelete: requestDelete,
                 showMenu: $showMenu
             )
+            .padding(.horizontal, 125)
         }
     }
 }
 
 #Preview("Empty Scripts") {
     HomeContentView(
-        columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
         onSelectPhoto: {},
         onTakePhoto: {},
         onSelectFile: {},
@@ -57,7 +56,6 @@ struct HomeContentView: View {
 
 #Preview("With Scripts") {
     HomeContentView(
-        columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
         onSelectPhoto: {},
         onTakePhoto: {},
         onSelectFile: {},
