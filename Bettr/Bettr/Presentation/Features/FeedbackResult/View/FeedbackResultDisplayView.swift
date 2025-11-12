@@ -22,9 +22,7 @@ struct FeedbackResultDisplayView: View {
     
     /// 원본 문장 데이터 자체가 로드되었는지 여부 (문장 0개 스크립트 방어용)
     let hasOriginalSentences: Bool
-    
-    @Environment(\.metrics) var metrics
-    
+        
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 60) {
@@ -40,17 +38,17 @@ struct FeedbackResultDisplayView: View {
                                 StatisticCard(title: "스크립트 제목") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text(scriptTitle)
-                                            .font(.system(size: metrics.font24, weight: .bold))
+                                            .font(.subbodyBold24)
                                     }
                                 }
                                 
                                 StatisticCard(title: "피드백 회차") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text("\(feedbackNumber)")
-                                            .font(.system(size: metrics.font32, weight: .bold))
+                                            .font(.subtitleBold32)
                                         
                                         Text("번")
-                                            .font(.system(size: metrics.font20, weight: .regular))
+                                            .font(.calloutRegular20)
                                     }
                                 }
                             }
@@ -59,37 +57,37 @@ struct FeedbackResultDisplayView: View {
                                 StatisticCard(title: "총 녹음 시간") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text(totalRecordingTime.toMMSSms())
-                                            .font(.system(size: metrics.font24, weight: .bold))
+                                            .font(.subbodyBold24)
                                     }
                                 }
                                 
                                 StatisticCard(title: "누락된 단어") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text("\(missingCount)")
-                                            .font(.system(size: metrics.font24, weight: .bold))
+                                            .font(.subbodyBold24)
                                         
                                         Text("개")
-                                            .font(.system(size: metrics.font16, weight: .regular))
+                                            .font(.calloutRegular16)
                                     }
                                 }
                                 
                                 StatisticCard(title: "대체된 단어") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text("\(replacedCount)")
-                                            .font(.system(size: metrics.font24, weight: .bold))
+                                            .font(.subbodyBold24)
                                         
                                         Text("개")
-                                            .font(.system(size: metrics.font16, weight: .regular))
+                                            .font(.calloutRegular16)
                                     }
                                 }
                                 
                                 StatisticCard(title: "추가된 단어") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text("\(extraCount)")
-                                            .font(.system(size: metrics.font24, weight: .bold))
-                                        
+                                            .font(.subbodyBold24)
+
                                         Text("개")
-                                            .font(.system(size: metrics.font16, weight: .regular))
+                                            .font(.calloutRegular16)
                                     }
                                 }
                             }
@@ -98,10 +96,10 @@ struct FeedbackResultDisplayView: View {
                         StatisticCard(title: "종합 평가 점수") {
                             HStack(alignment: .bottom, spacing: 4) {
                                 Text("\(Int(accuracy * 100))")
-                                    .font(.system(size: metrics.font64, weight: .bold))
+                                    .font(.labelMedium64)
                                 
                                 Text("%")
-                                    .font(.system(size: metrics.font24, weight: .regular))
+                                    .font(.bodyRegular24)
                             }
                         }
                     }
