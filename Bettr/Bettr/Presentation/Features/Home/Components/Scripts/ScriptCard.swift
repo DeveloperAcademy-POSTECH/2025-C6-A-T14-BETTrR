@@ -24,6 +24,11 @@ struct ScriptCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(.primaryBlue200)
+                    .contextMenu {
+                        Button(role: .destructive, action: onDelete) {
+                            Label("삭제", systemImage: "trash")
+                        }
+                    }
                 
                 Text(script.title)
                     .foregroundStyle(.normalBlack900)
@@ -33,11 +38,6 @@ struct ScriptCard: View {
             }
             .frame(height: 193)
             .frame(maxWidth: .infinity)
-        }
-        .contextMenu {
-            Button(role: .destructive, action: onDelete) {
-                Label("삭제", systemImage: "trash")
-            }
         }
     }
 }
