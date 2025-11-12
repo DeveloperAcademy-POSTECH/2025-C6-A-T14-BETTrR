@@ -37,6 +37,13 @@ struct ScriptGridView: View {
                 }
             }
         }
+        .onTapGesture {
+            if showMenu {
+                withAnimation(.spring(response: 0.3)) {
+                    showMenu = false
+                }
+            }
+        }
         .scrollIndicators(.hidden)
     }
 }
