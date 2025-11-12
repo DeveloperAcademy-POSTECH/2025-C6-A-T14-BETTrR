@@ -52,6 +52,7 @@ struct HomeView: View {
                             showMenu = false
                         }
                     }
+                    .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .top)))
             }
         }
         .onAppear {

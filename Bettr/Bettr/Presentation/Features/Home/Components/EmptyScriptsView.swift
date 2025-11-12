@@ -75,6 +75,7 @@ private struct AddButtonView: View {
                     onSelectFile: onSelectFile,
                     showMenu: $showMenu
                 )
+                .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .top)))
             }
         }
     }
