@@ -45,13 +45,11 @@ private struct MenuItemButton: View {
             HStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.title3)
-                // figma 상에서는 B1으로 되어있음
                     .foregroundColor(.primary)
                     .frame(width: 24)
                 
                 Text(title)
                     .font(.calloutRegular16)
-                // figma 상에서는 B1으로 되어있음
                     .foregroundColor(.primary)
                     .padding(.vertical, 11)
                 
