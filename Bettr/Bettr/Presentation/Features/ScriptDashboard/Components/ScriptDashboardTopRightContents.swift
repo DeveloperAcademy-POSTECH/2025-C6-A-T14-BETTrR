@@ -43,11 +43,11 @@ struct ScriptDashboardTopRightContents: View {
                 
                 Spacer()
             }
-            .cardBorder(padding: 24)
+            .cardBordered(padding: 24)
             
             // 누적 피드백, 평균 녹음 시간
             VStack(spacing: 16) {
-                StatisticCard(title: "누적 피드백") {
+                DiagonalLayoutCard(title: "누적 피드백") {
                     HStack(alignment: .bottom, spacing: 4) {
                         Text("\(feedbackCount)")
                             .font(.subtitleBold32)
@@ -56,11 +56,13 @@ struct ScriptDashboardTopRightContents: View {
                             .font(.calloutRegular20)
                     }
                 }
+                .cardBordered()
                 
-                StatisticCard(title: "평균 녹음 시간") {
+                DiagonalLayoutCard(title: "평균 녹음 시간") {
                     Text(averagePracticeDuration.asPracticeDurationString())
                         .font(.subtitleBold32)
                 }
+                .cardBordered()
             }
             .foregroundStyle(.normalBlack900)
             .frame(maxWidth: 200)

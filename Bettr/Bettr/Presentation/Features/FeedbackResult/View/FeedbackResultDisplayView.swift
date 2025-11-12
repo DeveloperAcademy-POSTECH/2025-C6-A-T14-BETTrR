@@ -20,29 +20,27 @@ struct FeedbackResultDisplayView: View {
     /// (index: 원본 인덱스, data: (original: 원본 문장, diffs: [WordDiff]))
     let filteredSentenceDiffs: [(index: Int, data: (original: String, diffs: [WordDiff]))]
     
-    /// 원본 문장 데이터 자체가 로드되었는지 여부 (문장 0개 스크립트 방어용)
-    let hasOriginalSentences: Bool
-        
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 60) {
+            VStack(alignment: .leading, spacing: 64) {
                 // 상단 섹션
-                VStack(alignment: .leading, spacing: 20) {
-                    Text("피드백 결과")
-                        .font(.subtitleBold32)
+                VStack(alignment: .leading, spacing: 24) {
+                    Text("피드백 결과 요약")
+                        .font(.headingBold28)
                         .foregroundStyle(.normalBlack900)
                     
                     HStack(spacing: 16) {
                         VStack(spacing: 16) {
                             HStack(spacing: 16) {
-                                StatisticCard(title: "스크립트 제목") {
+                                DiagonalLayoutCard(title: "스크립트 제목") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text(scriptTitle)
                                             .font(.subbodyBold24)
                                     }
                                 }
+                                .cardBordered(padding: 24)
                                 
-                                StatisticCard(title: "피드백 회차") {
+                                DiagonalLayoutCard(title: "피드백 회차") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text("\(feedbackNumber)")
                                             .font(.subtitleBold32)
@@ -51,17 +49,22 @@ struct FeedbackResultDisplayView: View {
                                             .font(.calloutRegular20)
                                     }
                                 }
+                                .cardBordered(padding: 24)
+                                .frame(maxWidth: 192)
                             }
+                            .frame(maxHeight: 116)
                             
                             HStack(spacing: 16) {
-                                StatisticCard(title: "총 녹음 시간") {
+                                DiagonalLayoutCard(title: "총 녹음 시간") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text(totalRecordingTime.toMMSSms())
                                             .font(.subbodyBold24)
                                     }
                                 }
+                                .cardBordered(padding: 24)
+                                .frame(minWidth: 200)
                                 
-                                StatisticCard(title: "누락된 단어") {
+                                DiagonalLayoutCard(title: "누락된 단어") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text("\(missingCount)")
                                             .font(.subbodyBold24)
@@ -70,8 +73,10 @@ struct FeedbackResultDisplayView: View {
                                             .font(.calloutRegular16)
                                     }
                                 }
+                                .cardBordered(padding: 24)
+                                .frame(maxWidth: 150)
                                 
-                                StatisticCard(title: "대체된 단어") {
+                                DiagonalLayoutCard(title: "대체된 단어") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text("\(replacedCount)")
                                             .font(.subbodyBold24)
@@ -80,20 +85,25 @@ struct FeedbackResultDisplayView: View {
                                             .font(.calloutRegular16)
                                     }
                                 }
+                                .cardBordered(padding: 24)
+                                .frame(maxWidth: 150)
                                 
-                                StatisticCard(title: "추가된 단어") {
+                                DiagonalLayoutCard(title: "추가된 단어") {
                                     HStack(alignment: .bottom, spacing: 4) {
                                         Text("\(extraCount)")
                                             .font(.subbodyBold24)
-
+                                        
                                         Text("개")
                                             .font(.calloutRegular16)
                                     }
                                 }
+                                .cardBordered(padding: 24)
+                                .frame(maxWidth: 150)
                             }
+                            .frame(maxHeight: 120)
                         }
                         
-                        StatisticCard(title: "종합 평가 점수") {
+                        DiagonalLayoutCard(title: "종합 평가 점수") {
                             HStack(alignment: .bottom, spacing: 4) {
                                 Text("\(Int(accuracy * 100))")
                                     .font(.labelMedium64)
@@ -102,35 +112,27 @@ struct FeedbackResultDisplayView: View {
                                     .font(.bodyRegular24)
                             }
                         }
+                        .cardBordered(padding: 24)
+                        .frame(maxWidth: 229, maxHeight: 242)
                     }
                 }
-                
+                                
                 // 하단 섹션
-                if !hasOriginalSentences {
-                    Text("분석 결과가 없습니다.")
-                        .foregroundColor(.gray)
+                VStack(alignment: .leading, spacing: 24) {
+                    Text("틀린 문장 모아보기")
+                        .font(.headingBold28)
+                        .foregroundStyle(.normalBlack900)
                     
-                } else if filteredSentenceDiffs.isEmpty {
-                    VStack(alignment: .center, spacing: 10) {
-                        Text("🎉 완벽합니다!")
-                            .font(.title.bold())
-                            .foregroundColor(.green)
+                    if filteredSentenceDiffs.isEmpty {
                         Text("틀린 문장이 하나도 없습니다.")
-                            .font(.headline)
-                            .foregroundColor(.gray)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                    
-                } else {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("오답 체크")
-                            .font(.subbodyBold24)
-                            .foregroundStyle(.normalBlack900)
-                        
+                            .font(.labelBold16)
+                            .foregroundColor(.normalBlack900)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .cardBorderedFilled(padding: 36)
+                    } else {
                         VStack(spacing: 0) {
                             ForEach(filteredSentenceDiffs, id: \.index) { (originalIndex, sentenceData) in
-                                HStack {
+                                HStack(spacing: 0) {
                                     HighlightedTextView(diffs: sentenceData.diffs)
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .padding(36)
@@ -144,22 +146,31 @@ struct FeedbackResultDisplayView: View {
                                     
                                     Text(sentenceData.original)
                                         .font(.subbodyRegular20)
-                                        .padding(36)
                                         .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(36)
                                 }
                             }
                         }
-                        .dashboardCardStyle(
-                            padding: 0,
-                            style: .border(.primaryBlue200)
-                        )
+                        .cardBordered(padding: 0)
                     }
                 }
             }
-            .padding(.horizontal, 96)
-            .padding(.top, 36)
-            .padding(.bottom, 48)
+            .safeAreaPadding(.horizontal, 120)
         }
+        .safeAreaPadding(.top, 36)
+        .safeAreaPadding(.bottom, 48)
+    }
+}
+
+struct ResultTopContents: View {
+    var body: some View {
+        
+    }
+}
+
+struct ResultBottomContents: View {
+    var body: some View {
+        
     }
 }
 
@@ -191,7 +202,6 @@ struct FeedbackResultDisplayView: View {
                 .missing(expected: "you")
             ]))
         ],
-        hasOriginalSentences: true
     )
 }
 
@@ -205,20 +215,5 @@ struct FeedbackResultDisplayView: View {
         extraCount: 0,
         replacedCount: 0,
         filteredSentenceDiffs: [],
-        hasOriginalSentences: true
-    )
-}
-
-#Preview("분석 결과 없음") {
-    FeedbackResultDisplayView(
-        scriptTitle: "Empty Script",
-        feedbackNumber: 0,
-        accuracy: 0.0,
-        totalRecordingTime: 0.0,
-        missingCount: 0,
-        extraCount: 0,
-        replacedCount: 0,
-        filteredSentenceDiffs: [],
-        hasOriginalSentences: false
     )
 }

@@ -37,7 +37,6 @@ struct HistoricalFeedbackView: View {
                     extraCount: viewModel.extraCount,
                     replacedCount: viewModel.replacedCount,
                     filteredSentenceDiffs: viewModel.filteredSentenceDiffs,
-                    hasOriginalSentences: viewModel.hasSentences
                 )
             }
         }

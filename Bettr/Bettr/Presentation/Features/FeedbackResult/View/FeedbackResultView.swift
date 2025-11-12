@@ -27,7 +27,6 @@ struct FeedbackResultView: View {
                 extraCount: viewModel.extraCount,
                 replacedCount: viewModel.replacedCount,
                 filteredSentenceDiffs: viewModel.filteredSentenceDiffs,
-                hasOriginalSentences: !viewModel.sentenceDiffs.isEmpty
             )
         }
         .navigationBarBackButtonHidden()
