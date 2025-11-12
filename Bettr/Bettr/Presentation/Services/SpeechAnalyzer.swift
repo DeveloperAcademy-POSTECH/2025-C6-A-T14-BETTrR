@@ -47,13 +47,13 @@ class SpeechAnalyzer {
     private func smithWatermanRegion(reference: [String], recognized: [String]) -> (Int, Int) {
         let n = reference.count, m = recognized.count
         guard n > 0, m > 0 else { return (0, n) }
-
+        
         var dp = Array(repeating: Array(repeating: 0, count: m + 1), count: n + 1)
         let match = 2, mismatch = -1, gap = -1
-
+        
         var maxScore = 0
         var endPos = (i: 0, j: 0)
-
+        
         // DP 수행
         for i in 1...n {
             for j in 1...m {
@@ -68,7 +68,7 @@ class SpeechAnalyzer {
                 }
             }
         }
-
+        
         // 역추적해서 시작 인덱스 찾기
         var i = endPos.i, j = endPos.j
         while i > 0 && j > 0 && dp[i][j] > 0 {
@@ -138,21 +138,29 @@ class SpeechAnalyzer {
         let recognizedWords = normalize(transcription.formattedString)
         guard !referenceWords.isEmpty && !recognizedWords.isEmpty else { return [] }
         
-        // 1️⃣ Smith–Waterman으로 가장 유사한 구간 탐색
         let (start, end) = smithWatermanRegion(reference: referenceWords, recognized: recognizedWords)
-        print("🟢 Local region:", start, "→", end)
+        let safeStart = max(0, min(start, referenceWords.count))
+        let safeEnd = max(safeStart, min(end, referenceWords.count))
         
-        // 2️⃣ 해당 구간만 비교
-        let localRef = Array(referenceWords[start..<end])
+        #if DEBUG
+        print("🟢 Local region:", safeStart, "→", safeEnd)
+        #endif
+        
+        guard safeEnd > safeStart else {
+            return referenceWords.map { WordDiff.missing(expected: $0) }
+        }
+        
+        let localRef = Array(referenceWords[safeStart..<safeEnd])
         let localDiffs = computeLevenshtein(reference: localRef, recognized: recognizedWords)
         
-        // 3️⃣ 앞/뒤 문장은 모두 missing 처리 → 전체 스크립트 유지
-        let prefix = referenceWords[..<start].map { WordDiff.missing(expected: $0) }
-        let suffix = referenceWords[end...].map { WordDiff.missing(expected: $0) }
+        let prefix = referenceWords[..<safeStart].map { WordDiff.missing(expected: $0) }
+        let suffix = (safeEnd < referenceWords.count)
+        ? referenceWords[safeEnd...].map { WordDiff.missing(expected: $0) }
+        : []
         
         return prefix + localDiffs + suffix
     }
-    
+}
 //    func analyze(reference: String, transcription: SFTranscription) -> [WordDiff] {
 //        let referenceWords = normalize(reference)
 //        let recognizedWords = normalize(transcription.formattedString)
@@ -213,4 +221,4 @@ class SpeechAnalyzer {
 //        
 //        return diffs
 //    }
-}
+//}
