@@ -32,7 +32,7 @@ struct AddNewScriptCard: View {
                 )
                 .glassEffect()
         }
-        .overlay(alignment: .top) {
+        .overlay(alignment: .topLeading) {
             if showMenu {
                 AddScriptMenu(
                     onSelectPhoto: onSelectPhoto,
