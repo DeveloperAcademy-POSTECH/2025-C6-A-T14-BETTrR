@@ -22,7 +22,6 @@ struct ScriptDashboardView: View {
                     VStack(spacing: 36) {
                         HStack(alignment: .top, spacing: 32) {
                             ScriptDashboardTopLeftContents(feedbacks: viewModel.scriptDashboardData!.recentFeedbacks)
-                                .border(Color.red)
                             
                             ScriptDashboardTopRightContents(
                                 feedbackCount: viewModel.scriptDashboardData!.feedbackCount,
@@ -30,10 +29,8 @@ struct ScriptDashboardView: View {
                                 averagePracticeDuration: viewModel.scriptDashboardData!.averagePracticeDuration,
                                 recentFeedbackCount: viewModel.scriptDashboardData!.recentFeedbackCount
                             )
-                            .border(Color.red)
                         }
                         .frame(maxHeight: 272)
-                        .border(Color.blue)
                         
                         HStack(alignment: .top, spacing: 32) {
                             ScriptDashboardBottomLeftContents(
@@ -42,7 +39,6 @@ struct ScriptDashboardView: View {
                                 scriptTitle: viewModel.currentTitle,
                                 feedbackNumber: viewModel.scriptDashboardData!.feedbackCount
                             )
-                            .border(Color.red)
                             
                             ScriptDashboardBottomRightContents(
                                 scriptId: viewModel.scriptId,
@@ -50,11 +46,10 @@ struct ScriptDashboardView: View {
                                 scriptTitle: viewModel.currentTitle,
                                 currentFeedbackNumber: viewModel.scriptDashboardData!.feedbackCount
                             )
-                            .border(Color.red)
                         }
                         .frame(maxHeight: 546)
-                        .border(Color.blue)
-                    }                }
+                    }
+                }
             } else {
                 LoadingView(
                     isLoading: viewModel.isLoading,

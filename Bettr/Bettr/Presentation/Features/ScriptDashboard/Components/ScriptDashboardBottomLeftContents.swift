@@ -46,7 +46,6 @@ struct ScriptDashboardBottomLeftContents: View {
                 VStack(spacing: 12) {
                     ForEach(0..<5, id: \.self) { _ in
                         FeedbackSummaryCardPlaceholderView()
-                            .border(Color.red)
                         Spacer(minLength: 0)
                     }
                 }
@@ -62,7 +61,6 @@ struct ScriptDashboardBottomLeftContents: View {
                 VStack(spacing: 12) {
                     ForEach(recentFeedbacks, id: \.id) { feedback in
                         FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber)
-                            .border(Color.red)
                         Spacer(minLength: 0)
                     }
                     
@@ -70,7 +68,6 @@ struct ScriptDashboardBottomLeftContents: View {
                     if placeholderCount > 0 {
                         ForEach(0..<placeholderCount, id: \.self) { _ in
                             FeedbackSummaryCardPlaceholderView()
-                                .border(Color.red)
                             Spacer(minLength: 0)
                         }
                     }
