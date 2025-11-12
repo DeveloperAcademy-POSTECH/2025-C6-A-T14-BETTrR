@@ -36,29 +36,6 @@ struct WordkListView: View {
     }
 }
 
-
-// MARK: - LoadingView (단어 로딩중일 때 뷰)
-private struct WordLoadingView: View {
-    var body: some View {
-        VStack(spacing: 36) {
-            ProgressView()
-                .frame(width: 30, height: 30)
-                .foregroundStyle(.secondaryBlue700)
-            
-            VStack(spacing: 12) {
-                Text("단어장을 불러오는 중입니다.")
-                    .font(.iconBold20)
-                    .foregroundStyle(.normalBlack900)
-                
-                Text("잠시 기다려주세요.")
-                    .font(.calloutRegular16)
-                    .foregroundStyle(.normalBlack900)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
 // MARK: - EmptyWordListView (단어 비었을 때 뷰)
 private struct EmptyWordListView: View {
     var body: some View {
