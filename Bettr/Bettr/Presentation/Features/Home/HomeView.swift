@@ -42,7 +42,7 @@ struct HomeView: View {
             Spacer()
         }
         .padding(.top, 48)
-        .overlay {
+        .background {
             if showMenu {
                 Color.clear
                     .contentShape(Rectangle())
