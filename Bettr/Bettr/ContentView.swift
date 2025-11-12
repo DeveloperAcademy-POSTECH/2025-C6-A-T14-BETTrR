@@ -16,7 +16,6 @@ struct ContentView: View {
     var body: some View {
         NavigationStack(path: $router.path) {
             HomeView()
-                .navigationTitle("Bettr")
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .home:
