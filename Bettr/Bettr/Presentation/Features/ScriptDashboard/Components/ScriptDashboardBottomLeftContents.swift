@@ -9,19 +9,18 @@ import SwiftUI
 
 struct ScriptDashboardBottomLeftContents: View {
     @Environment(NavigationRouter.self) var router
-    @Environment(\.metrics) var metrics
     
     var recentFeedbacks: [FeedbackSummary]
     var allFeedbacks: [FeedbackSummary]
     let scriptTitle: String
     let feedbackNumber: Int
-        
+    
     var body: some View {
         
         VStack(spacing: 8) {
             HStack {
                 Text("최근 생성된 피드백")
-                    .font(.system(size: metrics.font24, weight: .bold))
+                    .font(.subbodyBold24)
                 
                 Spacer()
                 
@@ -33,16 +32,16 @@ struct ScriptDashboardBottomLeftContents: View {
                             Text("더보기")
                             Image(systemName: "chevron.right")
                         }
-                        .font(.system(size: metrics.font14, weight: .regular))
+                        .font(.labelRegular14)
                     }
                 }
             }
             .padding(8)
             .foregroundStyle(.normalBlack900)
             
-            VStack(spacing: metrics.listSpacing) {
+            VStack(spacing: 8) {
                 if recentFeedbacks.isEmpty {
-                    VStack(spacing: metrics.listSpacing) {
+                    VStack(spacing: 44) {
                         ForEach(0..<5, id: \.self) { _ in
                             FeedbackSummaryCardPlaceholderView()
                         }
@@ -52,7 +51,7 @@ struct ScriptDashboardBottomLeftContents: View {
                         VStack {
                             Spacer()
                             Text("데이터가 충분하지 않아요")
-                                .font(.system(size: metrics.font16, weight: .bold))
+                                .font(.labelBold16)
                                 .foregroundStyle(.normalBlack900)
                             Spacer()
                         }
@@ -72,10 +71,7 @@ struct ScriptDashboardBottomLeftContents: View {
                     Spacer()
                 }
             }
-            .dashboardCardStyle(
-                padding: metrics.cardPadding36,
-                style: .border(.primaryBlue200)
-            )
+            .cardBorder(padding: 36)
         }
     }
 }

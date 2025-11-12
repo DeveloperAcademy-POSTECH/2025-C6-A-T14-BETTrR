@@ -43,7 +43,7 @@ struct FilledCardStyle: ViewModifier {
 }
 
 extension View {
-    func cardBorder(padding: CGFloat = 24) -> some View {
+    func cardBorder(padding: CGFloat) -> some View {
         self.modifier(BorderCardStyle(vertical: padding, leading: padding, trailing: padding))
     }
     
@@ -51,7 +51,7 @@ extension View {
         self.modifier(BorderCardStyle(vertical: padding, leading: padding, trailing: trailing))
     }
     
-    func cardFilled(padding: CGFloat = 36) -> some View {
+    func cardFilled(padding: CGFloat) -> some View {
         self.modifier(
             FilledCardStyle(top: padding,
                             bottom: padding,

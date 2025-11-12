@@ -16,37 +16,10 @@ struct ScriptDashboardView: View {
     }
     
     var body: some View {
-        GeometryReader { geo in
-            let metrics = LayoutMetrics(width: geo.size.width)
-            
-            dashboardContent(metrics: metrics)
-                .environment(\.metrics, metrics)
-        }
-        .onTapGesture {
-            isTitleEditing = false
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                EditableTitleView(
-                    title: $viewModel.currentTitle,
-                    showEditIcon: true,
-                    isEditing: $isTitleEditing
-                )
-            }
-        }
-        .onAppear {
-            viewModel.onAppear()
-        }
-    }
-    
-    @ViewBuilder
-    private func dashboardContent(metrics: LayoutMetrics) -> some View {
         Group {
             if viewModel.scriptDashboardData != nil {
-                
-                Grid(horizontalSpacing: metrics.gridHorizontalSpacing,
-                     verticalSpacing: metrics.gridVerticalSpacing) {
+                Grid(horizontalSpacing: 16,
+                     verticalSpacing: 16) {
                     GridRow {
                         ScriptDashboardTopLeftContents(feedbacks: viewModel.scriptDashboardData!.recentFeedbacks)
                         
@@ -81,10 +54,31 @@ struct ScriptDashboardView: View {
                 )
             }
         }
+        .safeAreaPadding(.horizontal, 84)
+        .safeAreaPadding(.top, 36)
+        .safeAreaPadding(.bottom, 48)
         .frame(maxWidth: .infinity)
-        .padding(.horizontal, metrics.horizontalPadding)
-        .padding(.top, metrics.topPadding)
-        .padding(.bottom, metrics.bottomPadding)
+        .onTapGesture {
+            isTitleEditing = false
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                EditableTitleView(
+                    title: $viewModel.currentTitle,
+                    showEditIcon: true,
+                    isEditing: $isTitleEditing
+                )
+            }
+        }
+        .onAppear {
+            viewModel.onAppear()
+        }
+    }
+    
+    @ViewBuilder
+    private func dashboardContent() -> some View {
+        
     }
 }
 

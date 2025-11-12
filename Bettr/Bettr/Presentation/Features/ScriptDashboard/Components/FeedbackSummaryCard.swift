@@ -9,7 +9,6 @@ import SwiftUI
 
 struct FeedbackSummaryCard: View {
     @Environment(NavigationRouter.self) var router
-    @Environment(\.metrics) var metrics
     
     let feedback: FeedbackSummary
     let scriptTitle: String
@@ -17,30 +16,30 @@ struct FeedbackSummaryCard: View {
     
     var body: some View {
         Button(action: {
-            router.push(Route.historicalFeedback( summary: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber))
+            router.push(Route.historicalFeedback(summary: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber))
         }) {
             HStack {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("\(Int(feedback.accuracy * 100))%")
-                        .font(.system(size: metrics.font24, weight: .semibold))
+                        .font(.subtitleSemibold24)
                     
-                    HStack(spacing: metrics.cardSpacing) {
+                    HStack(spacing: 12) {
                         Text("누락된 단어 \(feedback.missingWordCount)")
                         Text("|")
                         Text("추가된 단어 \(feedback.addedWordCount)")
                         Text("|")
                         Text("대체된 단어 \(feedback.replacedWordCount)")
                     }
-                    .font(.system(size: metrics.font14, weight: .regular))
+                    .font(.labelRegular14)
                 }
                 
                 Spacer()
                 
-                HStack(spacing: metrics.buttonSpacing) {
+                HStack(spacing: 8) {
                     Text(feedback.createdAt.asAppDateString())
                     Image(systemName: "chevron.right")
                 }
-                .font(.system(size: metrics.font16, weight: .regular))
+                .font(.calloutRegular16)
             }
             .foregroundStyle(.normalBlack900)
         }
@@ -48,31 +47,30 @@ struct FeedbackSummaryCard: View {
 }
 
 struct FeedbackSummaryCardPlaceholderView: View {
-    @Environment(\.metrics) var metrics
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text(" ")
-                    .font(.system(size: metrics.font24, weight: .semibold))
+                    .font(.subtitleSemibold24)
 
-                HStack(spacing: metrics.cardSpacing) {
+                HStack(spacing: 12) {
                     Text(" ")
                     Text(" ")
                     Text(" ")
                     Text(" ")
                     Text(" ")
                 }
-                .font(.system(size: metrics.font14, weight: .regular))
+                .font(.labelRegular14)
             }
             
             Spacer()
             
-            HStack(spacing: metrics.buttonSpacing) {
+            HStack(spacing: 8) {
                 Text(" ")
                 Image(systemName: "chevron.right")
             }
-            .font(.system(size: metrics.font16, weight: .regular))
+            .font(.calloutRegular16)
         }
         .opacity(0)
     }
