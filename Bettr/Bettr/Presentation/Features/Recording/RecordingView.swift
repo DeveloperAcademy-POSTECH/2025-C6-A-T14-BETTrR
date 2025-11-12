@@ -36,17 +36,22 @@ struct RecordingView: View {
     var body: some View {
         NavigationStack(path: $modalRouter.path) {
             VStack(alignment: .center) {
-                
-                Spacer()
-                
                 // 타이머
                 Text(speechRecognizer.elapsedTime.toMMSSms())
                     .font(.labelMedium64)
                     .foregroundColor(.normalBlack900)
-                
+
                 Spacer()
                 
-                HStack {
+                Image(.waveForm)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 254)
+                    .padding(.horizontal, 68)
+                
+                Spacer()
+                                
+                HStack(spacing: 100) {
                     let isRecording = speechRecognizer.isRecording
                     let hasRecorded = speechRecognizer.hasRecorded
                     
@@ -69,6 +74,7 @@ struct RecordingView: View {
                               speechRecognizer.microphoneAuthorizationStatus != .granted ||
                               didFinishRecording
                     )
+
                     
                     Spacer()
                     
@@ -78,10 +84,10 @@ struct RecordingView: View {
                     .buttonStyle(RecordingButtonStyle(isRecording: false))
                     .disabled(!didFinishRecording)
                 }
-                
-                Spacer()
             }
-            .padding(.horizontal, 144)
+            .safeAreaPadding(.horizontal, 144)
+            .safeAreaPadding(.top, 48)
+            .safeAreaPadding(.bottom, 72)
             .onChange(of: speechRecognizer.analyzedDiffs) { _, newDiffs in
                 if let diffs = newDiffs, let practiceDuration = speechRecognizer.analyzedPracticeDuration {
                     // 결과 화면으로 이동

@@ -9,14 +9,12 @@ import SwiftUI
 
 // 공통 스타일
 private struct RecordingButtonBaseModifier: ViewModifier {
-    let isPressed: Bool
     
     func body(content: Content) -> some View {
         content
             .font(.labelRegular48)
-            .frame(width: 160, height: 160)
-            .scaleEffect(isPressed ? 0.95 : 1.0)
-            .animation(.spring(duration: 0.2), value: isPressed)
+            .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: 160, maxHeight: 160)
     }
 }
 
@@ -39,10 +37,11 @@ struct RecordingButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(isEnabled ? .defaultWhite50 : .primaryBlue50)
-            .modifier(RecordingButtonBaseModifier(isPressed: configuration.isPressed))
+            .modifier(RecordingButtonBaseModifier())
             .background(backgroundColor)
             .clipShape(Circle())
-            .glassEffect()
+            .contentShape(Circle())
+            .glassEffect(.regular.interactive(true), in: Circle())
     }
 }
 
@@ -53,9 +52,10 @@ struct SecondaryRecordingButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(isEnabled ? .secondaryBlue700 : .primaryBlue50)
-            .modifier(RecordingButtonBaseModifier(isPressed: configuration.isPressed))
+            .modifier(RecordingButtonBaseModifier())
             .background(.defaultWhite50)
             .clipShape(Circle())
-            .glassEffect()
+            .contentShape(Circle())
+            .glassEffect(.regular.interactive(true), in: Circle())
     }
 }
