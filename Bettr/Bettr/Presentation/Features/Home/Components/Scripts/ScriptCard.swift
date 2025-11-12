@@ -21,17 +21,18 @@ struct ScriptCard: View {
                 router.push(Route.scriptDashboard(scriptId: scriptId))
             }
         }) {
-            VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray.opacity(0.2))
+            VStack(alignment: .leading, spacing: 12) {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(.primaryBlue200)
                     .aspectRatio(1, contentMode: .fit)
                 
                 Text(script.title)
-                    .foregroundStyle(Color.primary)
-                    .font(.caption2)
+                    .foregroundStyle(.normalBlack900)
+                    .font(.calloutRegular16)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
         }
         .contextMenu {
             Button(role: .destructive, action: onDelete) {
