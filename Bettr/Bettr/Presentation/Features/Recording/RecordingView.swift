@@ -51,7 +51,7 @@ struct RecordingView: View {
                 
                 Spacer()
                                 
-                HStack(spacing: 100) {
+                HStack(spacing: 60) {
                     let isRecording = speechRecognizer.isRecording
                     let hasRecorded = speechRecognizer.hasRecorded
                     

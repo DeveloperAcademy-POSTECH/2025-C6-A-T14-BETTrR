@@ -14,6 +14,7 @@ private struct RecordingButtonBaseModifier: ViewModifier {
         content
             .font(.labelRegular48)
             .aspectRatio(1, contentMode: .fit)
+            .padding(30)
             .frame(maxWidth: 160, maxHeight: 160)
     }
 }
