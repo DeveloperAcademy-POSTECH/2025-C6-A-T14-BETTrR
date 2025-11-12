@@ -29,7 +29,7 @@ struct GeneralButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(currentBackgroundColor)
             )
-            .glassEffect()
+            .glassEffect(.regular.interactive(true))
     }
 }
 

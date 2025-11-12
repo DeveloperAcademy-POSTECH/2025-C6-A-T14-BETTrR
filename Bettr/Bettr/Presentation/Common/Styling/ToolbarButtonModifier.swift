@@ -18,7 +18,6 @@ struct ToolbarButtonModifier: ViewModifier {
     }
 }
 
-
 extension View {
     
     /// 툴바 활성화
