@@ -15,6 +15,7 @@ struct HomeContentView: View {
         if container.scripts.isEmpty {
             VStack {
                 Spacer()
+                Spacer()
                 HStack {
                     Spacer()
                     EmptyScriptsView(
@@ -25,8 +26,8 @@ struct HomeContentView: View {
                     )
                     Spacer()
                 }
-                //TODO: 동적 대응 생각해서 수정
-                .offset(y: -47)
+                Spacer()
+                Spacer()
                 Spacer()
             }
         } else {
