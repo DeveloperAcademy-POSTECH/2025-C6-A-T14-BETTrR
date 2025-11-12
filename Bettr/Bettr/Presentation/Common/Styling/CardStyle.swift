@@ -6,6 +6,79 @@
 //
 import SwiftUI
 
+struct BorderCardStyle: ViewModifier {
+    var vertical: CGFloat
+    var leading: CGFloat
+    var trailing: CGFloat
+    
+    func body(content: Content) -> some View {
+        content
+            .padding(.vertical, vertical)
+            .padding(.leading, leading)
+            .padding(.trailing, trailing)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(.primaryBlue200)
+            )
+    }
+}
+
+struct FilledCardStyle: ViewModifier {
+    var top: CGFloat
+    var bottom: CGFloat
+    var leading: CGFloat
+    var trailing: CGFloat
+    
+    func body(content: Content) -> some View {
+        content
+            .padding(.top, top)
+            .padding(.bottom, bottom)
+            .padding(.leading, leading)
+            .padding(.trailing, trailing)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.primaryBlue50)
+            )
+    }
+}
+
+extension View {
+    func cardBorder(padding: CGFloat = 24) -> some View {
+        self.modifier(BorderCardStyle(vertical: padding, leading: padding, trailing: padding))
+    }
+    
+    func cardBorder(padding: CGFloat = 24, trailing: CGFloat = 16) -> some View {
+        self.modifier(BorderCardStyle(vertical: padding, leading: padding, trailing: trailing))
+    }
+    
+    func cardFilled(padding: CGFloat = 36) -> some View {
+        self.modifier(
+            FilledCardStyle(top: padding,
+                            bottom: padding,
+                            leading: padding,
+                            trailing: padding)
+        )
+    }
+    
+    func cardFilled(
+        top: CGFloat = 0,
+        bottom: CGFloat = 31,
+        leading: CGFloat = 22,
+        trailing: CGFloat = 0
+    ) -> some View {
+        self.modifier(
+            FilledCardStyle(top: top,
+                            bottom: bottom,
+                            leading: leading,
+                            trailing: trailing)
+        )
+    }
+}
+
+
+// TODO: - 추후 삭제
+
+
 enum DashboardCardStyleType {
     case fill(Color)
     case border(Color, lineWidth: CGFloat = 1)

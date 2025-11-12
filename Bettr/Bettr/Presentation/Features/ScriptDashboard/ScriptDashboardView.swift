@@ -87,3 +87,4 @@ struct ScriptDashboardView: View {
         .padding(.bottom, metrics.bottomPadding)
     }
 }
+
