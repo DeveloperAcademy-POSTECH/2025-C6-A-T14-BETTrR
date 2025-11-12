@@ -46,11 +46,12 @@ private struct MenuItemButton: View {
                 Image(systemName: icon)
                     .font(.title3)
                     .foregroundColor(.primary)
-                    .frame(width: 24)
+                    .frame(width: 28)
                 
                 Text(title)
                     .font(.calloutRegular16)
                     .foregroundColor(.primary)
+                    .padding(.leading, 4)
                     .padding(.vertical, 11)
                 
                 Spacer()
