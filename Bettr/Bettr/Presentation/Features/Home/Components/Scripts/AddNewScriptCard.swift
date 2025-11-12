@@ -17,43 +17,42 @@ struct AddNewScriptCard: View {
     @Binding var showMenu: Bool
     
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
-                .foregroundColor(Color.gray.opacity(0.3))
-            Button(action: {
-                withAnimation(.spring(response: 0.3)) {
-                    showMenu = true
-                }
-            }) {
-                Circle()
-                    .fill(Color.blue)
-                    .frame(width: 56, height: 56)
-                    .overlay(
-                        Image(systemName: "plus")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundColor(.white)
-                    )
-                    .glassEffect()
+        Button(action: {
+            withAnimation(.spring(response: 0.3)) {
+                showMenu = true
             }
-            .overlay(alignment: .top) {
-                if showMenu {
-                    AddScriptMenu(
-                        onSelectPhoto: onSelectPhoto,
-                        onTakePhoto: onTakePhoto,
-                        onSelectFile: onSelectFile,
-                        showMenu: $showMenu
-                    )
-                    .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .top)))
-                }
+        }) {
+            Circle()
+                .fill(.primaryBlue500)
+                .frame(width: 48, height: 48)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.labelBold16)
+                        .foregroundColor(.defaultWhite50)
+                )
+                .glassEffect()
+        }
+        .overlay(alignment: .top) {
+            if showMenu {
+                AddScriptMenu(
+                    onSelectPhoto: onSelectPhoto,
+                    onTakePhoto: onTakePhoto,
+                    onSelectFile: onSelectFile,
+                    showMenu: $showMenu
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .top)))
             }
         }
-        .aspectRatio(1, contentMode: .fit)
-        .contentShape(Rectangle())
+        .frame(height: 193)
+        .frame(maxWidth: .infinity)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .inset(by: 1)
+                .stroke(.primaryBlue200, style: StrokeStyle(lineWidth: 2, dash: [8, 8]))
+        )
     }
 }
 
 #Preview {
     AddNewScriptCard(onSelectPhoto: {}, onTakePhoto: {}, onSelectFile: {}, showMenu: .constant(false))
-        .frame(width: 200)
 }

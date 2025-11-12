@@ -12,33 +12,32 @@ struct ScriptGridView: View {
     
     // 4-column grid layout
     private let columns: [GridItem] = [
-        GridItem(.flexible(), spacing: 50),
-        GridItem(.flexible(), spacing: 50),
-        GridItem(.flexible(), spacing: 50),
+        GridItem(.flexible(), spacing: 36),
+        GridItem(.flexible(), spacing: 36),
+        GridItem(.flexible(), spacing: 36),
         GridItem(.flexible())
     ]
     
     var body: some View {
         VStack {
-            LazyVGrid(columns: columns, spacing: 20) {
+            LazyVGrid(columns: columns, spacing: 60) {
                 AddNewScriptCard(
                     onSelectPhoto: onSelectPhoto,
                     onTakePhoto: onTakePhoto,
                     onSelectFile: onSelectFile,
                     showMenu: $showMenu
                 )
+                .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
                 
                 ForEach(container.scripts) { script in
                     ScriptCard(script: script, onDelete: {
                         requestDelete(script)
                     })
+                    .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
                 }
             }
         }
-        .padding(30)
         .background(Color.gray.opacity(0.1))
-        .cornerRadius(16)
-        .padding(.horizontal, 40)
     }
 }
 

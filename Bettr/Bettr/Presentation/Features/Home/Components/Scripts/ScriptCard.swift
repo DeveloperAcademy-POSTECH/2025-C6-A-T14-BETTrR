@@ -24,7 +24,6 @@ struct ScriptCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(.primaryBlue200)
-                    .aspectRatio(1, contentMode: .fit)
                 
                 Text(script.title)
                     .foregroundStyle(.normalBlack900)
@@ -32,7 +31,8 @@ struct ScriptCard: View {
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
+            .frame(height: 193)
+            .frame(maxWidth: .infinity)
         }
         .contextMenu {
             Button(role: .destructive, action: onDelete) {
@@ -52,6 +52,5 @@ struct ScriptCard: View {
         ),
         onDelete: {}
     )
-    .frame(width: 200)
     .environment(NavigationRouter())
 }
