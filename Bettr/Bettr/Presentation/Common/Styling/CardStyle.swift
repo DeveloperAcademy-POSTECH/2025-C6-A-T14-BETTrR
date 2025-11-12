@@ -6,14 +6,16 @@
 //
 import SwiftUI
 
-struct BorderCardStyle: ViewModifier {
-    var vertical: CGFloat
+struct BorderedCardStyle: ViewModifier {
+    var top: CGFloat
+    var bottom: CGFloat
     var leading: CGFloat
     var trailing: CGFloat
     
     func body(content: Content) -> some View {
         content
-            .padding(.vertical, vertical)
+            .padding(.top, top)
+            .padding(.bottom, bottom)
             .padding(.leading, leading)
             .padding(.trailing, trailing)
             .background(
@@ -42,109 +44,51 @@ struct FilledCardStyle: ViewModifier {
     }
 }
 
-extension View {
-    func cardBorder(padding: CGFloat) -> some View {
-        self.modifier(BorderCardStyle(vertical: padding, leading: padding, trailing: padding))
-    }
-    
-    func cardBorder(padding: CGFloat = 24, trailing: CGFloat = 16) -> some View {
-        self.modifier(BorderCardStyle(vertical: padding, leading: padding, trailing: trailing))
-    }
-    
-    func cardFilled(padding: CGFloat) -> some View {
-        self.modifier(
-            FilledCardStyle(top: padding,
-                            bottom: padding,
-                            leading: padding,
-                            trailing: padding)
-        )
-    }
-    
-    func cardFilled(
-        top: CGFloat = 0,
-        bottom: CGFloat = 31,
-        leading: CGFloat = 22,
-        trailing: CGFloat = 0
-    ) -> some View {
-        self.modifier(
-            FilledCardStyle(top: top,
-                            bottom: bottom,
-                            leading: leading,
-                            trailing: trailing)
-        )
-    }
-}
-
-
-// TODO: - 추후 삭제
-
-
-enum DashboardCardStyleType {
-    case fill(Color)
-    case border(Color, lineWidth: CGFloat = 1)
-}
-
-struct DashboardCardStyle: ViewModifier {
-    
+struct BorderedFilledCardStyle: ViewModifier {
     var top: CGFloat
-    var leading: CGFloat
     var bottom: CGFloat
+    var leading: CGFloat
     var trailing: CGFloat
-    
-    let style: DashboardCardStyleType
-    
-    init(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat, style: DashboardCardStyleType) {
-        self.top = top
-        self.leading = leading
-        self.bottom = bottom
-        self.trailing = trailing
-        self.style = style
-    }
-    
-    init(padding: CGFloat, style: DashboardCardStyleType) {
-        self.init(top: padding,
-                  leading: padding,
-                  bottom: padding,
-                  trailing: padding,
-                  style: style)
-    }
     
     func body(content: Content) -> some View {
         content
-            .padding(EdgeInsets(top: top,
-                                leading: leading,
-                                bottom: bottom,
-                                trailing: trailing))
+            .padding(.top, top)
+            .padding(.bottom, bottom)
+            .padding(.leading, leading)
+            .padding(.trailing, trailing)
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .dashboardCardBackground(style: style)
+                    .fill(.primaryBlue50)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .strokeBorder(.primaryBlue200)
+                    )
             )
     }
 }
 
-private extension RoundedRectangle {
-    @ViewBuilder
-    func dashboardCardBackground(style: DashboardCardStyleType) -> some View {
-        switch style {
-        case .fill(let color):
-            self.fill(color)
-        case .border(let color, let lineWidth):
-            self.strokeBorder(color, lineWidth: lineWidth)
-        }
-    }
-}
-
 extension View {
-    func dashboardCardStyle(padding: CGFloat = 24, style: DashboardCardStyleType) -> some View {
-        self.modifier(DashboardCardStyle(padding: padding,
-                                         style: style))
+    func cardBordered(padding: CGFloat) -> some View {
+        self.modifier(BorderedCardStyle(top: padding, bottom: padding, leading: padding, trailing: padding))
     }
     
-    func dashboardCardStyle(top: CGFloat, leading: CGFloat, bottom: CGFloat, trailing: CGFloat, style: DashboardCardStyleType) -> some View {
-        self.modifier(DashboardCardStyle(top: top,
-                                         leading: leading,
-                                         bottom: bottom,
-                                         trailing: trailing,
-                                         style: style))
+    func cardBordered(padding: CGFloat = 24, trailing: CGFloat = 16) -> some View {
+        self.modifier(BorderedCardStyle(top: padding, bottom: padding, leading: padding, trailing: trailing))
+    }
+    
+    func cardFilled(padding: CGFloat) -> some View {
+        self.modifier(
+            FilledCardStyle(top: padding, bottom: padding, leading: padding, trailing: padding)
+        )
+    }
+    
+    func cardFilled(top: CGFloat = 0, bottom: CGFloat = 31, leading: CGFloat = 22, trailing: CGFloat = 0) -> some View {
+        self.modifier(
+            FilledCardStyle(top: top, bottom: bottom, leading: leading, trailing: trailing)
+        )
+    }
+    
+    func cardBorderedFilled(padding: CGFloat) -> some View {
+        self.modifier(BorderedFilledCardStyle(top: padding, bottom: padding, leading: padding, trailing: padding))
     }
 }

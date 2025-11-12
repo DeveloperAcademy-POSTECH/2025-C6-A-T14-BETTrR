@@ -25,33 +25,7 @@ class HistoricalFeedbackViewModel {
     
     // MARK: - 2. Display Properties (View Data)
     
-    /// 피드백 대상 스크립트의 제목
-    var scriptTitle: String
-    
-    /// 이 피드백이 몇 번째 피드백인지
-    var feedbackNumber: Int
-    
-    /// 피드백 정확도 (Summary에서 직접 가져옴)
-    var accuracy: Double = 0
-    
-    /// 총 연습 시간 (Summary에서 직접 가져옴)
-    var totalRecordingTime: TimeInterval = 0
-    
-    /// 누락된 단어 수 (Summary에서 직접 가져옴)
-    var missingCount: Int = 0
-    
-    /// 추가된 단어 수 (Summary에서 직접 가져옴)
-    var extraCount: Int = 0
-    
-    /// 대체된 단어 수 (Summary에서 직접 가져옴)
-    var replacedCount: Int = 0
-    
-    /// DB에서 재구성한 "틀린 문장" 목록 (뷰에 최종 표시될 데이터)
-    /// `FeedbackViewModel`의 `filteredSentenceDiffs`와 동일한 형식을 가집니다.
-    var filteredSentenceDiffs: [(index: Int, data: (original: String, diffs: [WordDiff]))] = []
-    
-    /// 재구성된 문장이 하나라도 있는지 여부
-    var hasSentences: Bool = false
+    var resultModel: FeedbackResultModel?
     
     // MARK: - 3. Dependencies & Private Properties
     
@@ -61,8 +35,9 @@ class HistoricalFeedbackViewModel {
     /// 데이터베이스 통신을 위한 서비스 객체
     private let scriptManagementService: ScriptManagementServiceProtocol
     
-    /// (로직에는 필요 없으나 `SpeechAnalyzer` 인스턴스화가 필요할 경우 사용)
-    // private let analyzer = SpeechAnalyzer()
+    // init에서 전달받은 메타데이터를 저장할 비공개 프로퍼티 추가
+    private let scriptTitle: String
+    private let feedbackNumber: Int
     
     // MARK: - 4. Initializer
     
@@ -81,16 +56,12 @@ class HistoricalFeedbackViewModel {
         self.summary = summary
         self.scriptManagementService = scriptManagementService
         
-        // 1. Summary 및 전달받은 메타데이터 즉시 할당
+        // 1. 메타데이터를 비공개 프로퍼티에 저장해 둡니다.
+        //    (로딩 완료 후 resultModel을 만들 때 사용)
         self.scriptTitle = scriptTitle
         self.feedbackNumber = feedbackNumber
-        self.accuracy = summary.accuracy
-        self.totalRecordingTime = summary.practiceDuration
-        self.missingCount = summary.missingWordCount
-        self.extraCount = summary.addedWordCount
-        self.replacedCount = summary.replacedWordCount
         
-        // 2. 상세 내역(filteredSentenceDiffs)은 `loadFeedbackData()`를 통해 비동기로 로드
+        // 2. 상세 내역(resultModel)은 비동기로 로드
     }
     
     // MARK: - 5. Core Logic (Data Loading & Reconstruction)
@@ -162,23 +133,35 @@ class HistoricalFeedbackViewModel {
             }
             
             // --- 4. 가공된 데이터를 UI가 사용할 형태로 필터링 ---
-            // 이 로직은 FeedbackViewModel의 `filteredSentenceDiffs`와 완전히 동일합니다.
-            self.hasSentences = !reconstructedSentenceDiffs.isEmpty
             
             // '.matched' 외의 오류가 있는 문장만 필터링
-            self.filteredSentenceDiffs = reconstructedSentenceDiffs.enumerated()
+            let finalFilteredDiffs = reconstructedSentenceDiffs.enumerated()
                 .filter { (index, data) in
                     data.diffs.contains { diff in
                         switch diff {
-                        case .matched: return false // 오류 아님
-                        default: return true // 오류(.missing, .extra, .replaced) 발견
+                        case .matched: return false
+                        default: return true
                         }
                     }
                 }
                 .map { (offset, element) in
-                    // (index: 원본 인덱스, data: {original, diffs}) 형태로 변환
                     return (index: offset, data: element)
                 }
+            
+            // --- 5. [핵심] 모든 데이터를 조합하여 `resultModel` 생성 ---
+            // 9개의 개별 프로퍼티에 값을 할당하는 대신,
+            // init에서 받은 summary와 메타데이터, 방금 로드한 diffs를 사용해
+            // FeedbackResultModel 인스턴스 하나를 생성합니다.
+            self.resultModel = FeedbackResultModel(
+                scriptTitle: self.scriptTitle,             // init에서 저장
+                feedbackNumber: self.feedbackNumber,       // init에서 저장
+                accuracy: self.summary.accuracy,           // init에서 저장 (summary)
+                totalRecordingTime: self.summary.practiceDuration, // init에서 저장 (summary)
+                missingCount: self.summary.missingWordCount,
+                extraCount: self.summary.addedWordCount,
+                replacedCount: self.summary.replacedWordCount,
+                filteredSentenceDiffs: finalFilteredDiffs  // 방금 로드/가공
+            )
             
             self.isLoading = false // 로딩 완료
             

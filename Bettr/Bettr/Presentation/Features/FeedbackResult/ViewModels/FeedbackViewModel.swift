@@ -103,6 +103,19 @@ class FeedbackViewModel {
     /// 텍스트 정규화 및 단어 수 계산을 위한 분석기 유틸리티
     private let analyzer = SpeechAnalyzer()
     
+    var resultModel: FeedbackResultModel {
+            FeedbackResultModel(
+                scriptTitle: self.scriptTitle,
+                feedbackNumber: self.newFeedbackNumber,
+                accuracy: self.accuracy,
+                totalRecordingTime: self.practiceDuration,
+                missingCount: self.missingCount,
+                extraCount: self.extraCount,
+                replacedCount: self.replacedCount,
+                filteredSentenceDiffs: self.filteredSentenceDiffs
+            )
+        }
+    
     // MARK: - 5. Initializer
        
        /// `FeedbackViewModel`을 초기화합니다.

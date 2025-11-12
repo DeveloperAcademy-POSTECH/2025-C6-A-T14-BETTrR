@@ -27,7 +27,7 @@ struct MemorizationToolbar: ViewModifier {
             .toolbar {
                 // 타이틀
                 ToolbarItem(placement: .principal) {
-                    EditableTitleView(title: $title, showEditIcon: showEditIcon, isEditing: $isTitleEditing )
+                    EditableTitle(title: $title, showEditIcon: showEditIcon, isEditing: $isTitleEditing )
                 }
                 
                 // 상단 오른쪽 툴 바

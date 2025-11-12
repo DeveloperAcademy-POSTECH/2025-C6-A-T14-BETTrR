@@ -18,21 +18,10 @@ struct FeedbackResultView: View {
     
     var body: some View {
         VStack {
-            FeedbackResultDisplayView(
-                scriptTitle: viewModel.scriptTitle,
-                feedbackNumber: viewModel.newFeedbackNumber,
-                accuracy: viewModel.accuracy,
-                totalRecordingTime: viewModel.practiceDuration,
-                missingCount: viewModel.missingCount,
-                extraCount: viewModel.extraCount,
-                replacedCount: viewModel.replacedCount,
-                filteredSentenceDiffs: viewModel.filteredSentenceDiffs,
-                hasOriginalSentences: !viewModel.sentenceDiffs.isEmpty
-            )
+            FeedbackResultDisplayView(model: viewModel.resultModel)
         }
         .navigationBarBackButtonHidden()
         .cancelToolbar()
-        .navigationTitle("분석 결과")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {

@@ -25,10 +25,7 @@ struct AllFeedbackView: View {
                     }
                     Spacer()
                 }
-                .dashboardCardStyle(
-                    padding: 36,
-                    style: .border(.primaryBlue200)
-                )
+                .cardBordered(padding: 36)
             }
             else {
                 VStack {
@@ -39,10 +36,7 @@ struct AllFeedbackView: View {
                     
                     Spacer()
                 }
-                .dashboardCardStyle(
-                    padding: 36,
-                    style: .border(.primaryBlue200)
-                )
+                .cardBordered(padding: 36)
             }
         }
         .padding(.horizontal, 84)

@@ -26,6 +26,10 @@ extension Font {
         return .sfPro(weight: .bold, size: 32)
     }
     
+    static var headingBold28: Font {
+        return .sfPro(weight: .bold, size: 28)
+    }
+    
     static var bodyRegular28: Font {
         return .sfPro(weight: .regular, size: 28)
     }

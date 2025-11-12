@@ -49,7 +49,7 @@ struct ScriptDashboardBottomLeftContents: View {
                         Spacer(minLength: 0)
                     }
                 }
-                .cardBorder(padding: 36)
+                .cardBordered(padding: 36)
                 .overlay(
                     VStack(alignment: .center) {
                         Text("데이터가 충분하지 않아요")
@@ -72,7 +72,7 @@ struct ScriptDashboardBottomLeftContents: View {
                         }
                     }
                 }
-                .cardBorder(padding: 36)
+                .cardBordered(padding: 36)
             }
         }
     }

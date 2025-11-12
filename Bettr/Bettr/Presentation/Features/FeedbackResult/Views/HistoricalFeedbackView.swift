@@ -9,11 +9,11 @@ import SwiftUI
 
 struct HistoricalFeedbackView: View {
     @State private var viewModel: HistoricalFeedbackViewModel
-    
+     
     init(viewModel: HistoricalFeedbackViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
-    
+     
     var body: some View {
         VStack {
             if viewModel.isLoading {
@@ -27,24 +27,20 @@ struct HistoricalFeedbackView: View {
                         .padding()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
+            // 로딩 성공 시, 옵셔널 바인딩으로 resultModel을 가져옵니다.
+            } else if let resultModel = viewModel.resultModel {
+                // DisplayView에 모델 하나만 전달합니다.
+                FeedbackResultDisplayView(model: resultModel)
+                
             } else {
-                FeedbackResultDisplayView(
-                    scriptTitle: viewModel.scriptTitle,
-                    feedbackNumber: viewModel.feedbackNumber,
-                    accuracy: viewModel.accuracy,
-                    totalRecordingTime: viewModel.totalRecordingTime,
-                    missingCount: viewModel.missingCount,
-                    extraCount: viewModel.extraCount,
-                    replacedCount: viewModel.replacedCount,
-                    filteredSentenceDiffs: viewModel.filteredSentenceDiffs,
-                    hasOriginalSentences: viewModel.hasSentences
-                )
+                // (방어 코드) 로딩이 false고, 에러도 없는데 모델이 nil인 경우
+                Text("데이터를 불러오지 못했습니다.")
             }
         }
-        .navigationTitle("분석 결과")
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            if viewModel.filteredSentenceDiffs.isEmpty && viewModel.hasSentences == false {
+            if viewModel.resultModel == nil {
                 await viewModel.loadFeedbackData()
             }
         }

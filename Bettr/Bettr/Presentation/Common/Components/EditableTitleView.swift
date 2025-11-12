@@ -1,5 +1,5 @@
 //
-//  EditableTitleView.swift
+//  EditableTitle.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/8/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct EditableTitleView: View {
+struct EditableTitle: View {
     @Binding var title: String
     let showEditIcon: Bool
     
