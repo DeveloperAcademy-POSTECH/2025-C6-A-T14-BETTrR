@@ -11,36 +11,144 @@ struct AllFeedbackView: View {
     let feedbacks: [FeedbackSummary]
     let scriptTitle: String
     let feedbackNumber: Int
-
+    
+    private var recentFeedbacks: [FeedbackSummary] {
+        let oneHourAgo = Date().addingTimeInterval(-3600) // 3600초 = 1시간
+        return feedbacks.filter { $0.createdAt > oneHourAgo }
+            .sorted { $0.createdAt > $1.createdAt } // 최신순 정렬
+    }
+    
+    private var previousFeedbacks: [FeedbackSummary] {
+        let oneHourAgo = Date().addingTimeInterval(-3600)
+        return feedbacks.filter { $0.createdAt <= oneHourAgo }
+            .sorted { $0.createdAt > $1.createdAt } // 최신순 정렬
+    }
+    
+    private let gridColumns: [GridItem] = [
+        GridItem(.flexible(), spacing: 32),
+        GridItem(.flexible())
+    ]
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Text("모든 피드백")
-                .font(.subtitleBold32)
-                .foregroundStyle(.normalBlack900)
-            
-            if feedbacks.count > 0 {
-                VStack(spacing: 20) {
-                    ForEach(feedbacks, id: \.id) { feedback in
-                        FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 64) {
+                // --- 섹션 1: 최근 1시간 동안 생성된 피드백 ---
+                if !recentFeedbacks.isEmpty {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text("최근 1시간 동안 생성된 피드백")
+                            .font(.headingBold28)
+                            .foregroundStyle(.normalBlack900)
+                        
+                        LazyVGrid(columns: gridColumns, spacing: 36) {
+                            ForEach(recentFeedbacks) { feedback in
+                                FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber)
+                            }
+                        }
+                        .cardBordered(padding: 36)
                     }
-                    Spacer()
                 }
-                .cardBordered(padding: 36)
-            }
-            else {
-                VStack {
-                    Spacer()
-                    Text("데이터가 충분하지 않아요")
-                        .font(.labelBold16)
-                        .foregroundStyle(.normalBlack900)
-                    
-                    Spacer()
+                
+                // --- 섹션 2: 이전 모든 피드백 ---
+                if !previousFeedbacks.isEmpty {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text(recentFeedbacks.isEmpty ? "모든 피드백" : "이전 모든 피드백")
+                            .font(.headingBold28)
+                            .foregroundStyle(.normalBlack900)
+                        
+                        LazyVGrid(columns: gridColumns, spacing: 36) {
+                            ForEach(previousFeedbacks) { feedback in
+                                FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber)
+                            }
+                        }
+                        .cardBordered(padding: 36)
+                    }
                 }
-                .cardBordered(padding: 36)
             }
+            .safeAreaPadding(.horizontal, 120)
         }
-        .padding(.horizontal, 84)
-        .padding(.top, 36)
-        .padding(.bottom, 48)
+        .safeAreaPadding(.top, 36)
+        .safeAreaPadding(.bottom, 48)
+    }
+}
+
+// MARK: - Preview
+
+#Preview("1. 모든 데이터가 있을 때") {
+    let mockFeedbacks: [FeedbackSummary] = [
+        // 1. 최근 (1시간 이내)
+        FeedbackSummary(
+            id: 1, scriptId: 1, accuracy: 0.95,
+            missingWordCount: 1, addedWordCount: 0, replacedWordCount: 1,
+            practiceDuration: 120.5, createdAt: Date().addingTimeInterval(-600) // 10분 전
+        ),
+        FeedbackSummary(
+            id: 2, scriptId: 1, accuracy: 0.88,
+            missingWordCount: 2, addedWordCount: 1, replacedWordCount: 3,
+            practiceDuration: 130.0, createdAt: Date().addingTimeInterval(-1800) // 30분 전
+        ),
+        
+        // 2. 이전 (1시간 이후)
+        FeedbackSummary(
+            id: 3, scriptId: 1, accuracy: 0.75,
+            missingWordCount: 5, addedWordCount: 2, replacedWordCount: 4,
+            practiceDuration: 150.2, createdAt: Date().addingTimeInterval(-3700) // 1시간 1분 전
+        ),
+        FeedbackSummary(
+            id: 4, scriptId: 1, accuracy: 0.82,
+            missingWordCount: 3, addedWordCount: 3, replacedWordCount: 3,
+            practiceDuration: 140.0, createdAt: Date().addingTimeInterval(-7200) // 2시간 전
+        ),
+        FeedbackSummary(
+            id: 5, scriptId: 1, accuracy: 0.90,
+            missingWordCount: 1, addedWordCount: 1, replacedWordCount: 2,
+            practiceDuration: 135.0, createdAt: Date().addingTimeInterval(-86400) // 1일 전
+        )
+    ]
+    
+    return NavigationStack {
+        AllFeedbackView(
+            feedbacks: mockFeedbacks,
+            scriptTitle: "스티브 잡스 스탠포드 연설",
+            feedbackNumber: 5
+        )
+        .environment(NavigationRouter())
+    }
+}
+
+#Preview("2. 최근 피드백만 있을 때") {
+    let mockFeedbacks: [FeedbackSummary] = [
+        FeedbackSummary(
+            id: 1, scriptId: 1, accuracy: 0.95,
+            missingWordCount: 1, addedWordCount: 0, replacedWordCount: 1,
+            practiceDuration: 120.5, createdAt: Date().addingTimeInterval(-600) // 10분 전
+        )
+    ]
+    
+    return NavigationStack {
+        AllFeedbackView(
+            feedbacks: mockFeedbacks,
+            scriptTitle: "최근 스크립트",
+            feedbackNumber: 1
+        )
+        .environment(NavigationRouter())
+    }
+}
+
+#Preview("3. 이전 피드백만 있을 때") {
+    let mockFeedbacks: [FeedbackSummary] = [
+        FeedbackSummary(
+            id: 3, scriptId: 1, accuracy: 0.75,
+            missingWordCount: 5, addedWordCount: 2, replacedWordCount: 4,
+            practiceDuration: 150.2, createdAt: Date().addingTimeInterval(-3700) // 1시간 1분 전
+        )
+    ]
+    
+    return NavigationStack {
+        AllFeedbackView(
+            feedbacks: mockFeedbacks,
+            scriptTitle: "오래된 스크립트",
+            feedbackNumber: 1
+        )
+        .environment(NavigationRouter())
     }
 }
