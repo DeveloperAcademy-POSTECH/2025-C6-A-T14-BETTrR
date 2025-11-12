@@ -5,6 +5,7 @@ struct HomeView: View {
     @Environment(NavigationRouter.self) var router
     @Environment(DatabaseContainer.self) var container
     
+    @State private var showMenu = false
     @State private var selectedPhoto: PhotosPickerItem? = nil
     @State private var showingPhotoPicker = false
     @State private var isShowingCamera = false
@@ -26,42 +27,33 @@ struct HomeView: View {
     ]
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Scripts")
-                    .font(.system(size: 25, weight: .semibold))
-                    .padding(.horizontal, 20)
-                
-                if container.scripts.isEmpty {
-                    EmptyScriptsView(
-                        onSelectPhoto: { showingPhotoPicker = true },
-                        onTakePhoto: { isShowingCamera = true },
-                        onSelectFile: { isShowingDocumentPicker = true }
-                    )
-                    .frame(height: 500) // 적절한 높이 설정
-                } else {
-                    VStack {
-                        LazyVGrid(columns: columns, spacing: 20) {
-                            AddNewScriptCard(
-                                onSelectPhoto: { showingPhotoPicker = true },
-                                onTakePhoto: { isShowingCamera = true },
-                                onSelectFile: { isShowingDocumentPicker = true }
-                            )
-                            
-                            ForEach(container.scripts) { script in
-                                ScriptCard(script: script, onDelete: {
-                                    requestDelete(script: script)
-                                })
-                            }
+        VStack(alignment: .leading, spacing: 48) {
+            MainHeaderView()
+            
+            HomeContentView(
+                columns: columns,
+                onSelectPhoto: { showingPhotoPicker = true },
+                onTakePhoto: { isShowingCamera = true },
+                onSelectFile: { isShowingDocumentPicker = true },
+                requestDelete: requestDelete,
+                showMenu: $showMenu
+            )
+            
+            Spacer()
+        }
+        .padding(.top, 48)
+        .background {
+            if showMenu {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.3)) {
+                            showMenu = false
                         }
                     }
-                    .padding(30)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(16)
-                    .padding(.horizontal, 40)
-                }
+                    .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .top)))
             }
-            .padding(.vertical)
         }
         .onAppear {
             container.refreshScripts()
@@ -139,83 +131,14 @@ struct HomeView: View {
     }
 }
 
-// MARK: - AddNewScriptCard Component
-private struct AddNewScriptCard: View {
-    let onSelectPhoto: () -> Void
-    let onTakePhoto: () -> Void
-    let onSelectFile: () -> Void
-    
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(style: StrokeStyle(lineWidth: 2, dash: [8, 4]))
-                .foregroundColor(Color.gray.opacity(0.3))
-            
-            Circle()
-                .fill(Color.blue)
-                .frame(width: 56, height: 56)
-                .overlay(
-                    Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundColor(.white)
-                )
-                .glassEffect()
-        }
-        .aspectRatio(1, contentMode: .fit)
-        .contentShape(Rectangle())
-        .overlay {
-            Menu {
-                Button(action: onSelectPhoto) {
-                    Label("사진 보관함", systemImage: "photo")
-                }
-                Button(action: onTakePhoto) {
-                    Label("사진 찍기", systemImage: "camera")
-                }
-                Button(action: onSelectFile) {
-                    Label("파일 선택", systemImage: "doc")
-                }
-            } label: {
-                Color.clear
-            }
-        }
-    }
-}
-
-// MARK: - ScriptCard Component
-private struct ScriptCard: View {
-    @Environment(NavigationRouter.self) var router
-    
-    let script: Script
-    let onDelete: () -> Void
-    
-    var body: some View {
-        Button(action: {
-            if let scriptId = script.id {
-                router.push(Route.scriptDashboard(scriptId: scriptId))
-            }
-        }) {
-            VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.gray.opacity(0.2))
-                    .aspectRatio(1, contentMode: .fit)
-                
-                Text(script.title)
-                    .foregroundStyle(Color.primary)
-                    .font(.caption2)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-        .contextMenu {
-            Button(role: .destructive, action: onDelete) {
-                Label("삭제", systemImage: "trash")
-            }
-        }
-    }
-}
-
-#Preview {
+#Preview("Empty Scripts") {
     HomeView()
-        .environment(DatabaseContainer.getForPreview())
+        .environment(DatabaseContainer.getForPreview(withMockData: false))
+        .environment(NavigationRouter())
+}
+
+#Preview("With Scripts") {
+    HomeView()
+        .environment(DatabaseContainer.getForPreview(withMockData: true))
         .environment(NavigationRouter())
 }
