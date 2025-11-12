@@ -17,7 +17,8 @@ struct ResultBottomContents: View {
                 .foregroundStyle(.normalBlack900)
             
             MistakesListView(filteredSentenceDiffs: model.filteredSentenceDiffs)
-        }    }
+        }
+    }
 }
 
 struct MistakesListView: View {

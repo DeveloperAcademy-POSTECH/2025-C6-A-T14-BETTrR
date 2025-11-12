@@ -109,7 +109,8 @@ struct ResultSummaryGridView: View {
                 }
             }
             .cardBordered(padding: 24)
-            .frame(maxWidth: 229, maxHeight: 242)
+            .frame(maxWidth: 229, maxHeight: 252)
         }
+        .frame(maxHeight: 252)
     }
 }
