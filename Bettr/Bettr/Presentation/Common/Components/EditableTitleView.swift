@@ -30,6 +30,11 @@ struct EditableTitle: View {
                     .textFieldStyle(.plain)
                     .focused($isFocused)
                     .onSubmit { saveAndExit() }
+                    .onChange(of: editedTitle) {
+                        if editedTitle.count > 20 {
+                            editedTitle = String(editedTitle.prefix(20))
+                        }
+                    }
                     
                     // 텍스트가 있을 때만 X 버튼 표시
                     if !editedTitle.isEmpty {
