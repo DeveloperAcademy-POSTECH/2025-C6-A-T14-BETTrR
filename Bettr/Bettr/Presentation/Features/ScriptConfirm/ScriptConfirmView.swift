@@ -42,17 +42,25 @@ struct ScriptConfirmView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            // 스크립트 내용 (메모 앱처럼 동작)
+            // 스크립트 내용
             VStack(alignment: .trailing, spacing: 8) {
                 if isEditingContent {
-                    TextEditor(text: $scriptContent)
-                        .padding(4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.gray.opacity(0.5))
-                        )
-                    // 🔹 [추가됨] 키보드 포커스 감지
-                        .focused($isFocusedContentEditor)
+                    ZStack(alignment: .topLeading) {
+                        TextEditor(text: $scriptContent)
+                            .padding(4)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.gray.opacity(0.5))
+                            )
+                            .focused($isFocusedContentEditor)
+                        //placeholder
+                        if scriptContent.isEmpty {
+                            Text("스크립트를 입력하세요.")
+                                .foregroundColor(.gray.opacity(0.5))
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 8)
+                        }
+                    }
                 } else {
                     ScrollView {
                         Text(scriptContent)
