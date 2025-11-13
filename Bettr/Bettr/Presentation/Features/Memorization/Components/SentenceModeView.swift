@@ -12,7 +12,7 @@ struct SentenceModeView: View {
 
     var body: some View {
         ForEach(viewModel.scriptData?.sentences ?? [], id: \.orderIndex) { sentence in
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
                 
                 // 1. 영어 텍스트
                 EnglishScriptTextView(
