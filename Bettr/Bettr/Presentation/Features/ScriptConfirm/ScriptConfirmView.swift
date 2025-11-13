@@ -118,8 +118,6 @@ struct ScriptConfirmView: View {
                 .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
-        // 🔹 [추가됨] 키보드로 인해 전체 View가 밀리지 않도록 설정
-        .ignoresSafeArea(.keyboard)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {
