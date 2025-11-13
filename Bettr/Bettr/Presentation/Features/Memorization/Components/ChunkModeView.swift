@@ -19,6 +19,7 @@ struct ChunkModeView: View {
                 // 영어 청크 라인
                 CustomFlowLayout(horizontalSpacing: 12, verticalSpacing: 8) {
                     ForEach(sentence.chunks, id: \.orderIndex) { chunk in
+                        
                         let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)
                         
                         EnglishScriptTextView(

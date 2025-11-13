@@ -5,6 +5,8 @@ import AVFoundation
 @Observable
 final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
+    // MARK: - Properties
+    
     // MARK: Dependencies (의존성)
     let scriptId: Int64
     let scriptService: ScriptManagementServiceProtocol
@@ -20,18 +22,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     var uiState = MemorizationUIState()
     var interactionState = MemorizationInteractionState()
     
-    // MARK: Title State (프로토콜 요구사항)
-    var currentTitle: String {
-        didSet {
-            handleTitleChange(oldValue: oldValue, newValue: currentTitle)
-        }
-    }
-    
     // MARK: Computed Properties (계산 프로퍼티)
     var isRecordingDisabled: Bool { scriptData == nil }
     var referenceSentences: [String] { scriptData?.sentences.map { $0.englishText } ?? [] }
     
-    // MARK: Init
+    // MARK: - Initialization
     
     init(
         scriptId: Int64,
@@ -47,7 +42,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         self.audioService = audioService
     }
     
-    // MARK: Lifecycle Methods
+    // MARK: - View Lifecycle
     
     @MainActor
     func onAppear() {
@@ -60,13 +55,19 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         audioService.stop()
     }
     
-    // MARK: Protocol Methods
+    // MARK: - Protocol Conformance
     
+    var currentTitle: String {
+        didSet {
+            handleTitleChange(oldValue: oldValue, newValue: currentTitle)
+        }
+    }
+
     func updateLocalModelTitle(_ newTitle: String) {
         self.scriptData?.title = newTitle
     }
     
-    // MARK: - Intent-based Methods
+    // MARK: - User Intents & UI Handlers
     
     func endTitleEditing() {
         uiState.isTitleEditing = false
@@ -82,12 +83,13 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     func setFunctionMode(_ newMode: FunctionMode) {
         uiState.funcMode = newMode
         
-        // 'didSet'에 있던 로직을 이곳으로 이동
         if uiState.funcMode == .read {
             interactionState.clearAllHiddenStates()
         }
         uiState.tappedPlaybackText = nil
     }
+    
+    // MARK: Playback Controls
     
     func togglePlayStop() {
         uiState.isPlaying.toggle()
@@ -118,6 +120,8 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         }
     }
     
+    // MARK: Script Interaction
+    
     func handleChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
         if uiState.funcMode == .hide {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngChunks, for: identifier)
@@ -136,12 +140,16 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         }
     }
     
+    // MARK: Service Callbacks
+    
     func handleAudioServiceStateChange(isPlaying serviceIsPlaying: Bool, isPaused serviceIsPaused: Bool) {
         if !serviceIsPlaying && !serviceIsPaused {
             self.uiState.isPlaying = false
             self.uiState.isPause = false
         }
     }
+    
+    // MARK: - Data Fetching
     
     @MainActor
     func loadScriptById() async {
