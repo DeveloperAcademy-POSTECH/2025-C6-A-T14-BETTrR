@@ -43,7 +43,7 @@ struct ScriptDashboardBottomLeftContents: View {
             
             
             if recentFeedbacks.isEmpty {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     ForEach(0..<5, id: \.self) { _ in
                         FeedbackSummaryCardPlaceholderView()
                         Spacer(minLength: 0)
@@ -58,7 +58,7 @@ struct ScriptDashboardBottomLeftContents: View {
                     }
                 )
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     ForEach(recentFeedbacks, id: \.id) { feedback in
                         FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber)
                         Spacer(minLength: 0)

@@ -30,7 +30,7 @@ struct ScriptDashboardTopRightContents: View {
                         Text("데이터가 충분하지 않아요")
                             .font(.labelBold16)
                     } else {
-                        VStack(spacing: 24) {
+                        VStack(spacing: 16) {
                             ForEach(top3IncorrectWords, id: \.id) { item in
                                 Text("\(item.word)")
                                     .font(.subbodyBold24)
@@ -50,7 +50,7 @@ struct ScriptDashboardTopRightContents: View {
                 DiagonalLayoutCard(title: "누적 피드백") {
                     HStack(alignment: .bottom, spacing: 4) {
                         Text("\(feedbackCount)")
-                            .font(.subtitleBold32)
+                            .font(.subbodyBold24)
                         
                         Text("회")
                             .font(.calloutRegular20)
@@ -60,12 +60,12 @@ struct ScriptDashboardTopRightContents: View {
                 
                 DiagonalLayoutCard(title: "평균 녹음 시간") {
                     Text(averagePracticeDuration.asPracticeDurationString())
-                        .font(.subtitleBold32)
+                        .font(.subbodyBold24)
                 }
                 .cardBordered()
             }
             .foregroundStyle(.normalBlack900)
-            .frame(maxWidth: 200)
+            .frame(width: 158)
         }
     }
 }
