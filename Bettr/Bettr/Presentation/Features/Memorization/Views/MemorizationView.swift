@@ -20,8 +20,7 @@ struct MemorizationView: View {
     
     var body: some View {
         ZStack {
-            // 로딩 중
-            if viewModel.isLoadingScript {
+            if viewModel.isLoadingScript { // 로딩
                 ProgressView()
             } else if let error = viewModel.currentError { // 에러
                 ErrorView(error: error) {

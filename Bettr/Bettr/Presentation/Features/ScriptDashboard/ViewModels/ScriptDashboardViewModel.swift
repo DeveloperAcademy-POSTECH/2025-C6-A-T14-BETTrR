@@ -15,26 +15,17 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
     let scriptService: ScriptManagementServiceProtocol
     private let dataProcessor: ScriptDashboardDataProcessor
     
-    // MARK: - State (뷰에서 사용될 상태)
-    
-    // 원본 데이터 (새로운 모델 타입으로 정확히 지정됨)
+    // MARK: Core Data State (핵심 데이터 상태)
     var scriptDashboardData: ScriptDashboardModel?
-    
-    // 제목
     var currentTitle: String = "Loading..." {
         didSet {
             handleTitleChange(oldValue: oldValue, newValue: currentTitle)
         }
     }
+    var isLoading = true
+    var currentError: AppError? = nil
     
-    // 로딩 상태
-    var isLoading = false
-    
-    // 오류 상태
-    var showingError = false
-    var errorMessage = ""
-    
-    // MARK: - Init
+    // MARK: - Initialization
     
     init(
         scriptId: Int64,
@@ -46,18 +37,28 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
         self.dataProcessor = dataProcessor
     }
     
-    // MARK: - Public Methods (View's Lifecycle)
+    // MARK: - Protocol Conformance
+    
+    func updateLocalModelTitle(_ newTitle: String) {
+        self.scriptDashboardData?.title = newTitle
+    }
+    
+    // MARK: - View Lifecycle
     
     @MainActor
     func onAppear() {
-        // 뷰가 나타날 때 데이터를 비동기로 로드
         Task {
             await loadDashboardData()
         }
     }
     
-    func updateLocalModelTitle(_ newTitle: String) {
-        self.scriptDashboardData?.title = newTitle
+    @MainActor
+    func retryLoadData() {
+        self.scriptDashboardData = nil
+        self.currentTitle = "Loading..."
+        Task {
+            await loadDashboardData()
+        }
     }
     
     // MARK: - Private Methods (Internal Logic)
@@ -65,61 +66,91 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
     @MainActor
     private func loadDashboardData() async {
         self.isLoading = true
-        self.showingError = false
-        self.errorMessage = ""
+        self.currentError = nil
         
         let scriptId = self.scriptId
         
         Task.detached(priority: .userInitiated) {
-            do {
-                guard let (fetchedScript, fetchedSentences) = try await self.scriptService.fetchScriptWithSentences(id: scriptId) else {
-                    throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
-                }
-                
-                let allFeedbacks = try await self.scriptService.fetchFeedbackSummaries(forScriptId: scriptId)
-                let sortedFeedbacks = allFeedbacks.sorted { $0.createdAt > $1.createdAt }
-                let recentFeedbacks = Array(sortedFeedbacks.prefix(5))
-                
-                let recentDetails = try await self.fetchRecentDetails(from: recentFeedbacks)
-                
-                let statsModel = await self.dataProcessor.processDashboardStats(
-                    from: allFeedbacks,
-                    recentDetails: recentDetails
-                )
-                
-                let sentenceModelList = fetchedSentences.map {
-                    ScriptDashboardSentenceModel(
-                        id: $0.id,
-                        orderIndex: $0.orderIndex,
-                        englishText: $0.englishText
-                    )
-                }
-                
-                await MainActor.run {
-                    self.scriptDashboardData = ScriptDashboardModel(
-                        title: fetchedScript.title,
-                        sentences: sentenceModelList,
-                        allFeedbacks: sortedFeedbacks,
-                        recentFeedbacks: recentFeedbacks,
-                        stats: statsModel
+            
+            let maxRetries = 2
+            
+            for attempt in 0...maxRetries {
+                do {
+                    guard let (fetchedScript, fetchedSentences) = try await self.scriptService.fetchScriptWithSentences(id: scriptId) else {
+                        let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
+                        throw AppError.dataNotFound(message)
+                    }
+                    
+                    let allFeedbacks = try await self.scriptService.fetchFeedbackSummaries(forScriptId: scriptId)
+                    let sortedFeedbacks = allFeedbacks.sorted { $0.createdAt > $1.createdAt }
+                    let recentFeedbacks = Array(sortedFeedbacks.prefix(5))
+                    
+                    let recentDetails = try await self.fetchRecentDetails(from: recentFeedbacks)
+                    
+                    let statsModel = await self.dataProcessor.processDashboardStats(
+                        from: allFeedbacks,
+                        recentDetails: recentDetails
                     )
                     
-                    self.currentTitle = fetchedScript.title
-                    self.isLoading = false
-                }
-                
-            } catch {
-                let error = error
-                await MainActor.run {
-                    self.errorMessage = "스크립트 로딩 중 오류 발생: \(error.localizedDescription)"
-                    self.showingError = true
-                    self.isLoading = false
-                    self.currentTitle = "스크립트 오류"
+                    let sentenceModelList = fetchedSentences.map {
+                        ScriptDashboardSentenceModel(
+                            id: $0.id,
+                            orderIndex: $0.orderIndex,
+                            englishText: $0.englishText
+                        )
+                    }
+                    
+                    await MainActor.run {
+                        self.scriptDashboardData = ScriptDashboardModel(
+                            title: fetchedScript.title,
+                            sentences: sentenceModelList,
+                            allFeedbacks: sortedFeedbacks,
+                            recentFeedbacks: recentFeedbacks,
+                            stats: statsModel
+                        )
+                        
+                        self.currentTitle = fetchedScript.title
+                        self.isLoading = false
+                        self.currentError = nil
+                    }
+                    return
+                    
+                } catch {
+                    let appError: AppError
+                    if let knownError = error as? AppError {
+                        appError = knownError
+                    } else {
+                        appError = .networkError(error.localizedDescription)
+                    }
+                    
+                    // 재시도 불가능한 에러이거나, 마지막 시도였다면
+                    if !appError.isRetryable || attempt == maxRetries {
+                        await MainActor.run {
+                            self.currentError = appError
+                            self.currentTitle = "스크립트 오류"
+                            self.isLoading = false
+                        }
+                        return // [중요] 최종 실패 시 함수(및 루프) 종료
+                    }
+                    
+                    // 아직 재시도 기회 남음 (Exponential Backoff)
+                    do {
+                        let delaySeconds = UInt64(pow(2, Double(attempt)))
+                        try await Task.sleep(nanoseconds: delaySeconds * 1_000_000_000)
+                    } catch {
+                        // Task.sleep이 취소된 경우 (예: 뷰가 사라져서 Task가 취소됨)
+                        await MainActor.run {
+                            self.currentError = .unknown("작업이 취소되었습니다.")
+                            self.isLoading = false
+                        }
+                        return
+                    }
                 }
             }
         }
     }
     
+    // MARK: Helper Methods
     private func fetchRecentDetails(from recentFeedbacks: [FeedbackSummary]) async throws -> [FeedbackDetail] {
         return try await withThrowingTaskGroup(
             of: [FeedbackDetail].self,

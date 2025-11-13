@@ -17,7 +17,15 @@ struct ScriptDashboardView: View {
     
     var body: some View {
         Group {
-            if let data = viewModel.scriptDashboardData {
+            if viewModel.isLoading { // 로딩
+                ProgressView()
+            } else if let error = viewModel.currentError { // 에러
+                ErrorView(error: error) {
+                    Task { // 다시 시도
+                        viewModel.retryLoadData()
+                    }
+                }
+            } else if let data = viewModel.scriptDashboardData { // 성공
                 ScrollView {
                     VStack(spacing: 36) {
                         HStack(alignment: .top, spacing: 32) {
@@ -34,11 +42,12 @@ struct ScriptDashboardView: View {
                     }
                     .safeAreaPadding(.horizontal, 84)
                 }
-            } else {
-                LoadingView(
-                    isLoading: viewModel.isLoading,
-                    errorMessage: viewModel.errorMessage
-                )
+            } else { // 예외 케이스: 로딩도 아니고, 에러도 아닌데, 데이터도 없는 경우
+                ErrorView(error: .unknown("데이터를 불러오지 못했습니다.")) {
+                    Task {
+                        viewModel.retryLoadData()
+                    }
+                }
             }
         }
         .safeAreaPadding(.top, 24)
