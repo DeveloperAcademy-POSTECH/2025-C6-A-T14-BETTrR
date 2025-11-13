@@ -8,8 +8,6 @@ struct HomeContentView: View {
     let onSelectFile: () -> Void
     let requestDelete: (Script) -> Void
     
-    @Binding var showMenu: Bool
-    
     var body: some View {
         if container.scripts.isEmpty {
             VStack {
@@ -20,8 +18,7 @@ struct HomeContentView: View {
                     EmptyScriptsView(
                         onSelectPhoto: onSelectPhoto,
                         onTakePhoto: onTakePhoto,
-                        onSelectFile: onSelectFile,
-                        showMenu: $showMenu
+                        onSelectFile: onSelectFile
                     )
                     Spacer()
                 }
@@ -34,8 +31,7 @@ struct HomeContentView: View {
                 onSelectPhoto: onSelectPhoto,
                 onTakePhoto: onTakePhoto,
                 onSelectFile: onSelectFile,
-                requestDelete: requestDelete,
-                showMenu: $showMenu
+                requestDelete: requestDelete
             )
             .padding(.horizontal, 125)
         }
@@ -47,8 +43,7 @@ struct HomeContentView: View {
         onSelectPhoto: {},
         onTakePhoto: {},
         onSelectFile: {},
-        requestDelete: { _ in },
-        showMenu: .constant(false)
+        requestDelete: { _ in }
     )
     .environment(DatabaseContainer.getForPreview(withMockData: false))
     .environment(NavigationRouter())
@@ -59,8 +54,7 @@ struct HomeContentView: View {
         onSelectPhoto: {},
         onTakePhoto: {},
         onSelectFile: {},
-        requestDelete: { _ in },
-        showMenu: .constant(false)
+        requestDelete: { _ in }
     )
     .environment(DatabaseContainer.getForPreview(withMockData: true))
     .environment(NavigationRouter())
