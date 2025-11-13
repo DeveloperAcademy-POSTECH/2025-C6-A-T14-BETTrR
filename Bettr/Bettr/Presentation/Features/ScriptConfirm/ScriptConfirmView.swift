@@ -50,7 +50,7 @@ struct ScriptConfirmView: View {
                             .padding(4)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.gray.opacity(0.5))
+                                    .stroke(Color.primaryBlue200, lineWidth: 3)
                             )
                             .focused($isFocusedContentEditor)
                         //placeholder
@@ -67,10 +67,11 @@ struct ScriptConfirmView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(10)
                     }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray.opacity(0.5))
-                    )
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(Color.primaryBlue200)
+                            .frame(height: 4)
+                    }
                     .onTapGesture {
                         isEditingContent = true
                         // 🔹 [추가됨] 포커스 활성화
@@ -81,7 +82,7 @@ struct ScriptConfirmView: View {
                 // 글자 수 표시
                 Text("\(scriptContent.count) / \(Self.maxCharacterCount)")
                     .font(.caption)
-                    .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .gray)
+                    .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .secondaryBlue700)
             }
             .contentShape(Rectangle())
             .padding(.horizontal)
