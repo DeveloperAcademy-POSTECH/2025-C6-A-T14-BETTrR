@@ -109,14 +109,11 @@ struct ScriptConfirmView: View {
                 }) {
                     Text("분석 및 암기 시작")
                         .bold()
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .glassEffect(.regular)
-                    //                    .background(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent ? Color.defaultWhite50 : Color.primaryBlue500)
-                    //                    .foregroundColor(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent ? Color.primaryBlue200 : Color.defaultWhite50)
-                        .buttonStyle(.general)
-                        .cornerRadius(10)
                 }
+//                .buttonStyle(.general)
+                
+                .buttonStyle(GeneralButtonStyle(width: 404))
+                .frame(width: 404, height: 48)
                 .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .padding(.horizontal)
             }
