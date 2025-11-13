@@ -8,8 +8,6 @@ struct ScriptGridView: View {
     let onSelectFile: () -> Void
     let requestDelete: (Script) -> Void
     
-    @Binding var showMenu: Bool
-    
     // 4-column grid layout
     private let columns: [GridItem] = [
         GridItem(.flexible(), spacing: 36),
@@ -24,8 +22,7 @@ struct ScriptGridView: View {
                 AddNewScriptCard(
                     onSelectPhoto: onSelectPhoto,
                     onTakePhoto: onTakePhoto,
-                    onSelectFile: onSelectFile,
-                    showMenu: $showMenu
+                    onSelectFile: onSelectFile
                 )
                 .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
                 
@@ -34,13 +31,6 @@ struct ScriptGridView: View {
                         requestDelete(script)
                     })
                     .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
-                }
-            }
-        }
-        .onTapGesture {
-            if showMenu {
-                withAnimation(.spring(response: 0.3)) {
-                    showMenu = false
                 }
             }
         }
@@ -53,8 +43,7 @@ struct ScriptGridView: View {
         onSelectPhoto: {},
         onTakePhoto: {},
         onSelectFile: {},
-        requestDelete: { _ in },
-        showMenu: .constant(false)
+        requestDelete: { _ in }
     )
     .environment(DatabaseContainer.getForPreview())
     .environment(NavigationRouter())

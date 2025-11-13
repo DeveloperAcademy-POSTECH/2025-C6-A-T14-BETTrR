@@ -64,9 +64,9 @@ struct AllFeedbackView: View {
                     }
                 }
             }
-            .safeAreaPadding(.horizontal, 120)
+            .safeAreaPadding(.horizontal, 84)
         }
-        .safeAreaPadding(.top, 36)
+        .safeAreaPadding(.top, 24)
         .safeAreaPadding(.bottom, 48)
     }
 }

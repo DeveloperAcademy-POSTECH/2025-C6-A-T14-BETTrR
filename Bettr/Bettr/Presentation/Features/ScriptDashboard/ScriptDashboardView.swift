@@ -47,7 +47,7 @@ struct ScriptDashboardView: View {
                                 currentFeedbackNumber: viewModel.scriptDashboardData!.feedbackCount
                             )
                         }
-                        .frame(maxHeight: 546)
+                        .frame(maxHeight: 607)
                     }
                 }
             } else {
@@ -58,7 +58,7 @@ struct ScriptDashboardView: View {
             }
         }
         .safeAreaPadding(.horizontal, 84)
-        .safeAreaPadding(.top, 36)
+        .safeAreaPadding(.top, 24)
         .safeAreaPadding(.bottom, 48)
         .onTapGesture {
             isTitleEditing = false

@@ -17,6 +17,7 @@ struct ResultTopContents: View {
                 .foregroundStyle(.normalBlack900)
             
             ResultSummaryGridView(model: model)
+                .frame(maxHeight: 242)
         }
     }
 }
@@ -26,7 +27,9 @@ struct ResultSummaryGridView: View {
     
     var body: some View {
         HStack(spacing: 16) {
+            // 왼쪽
             VStack(spacing: 16) {
+                // 왼쪽 상단: 스크립트 제목, 피드백 회차
                 HStack(spacing: 16) {
                     DiagonalLayoutCard(title: "스크립트 제목") {
                         HStack(alignment: .bottom, spacing: 4) {
@@ -35,6 +38,7 @@ struct ResultSummaryGridView: View {
                         }
                     }
                     .cardBordered(padding: 24)
+                    .frame(maxWidth: .infinity)
                     
                     DiagonalLayoutCard(title: "피드백 회차") {
                         HStack(alignment: .bottom, spacing: 4) {
@@ -48,8 +52,9 @@ struct ResultSummaryGridView: View {
                     .cardBordered(padding: 24)
                     .frame(maxWidth: 192)
                 }
-                .frame(maxHeight: 116)
+                .frame(maxWidth: .infinity, maxHeight: 116)
                 
+                // 왼쪽 하단: 총 녹음 시간, 누락∙대체∙추가된 단어
                 HStack(spacing: 16) {
                     DiagonalLayoutCard(title: "총 녹음 시간") {
                         HStack(alignment: .bottom, spacing: 4) {
@@ -58,7 +63,7 @@ struct ResultSummaryGridView: View {
                         }
                     }
                     .cardBordered(padding: 24)
-                    .frame(minWidth: 200)
+                    .frame(maxWidth: .infinity)
                     
                     DiagonalLayoutCard(title: "누락된 단어") {
                         HStack(alignment: .bottom, spacing: 4) {
@@ -96,9 +101,11 @@ struct ResultSummaryGridView: View {
                     .cardBordered(padding: 24)
                     .frame(maxWidth: 150)
                 }
-                .frame(maxHeight: 120)
+                .frame(maxWidth: .infinity, maxHeight: 120)
             }
+            .frame(maxWidth: .infinity)
             
+            // 오른쪽: 종합 평가 점수
             DiagonalLayoutCard(title: "종합 평가 점수") {
                 HStack(alignment: .bottom, spacing: 4) {
                     Text("\(Int(model.accuracy * 100))")
@@ -109,8 +116,7 @@ struct ResultSummaryGridView: View {
                 }
             }
             .cardBordered(padding: 24)
-            .frame(maxWidth: 229, maxHeight: 252)
+            .frame(maxWidth: 242)
         }
-        .frame(maxHeight: 252)
     }
 }
