@@ -21,7 +21,16 @@ struct MemorizationView: View {
     
     var body: some View {
         ZStack {
-            if viewModel.scriptData != nil {
+            // 로딩 중
+            if viewModel.isLoadingScript {
+                ProgressView()
+            } else if let error = viewModel.currentError { // 에러
+                ErrorView(error: error) {
+                    Task { // 다시 시도
+                        await viewModel.loadScriptById()
+                    }
+                }
+            } else if viewModel.scriptData != nil { // 성공
                 ScrollView {
                     VStack(spacing: 24) {
                         if viewModel.isChunkMode {
@@ -35,13 +44,12 @@ struct MemorizationView: View {
                     .padding(.bottom, 48)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-            } else {
-                // 로딩, 에러 뷰
-                LoadingView(
-                    isLoading: !viewModel.showingError,
-                    errorMessage: viewModel.errorMessage
-                )
+            } else { // 예외 케이스: 로딩도 아니고, 에러도 아닌데, 데이터도 없는 경우
+                ErrorView(error: .unknown("데이터를 불러오지 못했습니다.")) {
+                    Task {
+                        await viewModel.loadScriptById()
+                    }
+                }
             }
             
             // 단어장 뷰

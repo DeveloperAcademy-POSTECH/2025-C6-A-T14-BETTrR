@@ -18,16 +18,17 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     // 원본 데이터
     var scriptData: ScriptData?
     
+    
+    var isLoadingScript: Bool = true
+    
+    var currentError: AppError? = nil
+    
     // 스크립트 제목
     var currentTitle: String {
         didSet {
             handleTitleChange(oldValue: oldValue, newValue: currentTitle)
         }
     }
-    
-    // 오류 상태
-    var showingError = false
-    var errorMessage = ""
     
     // 툴바 UI 상태
     var isChunkMode: Bool = false {
@@ -143,42 +144,71 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     }
     
     @MainActor
-    private func loadScriptById() async {
-        do {
-            guard let fetchedData = try scriptService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
-                errorMessage = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
-                showingError = true
-                return
-            }
-            
-            // 원본 코드의 데이터 변환 로직
-            let sentenceDataList: [SentenceData] = fetchedData.sentences.map { (sentence, chunks) in
-                let chunkDataList: [ChunkData] = chunks.map { chunk in
-                    return ChunkData(
-                        orderIndex: chunk.orderIndex,
-                        englishText: chunk.englishText,
-                        koreanText: chunk.koreanText
+    func loadScriptById() async {
+        
+        isLoadingScript = true
+        currentError = nil
+        
+        let maxRetries = 2
+        
+        defer { isLoadingScript = false }
+        
+        for attempt in 0...maxRetries {
+            do {
+                // --- 1. 데이터 로드 시도 ---
+                guard let fetchedData = try scriptService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
+                    // [실패 1] 404 - 데이터를 찾을 수 없음
+                    let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
+                    currentError = .dataNotFound(message)
+                    self.currentTitle = "스크립트 없음"
+                    isLoadingScript = false
+                    return // 재시도 없이 즉시 함수 종료
+                }
+                
+                // --- 2. 성공 ---
+                let sentenceDataList: [SentenceData] = fetchedData.sentences.map { (sentence, chunks) in
+                    let chunkDataList: [ChunkData] = chunks.map { chunk in
+                        return ChunkData(
+                            orderIndex: chunk.orderIndex,
+                            englishText: chunk.englishText,
+                            koreanText: chunk.koreanText
+                        )
+                    }
+                    return SentenceData(
+                        orderIndex: sentence.orderIndex,
+                        englishText: sentence.englishText,
+                        koreanText: sentence.koreanText,
+                        chunks: chunkDataList
                     )
                 }
-                return SentenceData(
-                    orderIndex: sentence.orderIndex,
-                    englishText: sentence.englishText,
-                    koreanText: sentence.koreanText,
-                    chunks: chunkDataList
+                
+                self.scriptData = ScriptData(
+                    title: fetchedData.script.title,
+                    sentences: sentenceDataList
                 )
+                
+                self.currentTitle = fetchedData.script.title
+                isLoadingScript = false
+                currentError = nil
+                return
+                
+            } catch {
+                let appError = AppError.networkError(error.localizedDescription)
+                
+                // "재시도 불가능한" 에러이거나, "마지막" 시도였다면
+                if !appError.isRetryable || attempt == maxRetries {
+                    currentError = appError // 뷰에 에러 표시
+                    self.currentTitle = "스크립트 오류"
+                    isLoadingScript = false // 로딩 종료 (최종 실패)
+                    return // 함수 종료
+                }
+                
+                // 아직 재시도 기회 남음 (Exponential Backoff)
+                // (1초, 2초... 딜레이)
+                let delaySeconds = UInt64(pow(2, Double(attempt)))
+                try? await Task.sleep(nanoseconds: delaySeconds * 1_000_000_000)
+                // 딜레이 후, for 루프의 다음 단계(attempt + 1)로 넘어감
             }
-            
-            self.scriptData = ScriptData(
-                title: fetchedData.script.title,
-                sentences: sentenceDataList
-            )
-            
-            self.currentTitle = fetchedData.script.title
-            
-        } catch {
-            errorMessage = "스크립트 로딩 중 오류 발생: \(error.localizedDescription)"
-            showingError = true
-            self.currentTitle = "스크립트 오류"
         }
     }
     

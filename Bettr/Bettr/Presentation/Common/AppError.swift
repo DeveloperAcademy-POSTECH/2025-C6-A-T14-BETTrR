@@ -10,7 +10,7 @@ import Foundation
 // 뷰모델이 View에 전달할 '구조화된 에러'
 enum AppError: Error, Equatable {
     case networkError(String)     // 1. 네트워크 (재시도 가능)
-    case dataNotFound             // 2. 데이터 없음 (재시도 불가)
+    case dataNotFound(String)             // 2. 데이터 없음 (재시도 불가)
     case apiError(String)         // 3. API/서버 (재시도 가능)
     case permissionDenied(type: String) // 4. 권한 (설정으로 이동)
     case unknown(String)          // 5. 기타 (재시도 가능)
@@ -28,16 +28,16 @@ enum AppError: Error, Equatable {
     // 사용자에게 보여줄 메시지
     var userFriendlyMessage: String {
         switch self {
-        case .networkError:
-            return "인터넷 연결을 확인 후 다시 시도해 주세요."
-        case .dataNotFound:
-            return "요청하신 스크립트를 찾을 수 없습니다."
+        case .networkError(let message):
+            return "일시적인 오류가 발생했습니다. 인터넷 연결을 확인 후 다시 시도해 주세요. (오류: \(message))"
+        case .dataNotFound(let message):
+            return message
         case .apiError(let message):
             return "일시적인 오류가 발생했습니다. (오류: \(message))"
         case .permissionDenied(let type):
             return "\(type) 권한이 필요합니다. 설정에서 허용해 주세요."
-        case .unknown:
-            return "알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+        case .unknown(let message):
+            return "알 수 없는 오류가 발생했습니다. (\(message))"
         }
     }
 }
