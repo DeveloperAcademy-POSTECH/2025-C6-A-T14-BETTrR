@@ -5,8 +5,6 @@ struct EmptyScriptsView: View {
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
     
-    @Binding var showMenu: Bool
-    
     var body: some View {
         VStack(spacing: 36) {
             VStack(spacing: 16) {
@@ -16,12 +14,10 @@ struct EmptyScriptsView: View {
             }
             
             AddButtonView(
-                onSelectPhoto: onSelectPhoto,
-                onTakePhoto: onTakePhoto,
-                onSelectFile: onSelectFile,
-                showMenu: $showMenu
+                onSelectPhoto: onSelectPhoto, onTakePhoto: onTakePhoto, onSelectFile: onSelectFile
             )
         }
+        .padding(.top, 52) // 위 아래 2 : 3 비율을 유지하기 위해 AddButtonView bottom 패딩 값의 2/3을 위로 보상
     }
 }
 
@@ -58,34 +54,13 @@ private struct AddButtonView: View {
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
     
-    @Binding var showMenu: Bool
-    
     var body: some View {
         Button("스크립트 추가") {
-            withAnimation(.spring(response: 0.3)) {
-                showMenu = true
-            }
         }
         .buttonStyle(.general)
-        .overlay(alignment: .top) {
-            if showMenu {
-                AddScriptMenu(
-                    onSelectPhoto: onSelectPhoto,
-                    onTakePhoto: onTakePhoto,
-                    onSelectFile: onSelectFile,
-                    showMenu: $showMenu
-                )
-                .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .top)))
-            }
-        }
+        .padding(.bottom, 78) // 아래에 공간이 있어야 Menu가 아래로 열림
+        .overlay(
+            AddScriptMenuView(onSelectPhoto: onSelectPhoto, onTakePhoto: onTakePhoto, onSelectFile: onSelectFile)
+        )
     }
-}
-
-#Preview {
-    EmptyScriptsView(
-        onSelectPhoto: { print("Select photo") },
-        onTakePhoto: { print("Take photo") },
-        onSelectFile: { print("Select file") },
-        showMenu: .constant(false)
-    )
 }

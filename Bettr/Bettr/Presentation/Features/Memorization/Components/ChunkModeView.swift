@@ -9,14 +9,14 @@ import SwiftUI
 
 struct ChunkModeView: View {
     @Bindable var viewModel: MemorizationViewModel
-
+    
     var body: some View {
         ForEach(viewModel.scriptData?.sentences ?? [], id: \.orderIndex) { sentence in
             let lastChunkIndex = sentence.chunks.last?.orderIndex
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 // 1. 영어 청크 라인
-                CustomFlowLayout(horizontalSpacing: 12, verticalSpacing: 5) {
+                CustomFlowLayout(horizontalSpacing: 12, verticalSpacing: 8) {
                     ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                         let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)
                         
@@ -28,36 +28,36 @@ struct ChunkModeView: View {
                                 viewModel.handleChunkTap(chunk: chunk, identifier: chunkID)
                             }
                         )
-
+                        
                         if chunk.orderIndex != lastChunkIndex {
-                            chunkSeparatorText(size: 35, isKoreanVisible: true)
+                            Image(.slashLarge)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 14, height: 44)
                         }
                     }
                 }
                 
                 // 2. 한국어 청크 라인
-                    CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 5) {
-                        ForEach(sentence.chunks, id: \.orderIndex) { chunk in
-                            
-                            KoreanScriptTextView(
-                                text: chunk.koreanText,
-                                isVisible: viewModel.isKoreanVisible,
-                            )
-                            
-                            if chunk.orderIndex != lastChunkIndex {
-                                chunkSeparatorText(size: 20, isKoreanVisible: viewModel.isKoreanVisible)
-                            }
+                CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 0) {
+                    ForEach(sentence.chunks, id: \.orderIndex) { chunk in
+                        
+                        KoreanScriptTextView(
+                            text: chunk.koreanText,
+                            isVisible: viewModel.isKoreanVisible,
+                        )
+                        
+                        if chunk.orderIndex != lastChunkIndex {
+                            Image(.slashSmall)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 9, height: 14)
+                                .opacity(viewModel.isKoreanVisible ? 1.0 : 0.0)
                         }
                     }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-    }
-    
-    @ViewBuilder
-    private func chunkSeparatorText(size: CGFloat, isKoreanVisible: Bool) -> some View {
-        Text("/")
-            .font(.system(size: size))
-            .foregroundStyle(isKoreanVisible ? .normalGray400 : .clear)
     }
 }
