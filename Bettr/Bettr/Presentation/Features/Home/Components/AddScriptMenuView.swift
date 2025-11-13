@@ -19,5 +19,6 @@ struct AddScriptMenuView: View {
         } label: {
             Color.clear
         }
+        .menuOrder(.fixed)
     }
 }
