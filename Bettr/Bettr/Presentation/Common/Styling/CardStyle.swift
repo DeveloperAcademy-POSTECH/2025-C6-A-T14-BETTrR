@@ -6,6 +6,8 @@
 //
 import SwiftUI
 
+/// 테두리가 있는 카드 스타일
+/// Radius 20, 테두리색 primaryBlue200
 struct BorderedCardStyle: ViewModifier {
     var top: CGFloat
     var bottom: CGFloat
@@ -25,6 +27,8 @@ struct BorderedCardStyle: ViewModifier {
     }
 }
 
+/// 배경색이 있는 카드 스타일
+/// Radius 20, 배경색 primaryBlue50
 struct FilledCardStyle: ViewModifier {
     var top: CGFloat
     var bottom: CGFloat
@@ -44,6 +48,8 @@ struct FilledCardStyle: ViewModifier {
     }
 }
 
+/// 배경색과 테두리가 모두 있는 카드 스타일
+/// Radius 20, 배경색 primaryBlue50, 테두리색 primaryBlue200
 struct BorderedFilledCardStyle: ViewModifier {
     var top: CGFloat
     var bottom: CGFloat
@@ -68,26 +74,33 @@ struct BorderedFilledCardStyle: ViewModifier {
 }
 
 extension View {
+    /// 4면의 패딩이 모두 같은 테두리가 있는 카드 스타일
     func cardBordered(padding: CGFloat) -> some View {
         self.modifier(BorderedCardStyle(top: padding, bottom: padding, leading: padding, trailing: padding))
     }
     
+    /// trailing의 패딩 값만 다른 테두리가 있는 카드 스타일
+    /// - 기본값: padding = 24, trailing = 16
     func cardBordered(padding: CGFloat = 24, trailing: CGFloat = 16) -> some View {
         self.modifier(BorderedCardStyle(top: padding, bottom: padding, leading: padding, trailing: trailing))
     }
     
+    /// 4면의 패딩이 모두 같은 배경색이 있는 카드 스타일
     func cardFilled(padding: CGFloat) -> some View {
         self.modifier(
             FilledCardStyle(top: padding, bottom: padding, leading: padding, trailing: padding)
         )
     }
     
+    /// 4면의 패딩값을 모두 지정할 수 있는 배경색이 있는 카드 스타일
+    /// - 기본값: top = 0,  bottom = 31, leading = 22, trailing = 0
     func cardFilled(top: CGFloat = 0, bottom: CGFloat = 31, leading: CGFloat = 22, trailing: CGFloat = 0) -> some View {
         self.modifier(
             FilledCardStyle(top: top, bottom: bottom, leading: leading, trailing: trailing)
         )
     }
     
+    /// 4면의 패딩이 모두 같은 배경색과 테두리가 있는 카드 스타일
     func cardBorderedFilled(padding: CGFloat) -> some View {
         self.modifier(BorderedFilledCardStyle(top: padding, bottom: padding, leading: padding, trailing: padding))
     }
