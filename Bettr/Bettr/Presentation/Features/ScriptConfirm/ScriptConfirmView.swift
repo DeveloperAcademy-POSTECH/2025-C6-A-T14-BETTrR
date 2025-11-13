@@ -68,7 +68,12 @@ struct ScriptConfirmView: View {
                     .font(.caption)
                     .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .gray)
             }
+            .contentShape(Rectangle())
             .padding(.horizontal)
+            .onTapGesture {
+                isTitleEditing = false
+                isEditingContent = false
+            }
             
             // 분석 및 저장 버튼
             Button(action: {
@@ -87,16 +92,18 @@ struct ScriptConfirmView: View {
                     .bold()
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent ? Color.gray : Color.blue)
-                    .foregroundColor(.white)
+                    .glassEffect(.regular)
+                    .background(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent ? Color.defaultWhite50 : Color.primaryBlue500)
+                    .foregroundColor(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent ? Color.primaryBlue200 : Color.defaultWhite50)
                     .cornerRadius(10)
             }
-            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent)
+//            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent)
+            .disabled(
+                scriptTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            )
             .padding(.horizontal)
-            .onTapGesture {
-                isTitleEditing = false
-                isEditingContent = false
-            }
+
         }
         .padding()
         .navigationBarTitleDisplayMode(.inline)
@@ -118,15 +125,15 @@ struct ScriptConfirmView: View {
                 )
             }
             
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if isEditingContent {
-                    Button("Done", systemImage: "checkmark") {
-                        isEditingContent = false
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color(.systemBlue))
-                }
-            }
+//            ToolbarItem(placement: .navigationBarTrailing) {
+//                if isEditingContent {
+//                    Button("Done", systemImage: "checkmark") {
+//                        isEditingContent = false
+//                    }
+//                    .buttonStyle(.borderedProminent)
+//                    .tint(Color(.systemBlue))
+//                }
+//            }
         }
         .alert("진행 상황을 잃게 됩니다", isPresented: $showBackAlert) {
             Button("취소", role: .cancel) {}
