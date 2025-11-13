@@ -9,12 +9,8 @@ import SwiftUI
 
 struct ScriptDashboardTopRightContents: View {
     
-    let viewModel: ScriptDashboardViewModel
-    
-    private var stats: ScriptDashboardStats? {
-            viewModel.scriptDashboardData?.stats
-    }
-    
+    let stats: ScriptDashboardStats?
+
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
             
@@ -28,16 +24,16 @@ struct ScriptDashboardTopRightContents: View {
                 
                 VStack(alignment: .center) {
                     if let top3Words = stats?.top3IncorrectWords, !top3Words.isEmpty {
-                                            VStack(spacing: 16) {
-                                                ForEach(top3Words, id: \.id) { item in
-                                                    Text("\(item.word)")
-                                                        .font(.subbodyBold24)
-                                                }
-                                            }
-                                        } else {
-                                            Text("데이터가 충분하지 않아요")
-                                                .font(.labelBold16)
-                                        }
+                        VStack(spacing: 16) {
+                            ForEach(top3Words, id: \.id) { item in
+                                Text("\(item.word)")
+                                    .font(.subbodyBold24)
+                            }
+                        }
+                    } else {
+                        Text("데이터가 충분하지 않아요")
+                            .font(.labelBold16)
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .foregroundStyle(.normalBlack900)

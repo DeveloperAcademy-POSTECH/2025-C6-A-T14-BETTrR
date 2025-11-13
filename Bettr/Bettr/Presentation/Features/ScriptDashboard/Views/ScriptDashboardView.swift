@@ -17,12 +17,12 @@ struct ScriptDashboardView: View {
     
     var body: some View {
         Group {
-            if viewModel.scriptDashboardData != nil {
+            if let data = viewModel.scriptDashboardData {
                 ScrollView {
                     VStack(spacing: 36) {
                         HStack(alignment: .top, spacing: 32) {
-                            ScriptDashboardTopLeftContents(viewModel: viewModel)
-                            ScriptDashboardTopRightContents(viewModel: viewModel)
+                            ScriptDashboardTopLeftContents(recentFeedbacks: data.recentFeedbacks)
+                            ScriptDashboardTopRightContents(stats: data.stats)
                         }
                         .frame(maxHeight: 272)
                         
@@ -60,5 +60,4 @@ struct ScriptDashboardView: View {
             viewModel.onAppear()
         }
     }
-    
 }
