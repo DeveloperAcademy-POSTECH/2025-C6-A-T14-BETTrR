@@ -119,16 +119,22 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
                 
                 // 모든 데이터가 준비되면 MainActor(UI 스레드)로 전환하여 UI 상태 업데이트
                 await MainActor.run {
+                    
+                    let statsModel = ScriptDashboardStats(
+                        feedbackCount: sortedFeedbacks.count,
+                        top3IncorrectWords: top3Words,
+                        averagePracticeDuration: averageDuration,
+                        recentFeedbackCount: recentFeedbacks.count
+                    )
+                    
                     self.scriptDashboardData = ScriptDashboardModel(
                         title: fetchedScript.title,
                         sentences: sentenceModelList,
-                        feedbackCount: sortedFeedbacks.count,
                         allFeedbacks: sortedFeedbacks,
                         recentFeedbacks: recentFeedbacks,
-                        recentFeedbackCount: recentFeedbacks.count,
-                        top3IncorrectWords: top3Words,
-                        averagePracticeDuration: averageDuration
+                        stats: statsModel
                     )
+                    
                     self.currentTitle = fetchedScript.title
                     self.isLoading = false
                 }

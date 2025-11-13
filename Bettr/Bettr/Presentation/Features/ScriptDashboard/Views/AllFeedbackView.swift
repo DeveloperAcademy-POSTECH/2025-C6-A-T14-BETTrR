@@ -8,21 +8,7 @@
 import SwiftUI
 
 struct AllFeedbackView: View {
-    let feedbacks: [FeedbackSummary]
-    let scriptTitle: String
-    let feedbackNumber: Int
-    
-    private var recentFeedbacks: [FeedbackSummary] {
-        let oneHourAgo = Date().addingTimeInterval(-3600) // 3600초 = 1시간
-        return feedbacks.filter { $0.createdAt > oneHourAgo }
-            .sorted { $0.createdAt > $1.createdAt } // 최신순 정렬
-    }
-    
-    private var previousFeedbacks: [FeedbackSummary] {
-        let oneHourAgo = Date().addingTimeInterval(-3600)
-        return feedbacks.filter { $0.createdAt <= oneHourAgo }
-            .sorted { $0.createdAt > $1.createdAt } // 최신순 정렬
-    }
+    @State var viewModel: AllFeedbackViewModel
     
     private let gridColumns: [GridItem] = [
         GridItem(.flexible(), spacing: 32),
@@ -33,15 +19,15 @@ struct AllFeedbackView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 64) {
                 // --- 섹션 1: 최근 1시간 동안 생성된 피드백 ---
-                if !recentFeedbacks.isEmpty {
+                if !viewModel.recentFeedbacks.isEmpty {
                     VStack(alignment: .leading, spacing: 24) {
                         Text("최근 1시간 동안 생성된 피드백")
                             .font(.headingBold28)
                             .foregroundStyle(.normalBlack900)
                         
                         LazyVGrid(columns: gridColumns, spacing: 36) {
-                            ForEach(recentFeedbacks) { feedback in
-                                FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber)
+                            ForEach(viewModel.recentFeedbacks) { feedback in
+                                FeedbackSummaryCard(feedback: feedback, scriptTitle: viewModel.scriptTitle, feedbackNumber: viewModel.feedbackNumber)
                             }
                         }
                         .cardBordered(padding: 36)
@@ -49,15 +35,15 @@ struct AllFeedbackView: View {
                 }
                 
                 // --- 섹션 2: 이전 모든 피드백 ---
-                if !previousFeedbacks.isEmpty {
+                if !viewModel.previousFeedbacks.isEmpty {
                     VStack(alignment: .leading, spacing: 24) {
-                        Text(recentFeedbacks.isEmpty ? "모든 피드백" : "이전 모든 피드백")
+                        Text(viewModel.recentFeedbacks.isEmpty ? "모든 피드백" : "이전 모든 피드백")
                             .font(.headingBold28)
                             .foregroundStyle(.normalBlack900)
                         
                         LazyVGrid(columns: gridColumns, spacing: 36) {
-                            ForEach(previousFeedbacks) { feedback in
-                                FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber)
+                            ForEach(viewModel.previousFeedbacks) { feedback in
+                                FeedbackSummaryCard(feedback: feedback, scriptTitle: viewModel.scriptTitle, feedbackNumber: viewModel.feedbackNumber)
                             }
                         }
                         .cardBordered(padding: 36)
@@ -105,13 +91,15 @@ struct AllFeedbackView: View {
         )
     ]
     
+    let viewModel = AllFeedbackViewModel(
+        allFeedbacks: mockFeedbacks,
+        scriptTitle: "스티브 잡스 스탠포드 연설",
+        feedbackNumber: 5
+    )
+    
     return NavigationStack {
-        AllFeedbackView(
-            feedbacks: mockFeedbacks,
-            scriptTitle: "스티브 잡스 스탠포드 연설",
-            feedbackNumber: 5
-        )
-        .environment(NavigationRouter())
+        AllFeedbackView(viewModel: viewModel)
+            .environment(NavigationRouter())
     }
 }
 
@@ -124,13 +112,15 @@ struct AllFeedbackView: View {
         )
     ]
     
+    let viewModel = AllFeedbackViewModel(
+        allFeedbacks: mockFeedbacks,
+        scriptTitle: "최근 스크립트",
+        feedbackNumber: 1
+    )
+    
     return NavigationStack {
-        AllFeedbackView(
-            feedbacks: mockFeedbacks,
-            scriptTitle: "최근 스크립트",
-            feedbackNumber: 1
-        )
-        .environment(NavigationRouter())
+        AllFeedbackView(viewModel: viewModel)
+            .environment(NavigationRouter())
     }
 }
 
@@ -143,12 +133,14 @@ struct AllFeedbackView: View {
         )
     ]
     
+    let viewModel = AllFeedbackViewModel(
+        allFeedbacks: mockFeedbacks,
+        scriptTitle: "오래된 스크립트",
+        feedbackNumber: 1
+    )
+    
     return NavigationStack {
-        AllFeedbackView(
-            feedbacks: mockFeedbacks,
-            scriptTitle: "오래된 스크립트",
-            feedbackNumber: 1
-        )
-        .environment(NavigationRouter())
+        AllFeedbackView(viewModel: viewModel)
+            .environment(NavigationRouter())
     }
 }

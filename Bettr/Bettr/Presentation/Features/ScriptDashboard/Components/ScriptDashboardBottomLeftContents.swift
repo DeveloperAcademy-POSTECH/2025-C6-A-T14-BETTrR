@@ -10,10 +10,20 @@ import SwiftUI
 struct ScriptDashboardBottomLeftContents: View {
     @Environment(NavigationRouter.self) var router
     
-    var recentFeedbacks: [FeedbackSummary]
-    var allFeedbacks: [FeedbackSummary]
-    let scriptTitle: String
-    let feedbackNumber: Int
+    let viewModel: ScriptDashboardViewModel
+    
+    private var recentFeedbacks: [FeedbackSummary] {
+        viewModel.scriptDashboardData?.recentFeedbacks ?? []
+    }
+    private var allFeedbacks: [FeedbackSummary] {
+        viewModel.scriptDashboardData?.allFeedbacks ?? []
+    }
+    private var scriptTitle: String {
+        viewModel.currentTitle
+    }
+    private var feedbackNumber: Int {
+        viewModel.scriptDashboardData?.stats.feedbackCount ?? 0
+    }
     
     var body: some View {
         

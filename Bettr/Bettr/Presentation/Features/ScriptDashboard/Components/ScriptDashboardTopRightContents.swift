@@ -9,10 +9,11 @@ import SwiftUI
 
 struct ScriptDashboardTopRightContents: View {
     
-    let feedbackCount: Int
-    let top3IncorrectWords: [IncorrectWordCount]
-    let averagePracticeDuration: Double
-    let recentFeedbackCount: Int
+    let viewModel: ScriptDashboardViewModel
+    
+    private var stats: ScriptDashboardStats? {
+            viewModel.scriptDashboardData?.stats
+    }
     
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
@@ -26,17 +27,17 @@ struct ScriptDashboardTopRightContents: View {
                 Spacer()
                 
                 VStack(alignment: .center) {
-                    if top3IncorrectWords.isEmpty {
-                        Text("데이터가 충분하지 않아요")
-                            .font(.labelBold16)
-                    } else {
-                        VStack(spacing: 16) {
-                            ForEach(top3IncorrectWords, id: \.id) { item in
-                                Text("\(item.word)")
-                                    .font(.subbodyBold24)
-                            }
-                        }
-                    }
+                    if let top3Words = stats?.top3IncorrectWords, !top3Words.isEmpty {
+                                            VStack(spacing: 16) {
+                                                ForEach(top3Words, id: \.id) { item in
+                                                    Text("\(item.word)")
+                                                        .font(.subbodyBold24)
+                                                }
+                                            }
+                                        } else {
+                                            Text("데이터가 충분하지 않아요")
+                                                .font(.labelBold16)
+                                        }
                 }
                 .frame(maxWidth: .infinity)
                 .foregroundStyle(.normalBlack900)
@@ -49,9 +50,8 @@ struct ScriptDashboardTopRightContents: View {
             VStack(spacing: 16) {
                 DiagonalLayoutCard(title: "누적 피드백") {
                     HStack(alignment: .bottom, spacing: 4) {
-                        Text("\(feedbackCount)")
+                        Text("\(stats?.feedbackCount ?? 0)")
                             .font(.subbodyBold24)
-                        
                         Text("회")
                             .font(.calloutRegular20)
                     }
@@ -59,7 +59,7 @@ struct ScriptDashboardTopRightContents: View {
                 .cardBordered()
                 
                 DiagonalLayoutCard(title: "평균 녹음 시간") {
-                    Text(averagePracticeDuration.asPracticeDurationString())
+                    Text(stats?.averagePracticeDuration.asPracticeDurationString() ?? "0s")
                         .font(.subbodyBold24)
                 }
                 .cardBordered()

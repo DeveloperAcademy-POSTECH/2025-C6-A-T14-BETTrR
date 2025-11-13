@@ -12,12 +12,18 @@ struct ScriptDashboardModel: Hashable {
     var title: String
     let sentences: [ScriptDashboardSentenceModel]
     
-    let feedbackCount: Int
     let allFeedbacks: [FeedbackSummary]
     let recentFeedbacks: [FeedbackSummary]
-    let recentFeedbackCount: Int
+    
+    let stats: ScriptDashboardStats
+}
+
+/// 대시보드 통계 데이터를 묶어서 관리하는 모델
+struct ScriptDashboardStats: Hashable {
+    let feedbackCount: Int
     let top3IncorrectWords: [IncorrectWordCount]
     let averagePracticeDuration: Double
+    let recentFeedbackCount: Int
 }
 
 /// 대시보드 뷰에서 사용할 문장 데이터 모델
