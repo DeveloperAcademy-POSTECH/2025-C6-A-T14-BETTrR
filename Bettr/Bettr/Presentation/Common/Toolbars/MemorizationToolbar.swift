@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+enum FunctionMode {
+    case hide   // 가리기
+    case read   // 재생
+}
+
 struct MemorizationToolbar: ViewModifier {
     
     @Binding var title: String
