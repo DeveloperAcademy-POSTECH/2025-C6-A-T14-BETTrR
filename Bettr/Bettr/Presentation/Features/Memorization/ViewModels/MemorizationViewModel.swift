@@ -2,62 +2,6 @@
 import SwiftUI
 import AVFoundation
 
-// MARK: - State Objects
-
-/// 툴바, 모달, 재생 상태 등 UI와 직접 연결된 상태
-@Observable
-class MemorizationUIState {
-    // 툴바 상태
-    var isChunkMode: Bool = false
-    var funcMode: FunctionMode = .hide
-    var isKoreanVisible: Bool = true
-    var isTitleEditing: Bool = false
-    
-    // 모달/시트 상태
-    var showWordList: Bool = false
-    var showFeedbackModal: Bool = false
-    
-    // 재생 및 하이라이트 상태
-    var isPlaying: Bool = false
-    var isPause: Bool = false
-    var tappedPlaybackText: String? = nil
-}
-
-/// '가리기' 기능과 같이 콘텐츠 상호작용과 관련된 상태
-@Observable
-class InteractionState {
-    var hiddenEngChunks: Set<ChunkIdentifier> = []
-    var hiddenEngSentences: Set<Int> = []
-    
-    // 이 객체와 관련된 로직을 메서드로 제공
-    func toggleHiddenState(in set: inout Set<ChunkIdentifier>, for item: ChunkIdentifier) {
-        withAnimation(.easeInOut(duration: 0.02)) {
-            if set.contains(item) {
-                set.remove(item)
-            } else {
-                set.insert(item)
-            }
-        }
-    }
-    
-    func toggleHiddenState(in set: inout Set<Int>, for item: Int) {
-        withAnimation(.easeInOut(duration: 0.02)) {
-            if set.contains(item) {
-                set.remove(item)
-            } else {
-                set.insert(item)
-            }
-        }
-    }
-    
-    func clearAllHiddenStates() {
-        hiddenEngChunks.removeAll()
-        hiddenEngSentences.removeAll()
-    }
-}
-
-// MARK: - MemorizationViewModel
-
 @Observable
 final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
@@ -74,7 +18,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     // MARK: Grouped States (그룹화된 상태)
     var uiState = MemorizationUIState()
-    var interactionState = InteractionState()
+    var interactionState = MemorizationInteractionState()
     
     // MARK: Title State (프로토콜 요구사항)
     var currentTitle: String {
