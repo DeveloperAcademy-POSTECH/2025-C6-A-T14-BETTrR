@@ -9,11 +9,11 @@ import SwiftUI
 
 struct ToolbarButtonModifier: ViewModifier {
     var foregroundColor: Color
-    var font: Font
+    var fontWeight: Font.Weight
     
     func body(content: Content) -> some View {
         content
-            .font(font)
+            .fontWeight(fontWeight)
             .foregroundStyle(foregroundColor)
     }
 }
@@ -24,7 +24,7 @@ extension View {
     func toolbarEnabled() -> some View {
         self.modifier(ToolbarButtonModifier(
             foregroundColor: .secondaryBlue700,
-            font: .calloutRegular20
+            fontWeight: .regular
         ))
     }
     
@@ -32,7 +32,7 @@ extension View {
     func toolbarDisabled() -> some View {
         self.modifier(ToolbarButtonModifier(
             foregroundColor: .primaryBlue200,
-            font: .calloutRegular20
+            fontWeight: .regular
         ))
     }
     
@@ -40,7 +40,7 @@ extension View {
     func toolbarEmphasized() -> some View {
         self.modifier(ToolbarButtonModifier(
             foregroundColor: .primaryBlue500,
-            font: .iconBold20
+            fontWeight: .bold
         ))
     }
     

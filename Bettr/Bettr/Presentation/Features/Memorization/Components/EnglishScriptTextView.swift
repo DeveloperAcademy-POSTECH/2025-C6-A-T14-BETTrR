@@ -17,7 +17,7 @@ struct EnglishScriptTextView: View {
         Text(text)
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
-            .font(.bodyRegular28)
+            .font(.bodyRegular24)
             .opacity(isHidden ? 0 : 1)
             .background(
                 RoundedRectangle(cornerRadius: 2)
