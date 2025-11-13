@@ -41,7 +41,7 @@ struct ScriptConfirmView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack {
             // 스크립트 내용
             VStack(alignment: .trailing, spacing: 8) {
                 if isEditingContent {
@@ -85,7 +85,8 @@ struct ScriptConfirmView: View {
                     .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .secondaryBlue700)
             }
             .contentShape(Rectangle())
-            .padding(.horizontal)
+            .padding(.horizontal, 80)
+            .padding(.top, 36)
             .onTapGesture {
                 isTitleEditing = false
                 isEditingContent = false
@@ -111,18 +112,14 @@ struct ScriptConfirmView: View {
                     Text("분석 및 암기 시작")
                         .bold()
                 }
-//                .buttonStyle(.general)
-                
                 .buttonStyle(GeneralButtonStyle(width: 404))
                 .frame(width: 404, height: 48)
+                .padding(.vertical, 10)
                 .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                .padding(.horizontal)
             }
         }
         // 🔹 [추가됨] 키보드로 인해 전체 View가 밀리지 않도록 설정
         .ignoresSafeArea(.keyboard)
-        
-        .padding()
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {
