@@ -9,10 +9,9 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     let scriptId: Int64
     let scriptService: ScriptManagementServiceProtocol
     let audioService: AudioPlaybackServiceProtocol
-    let wordExtractionService: WordExtractionService
     
     /// 현재까지 저장된 피드백의 총 개수 (이 뷰모델이 직접 사용하진 않고, RecordingView로 전달하기 위해 보관)
-        let currentFeedbackCount: Int
+    let currentFeedbackCount: Int
     
     // MARK: - State (뷰에서 사용될 상태)
     
@@ -21,16 +20,14 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     // 스크립트 제목
     var currentTitle: String {
-            didSet {
-                handleTitleChange(oldValue: oldValue, newValue: currentTitle)
-            }
+        didSet {
+            handleTitleChange(oldValue: oldValue, newValue: currentTitle)
         }
+    }
     
     // 오류 상태
     var showingError = false
     var errorMessage = ""
-    var isLoadingWords: Bool = false
-    var words: [Word] = []
     
     // 툴바 UI 상태
     var isChunkMode: Bool = false {
@@ -80,14 +77,12 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         currentFeedbackCount: Int,
         scriptService: ScriptManagementServiceProtocol,
         audioService: AudioPlaybackServiceProtocol,
-        wordExtractionService: WordExtractionService
     ) {
         self.scriptId = scriptId
         self.currentTitle = scriptTitle
         self.currentFeedbackCount = currentFeedbackCount
         self.scriptService = scriptService
         self.audioService = audioService
-        self.wordExtractionService = wordExtractionService
     }
     
     // MARK: - Public Methods (View's Lifecycle)
@@ -97,7 +92,6 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         // 뷰가 나타날 때 데이터를 비동기로 로드
         Task {
             await loadScriptById()
-            await loadWords()
         }
     }
     
@@ -185,35 +179,6 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             errorMessage = "스크립트 로딩 중 오류 발생: \(error.localizedDescription)"
             showingError = true
             self.currentTitle = "스크립트 오류"
-        }
-    }
-    
-    @MainActor
-    private func loadWords() async {
-        // 이미 단어가 존재하면 Gemini 호출 생략
-        if !words.isEmpty {
-            print("🟢 이미 단어 \(words.count)개 로드됨 — Gemini 호출 생략")
-            return
-        }
-        
-        isLoadingWords = true
-        defer { isLoadingWords = false }
-        do {
-            print("🚀 [2/2] Gemini 단어 추출 시작 (MemorizationView)")
-            // Gemini 호출 전 DB에도 기존 데이터가 있는지 double-check
-            let existing = try wordExtractionService.fetchWords(for: scriptId)
-            if !existing.isEmpty {
-                print("🟢 DB에서 \(existing.count)개 단어 발견 — Gemini 호출 생략")
-                self.words = existing
-                return
-            }
-            
-            try await wordExtractionService.extractAndSaveWords(for: scriptId)
-            print("✅ [2/2] 단어 추출 및 저장 완료 (MemorizationView)")
-            self.words = try wordExtractionService.fetchWords(for: scriptId)
-        } catch {
-            print("🔥 단어 추출 중 오류 발생 (MemorizationView):", error.localizedDescription)
-            // 사용자에게 오류를 표시할 수 있습니다.
         }
     }
     

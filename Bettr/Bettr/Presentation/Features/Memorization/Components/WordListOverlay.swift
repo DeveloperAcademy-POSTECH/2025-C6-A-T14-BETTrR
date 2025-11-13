@@ -9,9 +9,8 @@ import SwiftUI
 
 struct WordListOverlay: View {
     @Binding var showWordList: Bool
-    @Binding var words: [Word]
-    @Binding var isLoadingWords: Bool
-    let scriptId: Int64
+    
+    @State var viewModel: WordListViewModel
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -24,9 +23,9 @@ struct WordListOverlay: View {
                 }
             
             WordkListView(
-                scriptId: scriptId,
-                words: $words,
-                isLoading: $isLoadingWords
+                scriptId: viewModel.scriptId,
+                words: $viewModel.words,
+                isLoading: $viewModel.isLoading
             )
             .padding(.top, 0)
             .padding(.trailing, 10)

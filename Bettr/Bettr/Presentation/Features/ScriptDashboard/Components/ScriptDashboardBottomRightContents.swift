@@ -21,7 +21,7 @@ struct ScriptDashboardBottomRightContents: View {
     private var scriptTitle: String {
         viewModel.currentTitle
     }
-    private var currentFeedbackNumber: Int {
+    private var currentFeedbackCount: Int {
         viewModel.scriptDashboardData?.stats.feedbackCount ?? 0
     }
     
@@ -47,7 +47,7 @@ struct ScriptDashboardBottomRightContents: View {
                     .fill(.defaultWhite50.opacity(0.3))
                 
                 Button(action: {
-                    router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle, currentFeedbackNumber: currentFeedbackNumber))
+                    router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle, currentFeedbackCount: currentFeedbackCount))
                 }) {
                     Text("암기하기")
                         .font(.labelBold16)

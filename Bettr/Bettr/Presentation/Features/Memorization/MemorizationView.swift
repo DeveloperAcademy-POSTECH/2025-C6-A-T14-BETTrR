@@ -7,12 +7,16 @@
 import SwiftUI
 
 struct MemorizationView: View {
+    
     @State var viewModel: MemorizationViewModel
+    @State var wordListViewModel: WordListViewModel
+    
     @Environment(AudioPlaybackService.self) private var audioService
     @State private var isTitleEditing: Bool = false
     
-    init(viewModel: MemorizationViewModel) {
+    init(viewModel: MemorizationViewModel, wordListViewModel: WordListViewModel) {
         _viewModel = State(initialValue: viewModel)
+        _wordListViewModel = State(initialValue: wordListViewModel)
     }
     
     var body: some View {
@@ -44,9 +48,7 @@ struct MemorizationView: View {
             if viewModel.showWordList {
                 WordListOverlay(
                     showWordList: $viewModel.showWordList,
-                    words: $viewModel.words,
-                    isLoadingWords: $viewModel.isLoadingWords,
-                    scriptId: viewModel.scriptId
+                    viewModel: wordListViewModel
                 )
             }
         }
@@ -87,6 +89,10 @@ struct MemorizationView: View {
         }
         .onAppear {
             viewModel.onAppear()
+            
+            Task {
+                await wordListViewModel.loadWords()
+            }
         }
     }
 }
