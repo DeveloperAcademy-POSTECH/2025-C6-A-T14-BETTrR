@@ -2,75 +2,92 @@
 import SwiftUI
 import AVFoundation
 
+// MARK: - State Objects
+
+/// 툴바, 모달, 재생 상태 등 UI와 직접 연결된 상태
+@Observable
+class MemorizationUIState {
+    // 툴바 상태
+    var isChunkMode: Bool = false
+    var funcMode: FunctionMode = .hide
+    var isKoreanVisible: Bool = true
+    var isTitleEditing: Bool = false
+    
+    // 모달/시트 상태
+    var showWordList: Bool = false
+    var showFeedbackModal: Bool = false
+    
+    // 재생 및 하이라이트 상태
+    var isPlaying: Bool = false
+    var isPause: Bool = false
+    var tappedPlaybackText: String? = nil
+}
+
+/// '가리기' 기능과 같이 콘텐츠 상호작용과 관련된 상태
+@Observable
+class InteractionState {
+    var hiddenEngChunks: Set<ChunkIdentifier> = []
+    var hiddenEngSentences: Set<Int> = []
+    
+    // 이 객체와 관련된 로직을 메서드로 제공
+    func toggleHiddenState(in set: inout Set<ChunkIdentifier>, for item: ChunkIdentifier) {
+        withAnimation(.easeInOut(duration: 0.02)) {
+            if set.contains(item) {
+                set.remove(item)
+            } else {
+                set.insert(item)
+            }
+        }
+    }
+    
+    func toggleHiddenState(in set: inout Set<Int>, for item: Int) {
+        withAnimation(.easeInOut(duration: 0.02)) {
+            if set.contains(item) {
+                set.remove(item)
+            } else {
+                set.insert(item)
+            }
+        }
+    }
+    
+    func clearAllHiddenStates() {
+        hiddenEngChunks.removeAll()
+        hiddenEngSentences.removeAll()
+    }
+}
+
+// MARK: - MemorizationViewModel
+
 @Observable
 final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
-    // MARK: - Dependencies (의존성)
+    // MARK: Dependencies (의존성)
     let scriptId: Int64
     let scriptService: ScriptManagementServiceProtocol
     let audioService: AudioPlaybackServiceProtocol
-    
-    /// 현재까지 저장된 피드백의 총 개수 (이 뷰모델이 직접 사용하진 않고, RecordingView로 전달하기 위해 보관)
     let currentFeedbackCount: Int
     
-    // MARK: - State (뷰에서 사용될 상태)
-    
-    // 원본 데이터
+    // MARK: Core Data State (핵심 데이터 상태)
     var scriptData: ScriptData?
-    
-    
     var isLoadingScript: Bool = true
-    
     var currentError: AppError? = nil
     
-    // 스크립트 제목
+    // MARK: Grouped States (그룹화된 상태)
+    var uiState = MemorizationUIState()
+    var interactionState = InteractionState()
+    
+    // MARK: Title State (프로토콜 요구사항)
     var currentTitle: String {
         didSet {
             handleTitleChange(oldValue: oldValue, newValue: currentTitle)
         }
     }
     
-    // 툴바 UI 상태
-    var isChunkMode: Bool = false {
-        didSet { clearAllHiddenStates(); tappedPlaybackText = nil }
-    }
-    var funcMode: FunctionMode = .hide {
-        didSet { if funcMode == .read { clearAllHiddenStates() }; tappedPlaybackText = nil }
-    }
-    var isKoreanVisible: Bool = true
-    var showWordList: Bool = false
-    var showFeedbackModal: Bool = false
+    // MARK: Computed Properties (계산 프로퍼티)
+    var isRecordingDisabled: Bool { scriptData == nil }
+    var referenceSentences: [String] { scriptData?.sentences.map { $0.englishText } ?? [] }
     
-    // 재생 상태
-    var isPlaying: Bool = false {
-        didSet { handleIsPlayingChange(to: isPlaying) }
-    }
-    var isPause: Bool = false {
-        didSet { handleIsPauseChange(to: isPause) }
-    }
-    
-    // 탭 상태
-    var tappedPlaybackText: String? = nil
-    
-    // 가리기 상태
-    var hiddenEngChunks: Set<ChunkIdentifier> = []
-    var hiddenEngSentences: Set<Int> = []
-    
-    // MARK: - Computed Properties (계산 프로퍼티)
-    
-    var isRecordingDisabled: Bool {
-        scriptData == nil
-    }
-    
-    var referenceSentences: [String] {
-        scriptData?.sentences.map { $0.englishText } ?? []
-    }
-    
-    func updateLocalModelTitle(_ newTitle: String) {
-        self.scriptData?.title = newTitle
-    }
-    
-    // MARK: - Init
+    // MARK: Init
     
     init(
         scriptId: Int64,
@@ -86,11 +103,10 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         self.audioService = audioService
     }
     
-    // MARK: - Public Methods (View's Lifecycle)
+    // MARK: Lifecycle Methods
     
     @MainActor
     func onAppear() {
-        // 뷰가 나타날 때 데이터를 비동기로 로드
         Task {
             await loadScriptById()
         }
@@ -100,46 +116,86 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         audioService.stop()
     }
     
-    // MARK: - Public Methods (User Interactions)
+    // MARK: Protocol Methods
     
-    // 청크 탭 처리
+    func updateLocalModelTitle(_ newTitle: String) {
+        self.scriptData?.title = newTitle
+    }
+    
+    // MARK: - Intent-based Methods
+    
+    func endTitleEditing() {
+        uiState.isTitleEditing = false
+    }
+    
+    func toggleChunkMode() {
+        uiState.isChunkMode.toggle()
+        
+        interactionState.clearAllHiddenStates()
+        uiState.tappedPlaybackText = nil
+    }
+    
+    func setFunctionMode(_ newMode: FunctionMode) {
+        uiState.funcMode = newMode
+        
+        // 'didSet'에 있던 로직을 이곳으로 이동
+        if uiState.funcMode == .read {
+            interactionState.clearAllHiddenStates()
+        }
+        uiState.tappedPlaybackText = nil
+    }
+    
+    func togglePlayStop() {
+        uiState.isPlaying.toggle()
+        
+        if uiState.isPlaying {
+            guard let scriptData = scriptData else {
+                uiState.isPlaying = false
+                return
+            }
+            audioService.playAll(sentences: scriptData.sentences)
+            uiState.isPause = false
+            uiState.tappedPlaybackText = nil
+        } else {
+            audioService.stop()
+            uiState.tappedPlaybackText = nil
+        }
+    }
+    
+    func togglePauseResume() {
+        guard uiState.isPlaying else { return }
+        
+        uiState.isPause.toggle()
+        
+        if uiState.isPause {
+            audioService.pause()
+        } else {
+            audioService.resume()
+        }
+    }
+    
     func handleChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
-        if funcMode == .hide {
-            toggleHiddenState(in: &hiddenEngChunks, for: identifier)
+        if uiState.funcMode == .hide {
+            interactionState.toggleHiddenState(in: &interactionState.hiddenEngChunks, for: identifier)
         } else {
             audioService.play(text: chunk.englishText)
-            tappedPlaybackText = chunk.englishText
+            uiState.tappedPlaybackText = chunk.englishText
         }
     }
     
-    // 문장 탭 처리
     func handleSentenceTap(sentence: SentenceData) {
-        if funcMode == .hide {
-            toggleHiddenState(in: &hiddenEngSentences, for: sentence.orderIndex)
+        if uiState.funcMode == .hide {
+            interactionState.toggleHiddenState(in: &interactionState.hiddenEngSentences, for: sentence.orderIndex)
         } else {
             audioService.play(text: sentence.englishText)
-            tappedPlaybackText = sentence.englishText
+            uiState.tappedPlaybackText = sentence.englishText
         }
     }
     
-    // 오디오 서비스의 상태 변경 처리 (View의 .onChange에서 호출)
     func handleAudioServiceStateChange(isPlaying serviceIsPlaying: Bool, isPaused serviceIsPaused: Bool) {
         if !serviceIsPlaying && !serviceIsPaused {
-            // 재생이 끝까지 완료됨
-            self.isPlaying = false
-            self.isPause = false
-        }
-    }
-    
-    // MARK: - Private Methods (Internal Logic)
-    
-    private func toggleHiddenState<T: Hashable>(in set: inout Set<T>, for item: T) {
-        withAnimation(.easeInOut(duration: 0.02)) {
-            if set.contains(item) {
-                set.remove(item)
-            } else {
-                set.insert(item)
-            }
+            self.uiState.isPlaying = false
+            self.uiState.isPause = false
         }
     }
     
@@ -157,7 +213,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             do {
                 // --- 1. 데이터 로드 시도 ---
                 guard let fetchedData = try scriptService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
-                    // [실패 1] 404 - 데이터를 찾을 수 없음
+                    // 실패: 404 - 데이터를 찾을 수 없음
                     let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
                     currentError = .dataNotFound(message)
                     self.currentTitle = "스크립트 없음"
@@ -195,53 +251,19 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             } catch {
                 let appError = AppError.networkError(error.localizedDescription)
                 
-                // "재시도 불가능한" 에러이거나, "마지막" 시도였다면
+                // 재시도 불가능한 에러이거나, 마지막 시도였다면
                 if !appError.isRetryable || attempt == maxRetries {
-                    currentError = appError // 뷰에 에러 표시
+                    currentError = appError
                     self.currentTitle = "스크립트 오류"
-                    isLoadingScript = false // 로딩 종료 (최종 실패)
-                    return // 함수 종료
+                    isLoadingScript = false
+                    return
                 }
                 
                 // 아직 재시도 기회 남음 (Exponential Backoff)
-                // (1초, 2초... 딜레이)
                 let delaySeconds = UInt64(pow(2, Double(attempt)))
                 try? await Task.sleep(nanoseconds: delaySeconds * 1_000_000_000)
                 // 딜레이 후, for 루프의 다음 단계(attempt + 1)로 넘어감
             }
-        }
-    }
-    
-    private func clearAllHiddenStates() {
-        hiddenEngChunks.removeAll()
-        hiddenEngSentences.removeAll()
-    }
-    
-    // .onChange(of: isPlaying) 로직
-    private func handleIsPlayingChange(to isNowPlaying: Bool) {
-        if isNowPlaying {
-            guard let scriptData = scriptData else {
-                isPlaying = false // 데이터 없으면 다시 끔
-                return
-            }
-            audioService.playAll(sentences: scriptData.sentences)
-            isPause = false // 재생 시작 시 '일시정지' 상태는 해제
-            tappedPlaybackText = nil
-        } else {
-            // "정지" 버튼을 누름 (Playing/Paused -> Stopped)
-            audioService.stop()
-            tappedPlaybackText = nil
-        }
-    }
-    
-    // .onChange(of: isPause) 로직
-    private func handleIsPauseChange(to isNowPaused: Bool) {
-        guard isPlaying else { return } // isPlaying이 false(정지 상태)일 때는 무시
-        
-        if isNowPaused {
-            audioService.pause()
-        } else {
-            audioService.resume()
         }
     }
 }

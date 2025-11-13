@@ -7,150 +7,114 @@
 
 import SwiftUI
 
+// FunctionMode enum은 그대로 둡니다.
 enum FunctionMode {
     case hide   // 가리기
     case read   // 재생
 }
 
-struct MemorizationToolbar: ViewModifier {
+struct MemorizationToolbarContent: ToolbarContent {
     
-    @Binding var title: String
+    @Bindable var viewModel: MemorizationViewModel
     let showEditIcon: Bool
-    @Binding var isTitleEditing: Bool
-    
-    @Binding var isChunkMode: Bool
-    @Binding var functionMode: FunctionMode
-    @Binding var isKoreanVisible: Bool
-    @Binding var isWordListOpen: Bool
-    @Binding var isPlaying: Bool
-    @Binding var isPause: Bool
-    @Binding var isFeedbackModalOpen: Bool
-    let isRecordingDisabled: Bool
-    
-    func body(content: Content) -> some View {
-        content
-            .toolbar {
-                // 타이틀
-                ToolbarItem(placement: .principal) {
-                    EditableTitle(title: $title, showEditIcon: showEditIcon, isEditing: $isTitleEditing )
-                }
-                
-                // 상단 오른쪽 툴 바
-                ToolbarItem {
+
+    var body: some ToolbarContent {
+        // 타이틀
+        ToolbarItem(placement: .principal) {
+            EditableTitle(
+                title: $viewModel.currentTitle,
+                showEditIcon: showEditIcon,
+                isEditing: $viewModel.uiState.isTitleEditing
+            )
+        }
+        
+        // 상단 오른쪽 툴 바 (청크 모드)
+        ToolbarItem {
+            Button(action: {
+                viewModel.toggleChunkMode()
+            }) {
+                Image(systemName: "text.word.spacing")
+                    .toolbarButtonStyle(emphasized: viewModel.uiState.isChunkMode)
+            }
+        }
+        
+        ToolbarSpacer(.flexible)
+        
+        // 기능 모드 (Hide/Read)
+        ToolbarItemGroup {
+            Button(action: {
+                viewModel.setFunctionMode(.hide)
+            }) {
+                Image(systemName: "bandage")
+                    .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .hide)
+            }
+            Button(action: {
+                viewModel.setFunctionMode(.read)
+            }) {
+                Image(systemName: "speaker.wave.2")
+                    .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .read)
+            }
+        }
+        
+        ToolbarSpacer(.flexible)
+        
+        // 한국어 토글
+        ToolbarItem {
+            Button(action: {
+                viewModel.uiState.isKoreanVisible.toggle()
+            }) {
+                Text("한")
+                    .toolbarButtonStyle(emphasized: viewModel.uiState.isKoreanVisible)
+            }
+        }
+        
+        ToolbarSpacer(.flexible)
+        
+        // 단어장
+        ToolbarItem {
+            Button(action: {
+                viewModel.uiState.showWordList.toggle()
+            }) {
+                Image(systemName: "character.book.closed")
+                    .toolbarButtonStyle(emphasized: viewModel.uiState.showWordList)
+            }
+        }
+        
+        // 하단 툴 바
+        ToolbarItemGroup(placement: .bottomBar) {
+            // 왼쪽 버튼
+            if viewModel.uiState.isPlaying {
+                ControlGroup {
                     Button(action: {
-                        isChunkMode.toggle()
+                        viewModel.togglePauseResume()
                     }) {
-                        Image(systemName: "text.word.spacing")
-                            .toolbarButtonStyle(emphasized: isChunkMode)
-                    }
-                }
-                
-                ToolbarSpacer(.flexible)
-                
-                ToolbarItemGroup {
-                    Button(action: {
-                        functionMode = .hide
-                    }) {
-                        Image(systemName: "bandage")
-                            .toolbarButtonStyle(enabled: functionMode == .hide)
-                    }
-                    Button(action: {
-                        functionMode = .read
-                    }) {
-                        Image(systemName: "speaker.wave.2")
-                            .toolbarButtonStyle(enabled: functionMode == .read)
-                    }
-                }
-                
-                ToolbarSpacer(.flexible)
-                
-                ToolbarItem {
-                    Button(action: {
-                        isKoreanVisible.toggle()
-                    }) {
-                        Text("한")
-                            .toolbarButtonStyle(emphasized: isKoreanVisible)
-                    }
-                }
-                
-                ToolbarSpacer(.flexible)
-                
-                ToolbarItem {
-                    Button(action: {
-                        isWordListOpen.toggle()
-                    }) {
-                        Image(systemName: "character.book.closed")
-                            .toolbarButtonStyle(emphasized: isWordListOpen)
-                    }
-                }
-                
-                // 하단 툴 바
-                ToolbarItemGroup(placement: .bottomBar) {
-                    // 왼쪽 버튼
-                    if isPlaying {
-                        ControlGroup {
-                            Button(action: {
-                                isPause.toggle()
-                            }) {
-                                Image(systemName: isPause ? "play.fill" : "pause.fill")
-                            }
-                            
-                            Button(action: {
-                                isPlaying = false
-                                isPause = false
-                            }) {
-                                Image(systemName: "stop.fill")
-                            }
-                        }
-                    } else {
-                        Button(action: {
-                            isPlaying = true
-                        }) {
-                            Image(systemName: "play.fill")
-                        }
+                        Image(systemName: viewModel.uiState.isPause ? "play.fill" : "pause.fill")
                     }
                     
-                    Spacer()
-                    
-                    // 오른쪽 버튼
                     Button(action: {
-                        isFeedbackModalOpen.toggle()
+                        viewModel.togglePlayStop()
                     }) {
-                        Image(systemName: "append.page")
-                            .toolbarButtonStyle(enabled: !isRecordingDisabled)
+                        Image(systemName: "stop.fill")
                     }
-                    .disabled(isRecordingDisabled)
+                }
+            } else {
+                Button(action: {
+                    viewModel.togglePlayStop()
+                }) {
+                    Image(systemName: "play.fill")
                 }
             }
-    }
-}
-
-extension View {
-    func memorizationToolbar(
-        title: Binding<String>,
-        showEditIcon: Bool = false,
-        isTitleEditing: Binding<Bool>,
-        isChunkMode: Binding<Bool>,
-        functionMode: Binding<FunctionMode>,
-        isKoreanVisible: Binding<Bool>,
-        isWordListOpen: Binding<Bool>,
-        isPlaying: Binding<Bool>,
-        isPause: Binding<Bool>,
-        isFeedbackModalOpen: Binding<Bool>,
-        isRecordingDisabled: Bool
-    ) -> some View {
-        self.modifier(MemorizationToolbar(
-            title: title,
-            showEditIcon: showEditIcon,
-            isTitleEditing: isTitleEditing,
-            isChunkMode: isChunkMode,
-            functionMode: functionMode,
-            isKoreanVisible: isKoreanVisible,
-            isWordListOpen: isWordListOpen,
-            isPlaying: isPlaying,
-            isPause: isPause,
-            isFeedbackModalOpen: isFeedbackModalOpen,
-            isRecordingDisabled: isRecordingDisabled
-        ))
+            
+            Spacer()
+            
+            // 오른쪽 버튼
+            Button(action: {
+                viewModel.uiState.showFeedbackModal.toggle()
+            }) {
+                Image(systemName: "append.page")
+                    .toolbarButtonStyle(enabled: !viewModel.isRecordingDisabled)
+            }
+            .disabled(viewModel.isRecordingDisabled)
+        }
     }
 }

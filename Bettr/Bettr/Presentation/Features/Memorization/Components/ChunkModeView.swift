@@ -15,15 +15,16 @@ struct ChunkModeView: View {
             let lastChunkIndex = sentence.chunks.last?.orderIndex
             
             VStack(alignment: .leading, spacing: 6) {
-                // 1. 영어 청크 라인
+                
+                // 영어 청크 라인
                 CustomFlowLayout(horizontalSpacing: 12, verticalSpacing: 8) {
                     ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                         let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)
                         
                         EnglishScriptTextView(
                             text: chunk.englishText,
-                            isHidden: viewModel.hiddenEngChunks.contains(chunkID),
-                            isHighlighted: viewModel.tappedPlaybackText == chunk.englishText,
+                            isHidden: viewModel.interactionState.hiddenEngChunks.contains(chunkID),
+                            isHighlighted: viewModel.uiState.tappedPlaybackText == chunk.englishText,
                             onTap: {
                                 viewModel.handleChunkTap(chunk: chunk, identifier: chunkID)
                             }
@@ -38,13 +39,13 @@ struct ChunkModeView: View {
                     }
                 }
                 
-                // 2. 한국어 청크 라인
+                // 한국어 청크 라인
                 CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 0) {
                     ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                         
                         KoreanScriptTextView(
                             text: chunk.koreanText,
-                            isVisible: viewModel.isKoreanVisible,
+                            isVisible: viewModel.uiState.isKoreanVisible,
                         )
                         
                         if chunk.orderIndex != lastChunkIndex {
@@ -52,7 +53,7 @@ struct ChunkModeView: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 9, height: 14)
-                                .opacity(viewModel.isKoreanVisible ? 1.0 : 0.0)
+                                .opacity(viewModel.uiState.isKoreanVisible ? 1.0 : 0.0)
                         }
                     }
                 }

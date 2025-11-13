@@ -14,20 +14,18 @@ struct SentenceModeView: View {
         ForEach(viewModel.scriptData?.sentences ?? [], id: \.orderIndex) { sentence in
             VStack(alignment: .leading, spacing: 6) {
                 
-                // 1. 영어 텍스트
                 EnglishScriptTextView(
                     text: sentence.englishText,
-                    isHidden: viewModel.hiddenEngSentences.contains(sentence.orderIndex),
-                    isHighlighted: viewModel.tappedPlaybackText == sentence.englishText,
+                    isHidden: viewModel.interactionState.hiddenEngSentences.contains(sentence.orderIndex),
+                    isHighlighted: viewModel.uiState.tappedPlaybackText == sentence.englishText,
                     onTap: {
                         viewModel.handleSentenceTap(sentence: sentence)
                     }
                 )
                 
-                // 2. 한국어 텍스트
                 KoreanScriptTextView(
                         text: sentence.koreanText,
-                        isVisible: viewModel.isKoreanVisible,
+                        isVisible: viewModel.uiState.isKoreanVisible,
                     )
             }
             .frame(maxWidth: .infinity, alignment: .leading)

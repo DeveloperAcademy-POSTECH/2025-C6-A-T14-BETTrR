@@ -12,7 +12,6 @@ struct MemorizationView: View {
     @State var wordListViewModel: WordListViewModel
     
     @Environment(AudioPlaybackService.self) private var audioService
-    @State private var isTitleEditing: Bool = false
     
     init(viewModel: MemorizationViewModel, wordListViewModel: WordListViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -33,7 +32,7 @@ struct MemorizationView: View {
             } else if viewModel.scriptData != nil { // 성공
                 ScrollView {
                     VStack(spacing: 24) {
-                        if viewModel.isChunkMode {
+                        if viewModel.uiState.isChunkMode {
                             ChunkModeView(viewModel: viewModel)
                         } else {
                             SentenceModeView(viewModel: viewModel)
@@ -53,17 +52,17 @@ struct MemorizationView: View {
             }
             
             // 단어장 뷰
-            if viewModel.showWordList {
+            if viewModel.uiState.showWordList {
                 WordListOverlay(
-                    showWordList: $viewModel.showWordList,
+                    showWordList: $viewModel.uiState.showWordList,
                     viewModel: wordListViewModel
                 )
             }
         }
         .onTapGesture {
-            isTitleEditing = false
+            viewModel.endTitleEditing()
         }
-        .animation(.easeInOut, value: viewModel.showWordList)
+        .animation(.easeInOut, value: viewModel.uiState.showWordList)
         .onChange(of: audioService.isPlaying) { _, serviceIsPlaying in
             viewModel.handleAudioServiceStateChange(
                 isPlaying: serviceIsPlaying,
@@ -73,21 +72,11 @@ struct MemorizationView: View {
         .onDisappear {
             viewModel.onDisappear()
         }
-        .memorizationToolbar(
-            title: $viewModel.currentTitle,
-            showEditIcon: true,
-            isTitleEditing: $isTitleEditing,
-            isChunkMode: $viewModel.isChunkMode,
-            functionMode: $viewModel.funcMode,
-            isKoreanVisible: $viewModel.isKoreanVisible,
-            isWordListOpen: $viewModel.showWordList,
-            isPlaying: $viewModel.isPlaying,
-            isPause: $viewModel.isPause,
-            isFeedbackModalOpen: $viewModel.showFeedbackModal,
-            isRecordingDisabled: viewModel.isRecordingDisabled
-        )
+        .toolbar {
+            MemorizationToolbarContent(viewModel: viewModel, showEditIcon: true)
+        }
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(isPresented: $viewModel.showFeedbackModal) {
+        .fullScreenCover(isPresented: $viewModel.uiState.showFeedbackModal) {
             RecordingView(
                 scriptId: viewModel.scriptId,
                 sentences: viewModel.referenceSentences,
