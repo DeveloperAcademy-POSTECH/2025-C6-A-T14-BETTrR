@@ -178,7 +178,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         for attempt in 0...maxRetries {
             do {
                 // --- 1. 데이터 로드 시도 ---
-                guard let fetchedData = try scriptService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
+                guard let fetchedData = try await scriptService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
                     // 실패: 404 - 데이터를 찾을 수 없음
                     let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
                     currentError = .dataNotFound(message)

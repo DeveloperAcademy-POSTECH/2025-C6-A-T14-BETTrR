@@ -31,13 +31,13 @@ final class WordListViewModel {
         defer { isLoading = false }
         
         do {
-            let existing = try wordExtractionService.fetchWords(for: scriptId)
+            let existing = try await wordExtractionService.fetchWords(for: scriptId)
             if !existing.isEmpty {
                 self.words = existing
                 return
             }
             try await wordExtractionService.extractAndSaveWords(for: scriptId)
-            self.words = try wordExtractionService.fetchWords(for: scriptId)
+            self.words = try await wordExtractionService.fetchWords(for: scriptId)
             
         } catch {
             print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)

@@ -69,80 +69,70 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
         self.currentError = nil
         
         let scriptId = self.scriptId
+        let maxRetries = 2
         
-        Task.detached(priority: .userInitiated) {
-            
-            let maxRetries = 2
-            
-            for attempt in 0...maxRetries {
-                do {
-                    guard let (fetchedScript, fetchedSentences) = try await self.scriptService.fetchScriptWithSentences(id: scriptId) else {
-                        let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
-                        throw AppError.dataNotFound(message)
-                    }
-                    
-                    let allFeedbacks = try await self.scriptService.fetchFeedbackSummaries(forScriptId: scriptId)
-                    let sortedFeedbacks = allFeedbacks.sorted { $0.createdAt > $1.createdAt }
-                    
-                    let recentFeedbacks = Array(sortedFeedbacks.prefix(5))
-                    let recentFeedbackCount = recentFeedbacks.count
-                    
-                    let recentDetails = try await self.fetchRecentDetails(from: recentFeedbacks)
-                    
-                    let statsModel = await self.dataProcessor.processDashboardStats(
-                        from: allFeedbacks,
-                        recentDetails: recentDetails,
-                        recentFeedbackCount: recentFeedbackCount
+        for attempt in 0...maxRetries {
+            do {
+                guard let (fetchedScript, fetchedSentences) = try await self.scriptService.fetchScriptWithSentences(id: scriptId) else {
+                    let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
+                    throw AppError.dataNotFound(message)
+                }
+                
+                let allFeedbacks = try await self.scriptService.fetchFeedbackSummaries(forScriptId: scriptId)
+                let sortedFeedbacks = allFeedbacks.sorted { $0.createdAt > $1.createdAt }
+                
+                let recentFeedbacks = Array(sortedFeedbacks.prefix(5))
+                let recentFeedbackCount = recentFeedbacks.count
+                
+                let recentDetails = try await self.fetchRecentDetails(from: recentFeedbacks)
+                
+                let statsModel = await self.dataProcessor.processDashboardStats(
+                    from: allFeedbacks,
+                    recentDetails: recentDetails,
+                    recentFeedbackCount: recentFeedbackCount
+                )
+                
+                let sentenceModelList = fetchedSentences.map {
+                    ScriptDashboardSentenceModel(
+                        id: $0.id,
+                        orderIndex: $0.orderIndex,
+                        englishText: $0.englishText
                     )
-                    
-                    let sentenceModelList = fetchedSentences.map {
-                        ScriptDashboardSentenceModel(
-                            id: $0.id,
-                            orderIndex: $0.orderIndex,
-                            englishText: $0.englishText
-                        )
-                    }
-                    
-                    await MainActor.run {
-                        self.scriptDashboardData = ScriptDashboardModel(
-                            title: fetchedScript.title,
-                            sentences: sentenceModelList,
-                            allFeedbacks: sortedFeedbacks,
-                            recentFeedbacks: recentFeedbacks,
-                            stats: statsModel
-                        )
-                        
-                        self.currentTitle = fetchedScript.title
-                        self.isLoading = false
-                        self.currentError = nil
-                    }
-                    return
-                    
+                }
+                
+                self.scriptDashboardData = ScriptDashboardModel(
+                    title: fetchedScript.title,
+                    sentences: sentenceModelList,
+                    allFeedbacks: sortedFeedbacks,
+                    recentFeedbacks: recentFeedbacks,
+                    stats: statsModel
+                )
+                
+                self.currentTitle = fetchedScript.title
+                self.isLoading = false
+                self.currentError = nil
+                return
+                
+            } catch {
+                let appError = (error as? AppError) ?? .networkError(error.localizedDescription)
+                
+                // 재시도 불가능한 에러이거나, 마지막 시도였다면
+                if !appError.isRetryable || attempt == maxRetries {
+                    self.currentError = appError
+                    self.currentTitle = "스크립트 오류"
+                    self.isLoading = false
+                    return // [중요] 최종 실패 시 함수(및 루프) 종료
+                }
+                
+                // 아직 재시도 기회 남음 (Exponential Backoff)
+                do {
+                    let delaySeconds = UInt64(pow(2, Double(attempt)))
+                    try await Task.sleep(nanoseconds: delaySeconds * 1_000_000_000)
                 } catch {
-                    let appError = (error as? AppError) ?? .networkError(error.localizedDescription)
-                    
-                    // 재시도 불가능한 에러이거나, 마지막 시도였다면
-                    if !appError.isRetryable || attempt == maxRetries {
-                        await MainActor.run {
-                            self.currentError = appError
-                            self.currentTitle = "스크립트 오류"
-                            self.isLoading = false
-                        }
-                        return // [중요] 최종 실패 시 함수(및 루프) 종료
-                    }
-                    
-                    // 아직 재시도 기회 남음 (Exponential Backoff)
-                    do {
-                        let delaySeconds = UInt64(pow(2, Double(attempt)))
-                        try await Task.sleep(nanoseconds: delaySeconds * 1_000_000_000)
-                    } catch {
-                        // Task.sleep이 취소된 경우 (예: 뷰가 사라져서 Task가 취소됨)
-                        await MainActor.run {
-                            self.currentError = .unknown("작업이 취소되었습니다.")
-                            self.isLoading = false
-                        }
-                        return
-                    }
+                    // Task.sleep이 취소된 경우 (예: 뷰가 사라져서 Task가 취소됨)
+                    self.currentError = .unknown("작업이 취소되었습니다.")
+                    self.isLoading = false
+                    return
                 }
             }
         }

@@ -38,14 +38,13 @@ struct ScriptGridView: View {
     }
 }
 
-#Preview {
-    ScriptGridView(
-        onSelectPhoto: {},
-        onTakePhoto: {},
-        onSelectFile: {},
-        requestDelete: { _ in }
-    )
-    .environment(DatabaseContainer.getForPreview())
-    .environment(NavigationRouter())
-}
-
+//#Preview {
+//    ScriptGridView(
+//        onSelectPhoto: {},
+//        onTakePhoto: {},
+//        onSelectFile: {},
+//        requestDelete: { _ in }
+//    )
+//    .environment(DatabaseContainer.getForPreview())
+//    .environment(NavigationRouter())
+//}

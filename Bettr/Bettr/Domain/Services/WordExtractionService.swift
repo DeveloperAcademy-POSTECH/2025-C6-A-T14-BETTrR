@@ -17,9 +17,9 @@ struct GeminiWord: Codable {
 class WordExtractionService {
     private let dbQueue: DatabaseQueue
     private let scriptRepository: ScriptRepository
-    private let scriptManagementService: ScriptManagementService
+    private let scriptManagementService: ScriptManagementServiceProtocol
     
-    init(dbQueue: DatabaseQueue, scriptRepository: ScriptRepository, scriptManagementService: ScriptManagementService) {
+    init(dbQueue: DatabaseQueue, scriptRepository: ScriptRepository, scriptManagementService: ScriptManagementServiceProtocol) {
         self.dbQueue = dbQueue
         self.scriptRepository = scriptRepository
         self.scriptManagementService = scriptManagementService
@@ -28,7 +28,7 @@ class WordExtractionService {
     // MARK: - 🔹 Gemini 기반 단어 추출 + GRDB 저장
     func extractAndSaveWords(for scriptId: Int64) async throws {
         // 이미 단어가 존재하면 바로 리턴
-        let existingWords = try fetchWords(for: scriptId)
+        let existingWords = try await fetchWords(for: scriptId)
         if !existingWords.isEmpty {
             print("🟢 이미 단어 \(existingWords.count)개 존재 — Gemini 호출 생략")
             return
@@ -40,7 +40,7 @@ class WordExtractionService {
         
         do {
             // 1️⃣ 스크립트 불러오기
-            guard let scriptData = try scriptManagementService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
+            guard let scriptData = try await scriptManagementService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
                 throw WordExtractionError.scriptNotFound
             }
             
@@ -127,7 +127,7 @@ class WordExtractionService {
                     }
                     
                     // GRDB 저장
-                    try saveWordsToDatabase(scriptId: scriptId, words: words)
+                    try await saveWordsToDatabase(scriptId: scriptId, words: words)
                     print("✅ Gemini 기반 단어 \(words.count)개 저장 완료")
                     return // 성공 시 종료
                     
@@ -180,8 +180,8 @@ class WordExtractionService {
         }
     }
     // MARK: - 🔹 단어 조회 (스크립트별)
-    func fetchWords(for scriptId: Int64) throws -> [Word] {
-        try dbQueue.read { db in
+    func fetchWords(for scriptId: Int64) async throws -> [Word] {
+        try await dbQueue.read { db in
             try Word
                 .filter(Column("scriptId") == scriptId)
                 .order(Column("orderIndex").asc)
@@ -190,8 +190,8 @@ class WordExtractionService {
     }
     
     // MARK: - 💾 GRDB 저장 로직
-    private func saveWordsToDatabase(scriptId: Int64, words: [GeminiWord]) throws {
-        try dbQueue.write { db in
+    private func saveWordsToDatabase(scriptId: Int64, words: [GeminiWord]) async throws {
+        try await dbQueue.write { db in
             try scriptRepository.deleteWords(forScriptId: scriptId, in: db)
             for (index, word) in words.enumerated() {
                 var entity = Word(

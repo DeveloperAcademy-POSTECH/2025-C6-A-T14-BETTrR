@@ -241,17 +241,15 @@ class FeedbackViewModel {
         do {
             // Task.detached를 사용해 DB 작업을 백그라운드 스레드로 보냄
             // (await 이후 @MainActor로 자동 복귀)
-            let summary = try await Task.detached {
-                try await self.scriptManagementService.createFeedbackSummary(
-                    scriptId: self.scriptId,
-                    accuracy: self.accuracy,
-                    missingWordCount: self.missingCount,
-                    addedWordCount: self.extraCount,
-                    replacedWordCount: self.replacedCount,
-                    practiceDuration: practiceDuration,
-                    feedbackDetailsData: detailsData
-                )
-            }.value // 백그라운드 작업이 끝나고 결과를 받음
+            let summary = try await self.scriptManagementService.createFeedbackSummary(
+                scriptId: self.scriptId,
+                accuracy: self.accuracy,
+                missingWordCount: self.missingCount,
+                addedWordCount: self.extraCount,
+                replacedWordCount: self.replacedCount,
+                practiceDuration: practiceDuration,
+                feedbackDetailsData: detailsData
+            ) // 백그라운드 작업이 끝나고 결과를 받음
             
             // 성공
             print("피드백 저장 성공. Summary ID: \(summary.id ?? -1)")

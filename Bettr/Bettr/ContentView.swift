@@ -78,9 +78,9 @@ struct ContentView: View {
     }
 }
 
-#Preview {
-    ContentView()
-        .environment(DatabaseContainer.getForPreview())
-        .environment(NavigationRouter())
-        .environment(AudioPlaybackService())
-}
+//#Preview {
+//    ContentView()
+//        .environment(DatabaseContainer.getForPreview())
+//        .environment(NavigationRouter())
+//        .environment(AudioPlaybackService())
+//}

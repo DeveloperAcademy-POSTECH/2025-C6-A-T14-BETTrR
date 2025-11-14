@@ -25,7 +25,7 @@ final class ScriptManagementServiceTests: XCTestCase {
 
     // MARK: - Script Create Tests
     
-    func test_createScript_whenValidScriptDataProvided_thenScriptIsCreatedSuccessfully() throws {
+    func test_createScript_whenValidScriptDataProvided_thenScriptIsCreatedSuccessfully() async throws {
         // Given: 유효한 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Test Script",
@@ -43,7 +43,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         
         // When: createScript를 호출했을 때
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
         
         // Then: Script가 성공적으로 생성되어야 함
         XCTAssertNotNil(createdScript.id)
@@ -52,7 +52,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertNotNil(createdScript.lastViewedAt)
     }
     
-    func test_createScript_whenScriptCreated_thenScriptExistsInDatabase() throws {
+    func test_createScript_whenScriptCreated_thenScriptExistsInDatabase() async throws {
         // Given: ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Database Test Script",
@@ -67,10 +67,10 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         
         // When: Script를 생성했을 때
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
         
         // Then: 데이터베이스에 Script가 존재해야 함
-        let fetchedScript = try dbQueue.read { db in
+        let fetchedScript = try await dbQueue.read { db in
             try Script.fetchOne(db, key: createdScript.id)
         }
         
@@ -78,7 +78,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(fetchedScript?.title, "Database Test Script")
     }
     
-    func test_createScript_whenSentencesProvided_thenSentencesAreCreatedWithCorrectOrder() throws {
+    func test_createScript_whenSentencesProvided_thenSentencesAreCreatedWithCorrectOrder() async throws {
         // Given: 여러 문장을 포함한 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Multi Sentence Script",
@@ -99,10 +99,10 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         
         // When: Script를 생성했을 때
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
         
         // Then: Sentence들이 올바른 순서로 생성되어야 함
-        let sentences = try dbQueue.read { db in
+        let sentences = try await dbQueue.read { db in
             try Sentence
                 .filter(Column("scriptId") == createdScript.id!)
                 .order(Column("orderIndex"))
@@ -116,7 +116,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(sentences[1].englishText, "Second sentence")
     }
     
-    func test_createScript_whenChunksProvided_thenChunksAreCreatedWithCorrectOrder() throws {
+    func test_createScript_whenChunksProvided_thenChunksAreCreatedWithCorrectOrder() async throws {
         // Given: Chunk를 포함한 Sentence가 존재할 때
         let scriptData = ScriptData(
             title: "Chunked Script",
@@ -135,16 +135,16 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         
         // When: Script를 생성했을 때
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
         
         // Then: Chunk들이 올바른 순서로 생성되어야 함
-        let sentence = try dbQueue.read { db in
+        let sentence = try await dbQueue.read { db in
             try Sentence
                 .filter(Column("scriptId") == createdScript.id!)
                 .fetchOne(db)
         }
         
-        let chunks = try dbQueue.read { db in
+        let chunks = try await dbQueue.read { db in
             try Chunk
                 .filter(Column("sentenceId") == sentence!.id!)
                 .order(Column("orderIndex"))
@@ -160,7 +160,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(chunks[2].englishText, "today")
     }
     
-    func test_createScript_whenComplexDataProvided_thenAllRelationshipsAreCreatedCorrectly() throws {
+    func test_createScript_whenComplexDataProvided_thenAllRelationshipsAreCreatedCorrectly() async throws {
         // Given: 복잡한 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Complex Script",
@@ -187,16 +187,16 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         
         // When: Script를 생성했을 때
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
         
         // Then: 모든 관계가 올바르게 생성되어야 함
-        let scriptCount = try dbQueue.read { db in
+        let scriptCount = try await dbQueue.read { db in
             try Script.fetchCount(db)
         }
-        let sentenceCount = try dbQueue.read { db in
+        let sentenceCount = try await dbQueue.read { db in
             try Sentence.filter(Column("scriptId") == createdScript.id!).fetchCount(db)
         }
-        let chunkCount = try dbQueue.read { db in
+        let chunkCount = try await dbQueue.read { db in
             try Chunk.fetchCount(db)
         }
         
@@ -205,7 +205,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(chunkCount, 4)
     }
     
-    func test_createScript_whenEmptySentences_thenThrowsError() throws {
+    func test_createScript_whenEmptySentences_thenThrowsError() async throws {
         // Given: 문장이 없는 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Empty Script",
@@ -213,7 +213,10 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         
         // When-Then: Script 생성 시 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.createScript(scriptData: scriptData)) { error in
+        do {
+            _ = try await sut.createScript(scriptData: scriptData)
+            XCTFail("Expected validationError, but no error was thrown.")
+        } catch {
             XCTAssertEqual(
                 (error as? ScriptRepositoryError)?.errorDescription,
                 ScriptRepositoryError.validationError(message: "A Script must contain at least one sentence.").errorDescription
@@ -221,7 +224,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         }
     }
     
-    func test_createScript_whenEmptyChunks_thenThrowsError() throws {
+    func test_createScript_whenEmptyChunks_thenThrowsError() async throws {
         // Given: Chunk가 없는 Sentence가 포함된 ScriptData가 존재할 때
         let scriptData = ScriptData(
             title: "Script with Empty Chunks",
@@ -236,7 +239,10 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         
         // When-Then: Script 생성 시 검증 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.createScript(scriptData: scriptData)) { error in
+        do {
+            _ = try await sut.createScript(scriptData: scriptData)
+            XCTFail("Expected validationError, but no error was thrown.")
+        } catch {
             XCTAssertEqual(
                 (error as? ScriptRepositoryError)?.errorDescription,
                 ScriptRepositoryError.validationError(message: "A Sentence must contain at least one chunk.").errorDescription
@@ -246,7 +252,7 @@ final class ScriptManagementServiceTests: XCTestCase {
     
     // MARK: - Script Read Tests
     
-    func test_fetchScript_whenScriptExists_thenReturnsScript() throws {
+    func test_fetchScript_whenScriptExists_thenReturnsScript() async throws {
         // Given: Script가 존재할 때
         let scriptData = ScriptData(
             title: "Fetchable Script",
@@ -259,10 +265,10 @@ final class ScriptManagementServiceTests: XCTestCase {
                 )
             ]
         )
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
         
         // When: 해당 Script ID로 조회했을 때
-        let fetchedScript = try sut.fetchScript(id: createdScript.id!)
+        let fetchedScript = try await sut.fetchScript(id: createdScript.id!)
         
         // Then: 올바른 Script가 반환되어야 함
         XCTAssertNotNil(fetchedScript)
@@ -270,18 +276,18 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(fetchedScript?.id, createdScript.id)
     }
     
-    func test_fetchScript_whenScriptDoesNotExist_thenReturnsNil() throws {
+    func test_fetchScript_whenScriptDoesNotExist_thenReturnsNil() async throws {
         // Given: 존재하지 않는 Script ID가 있을 때
         let nonExistentId: Int64 = 9999
         
         // When: 해당 ID로 Script를 조회했을 때
-        let fetchedScript = try sut.fetchScript(id: nonExistentId)
+        let fetchedScript = try await sut.fetchScript(id: nonExistentId)
         
         // Then: nil이 반환되어야 함
         XCTAssertNil(fetchedScript)
     }
     
-    func test_fetchAllScripts_whenScriptsExist_thenReturnsAllScripts() throws {
+    func test_fetchAllScripts_whenScriptsExist_thenReturnsAllScripts() async throws {
         // Given: 여러 Script가 존재할 때
         let scriptData1 = ScriptData(
             title: "Script One",
@@ -305,11 +311,11 @@ final class ScriptManagementServiceTests: XCTestCase {
                 )
             ]
         )
-        _ = try sut.createScript(scriptData: scriptData1)
-        _ = try sut.createScript(scriptData: scriptData2)
+        _ = try await sut.createScript(scriptData: scriptData1)
+        _ = try await sut.createScript(scriptData: scriptData2)
         
         // When: 모든 Script를 조회했을 때
-        let allScripts = try sut.fetchAllScripts()
+        let allScripts = try await sut.fetchAllScripts()
         
         // Then: 모든 Script가 반환되어야 함
         XCTAssertEqual(allScripts.count, 2)
@@ -317,11 +323,11 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertTrue(allScripts.contains(where: { $0.title == "Script Two" }))
     }
     
-    func test_fetchAllScripts_whenNoScriptsExist_thenReturnsEmptyArray() throws {
+    func test_fetchAllScripts_whenNoScriptsExist_thenReturnsEmptyArray() async throws {
         // Given: 데이터베이스에 Script가 없을 때
         
         // When: 모든 Script를 조회했을 때
-        let allScripts = try sut.fetchAllScripts()
+        let allScripts = try await sut.fetchAllScripts()
         
         // Then: 빈 배열이 반환되어야 함
         XCTAssertTrue(allScripts.isEmpty)
@@ -329,7 +335,7 @@ final class ScriptManagementServiceTests: XCTestCase {
 
     // MARK: - Script Read with Relations Tests
 
-    func test_fetchScriptWithSentences_whenScriptExistsWithSentences_thenReturnsScriptAndSentences() throws {
+    func test_fetchScriptWithSentences_whenScriptExistsWithSentences_thenReturnsScriptAndSentences() async throws {
         // Given: 여러 문장을 포함한 Script가 존재할 때
         let scriptData = ScriptData(
             title: "Script with Sentences",
@@ -348,10 +354,10 @@ final class ScriptManagementServiceTests: XCTestCase {
                 )
             ]
         )
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
 
         // When: Script와 연관된 Sentence들을 함께 조회했을 때
-        let result = try sut.fetchScriptWithSentences(id: createdScript.id!)
+        let result = try await sut.fetchScriptWithSentences(id: createdScript.id!)
 
         // Then: Script와 Sentence들이 올바르게 반환되어야 함
         XCTAssertNotNil(result)
@@ -362,18 +368,18 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(result?.sentences[1].englishText, "Second sentence.")
     }
 
-    func test_fetchScriptWithSentences_whenScriptDoesNotExist_thenReturnsNil() throws {
+    func test_fetchScriptWithSentences_whenScriptDoesNotExist_thenReturnsNil() async throws {
         // Given: 존재하지 않는 Script ID가 있을 때
         let nonExistentId: Int64 = 9999
 
         // When: 해당 ID로 Script와 Sentence들을 조회했을 때
-        let result = try sut.fetchScriptWithSentences(id: nonExistentId)
+        let result = try await sut.fetchScriptWithSentences(id: nonExistentId)
 
         // Then: nil이 반환되어야 함
         XCTAssertNil(result)
     }
 
-    func test_fetchScriptWithSentencesAndChunks_whenScriptExistsWithSentencesAndChunks_thenReturnsScriptSentencesAndChunks() throws {
+    func test_fetchScriptWithSentencesAndChunks_whenScriptExistsWithSentencesAndChunks_thenReturnsScriptSentencesAndChunks() async throws {
         // Given: 여러 문장과 청크를 포함한 Script가 존재할 때
         let scriptData = ScriptData(
             title: "Script with Sentences and Chunks",
@@ -399,10 +405,10 @@ final class ScriptManagementServiceTests: XCTestCase {
                 )
             ]
         )
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
 
         // When: Script, Sentence, Chunk들을 함께 조회했을 때
-        let result = try sut.fetchScriptWithSentencesAndChunks(id: createdScript.id!)
+        let result = try await sut.fetchScriptWithSentencesAndChunks(id: createdScript.id!)
 
         // Then: Script, Sentence, Chunk들이 올바르게 반환되어야 함
         XCTAssertNotNil(result)
@@ -424,12 +430,12 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(result?.sentences[1].chunks[2].englishText, "you")
     }
 
-    func test_fetchScriptWithSentencesAndChunks_whenScriptDoesNotExist_thenReturnsNil() throws {
+    func test_fetchScriptWithSentencesAndChunks_whenScriptDoesNotExist_thenReturnsNil() async throws {
         // Given: 존재하지 않는 Script ID가 있을 때
         let nonExistentId: Int64 = 9999
 
         // When: 해당 ID로 Script, Sentence, Chunk들을 조회했을 때
-        let result = try sut.fetchScriptWithSentencesAndChunks(id: nonExistentId)
+        let result = try await sut.fetchScriptWithSentencesAndChunks(id: nonExistentId)
 
         // Then: nil이 반환되어야 함
         XCTAssertNil(result)
@@ -437,7 +443,7 @@ final class ScriptManagementServiceTests: XCTestCase {
 
     // MARK: - Script Update Tests
 
-    func test_updateLastViewedAt_whenScriptExists_thenUpdatesTimestamp() throws {
+    func test_updateLastViewedAt_whenScriptExists_thenUpdatesTimestamp() async throws {
         // Given: Script가 존재할 때
         let scriptData = ScriptData(
             title: "Script to Update",
@@ -450,26 +456,29 @@ final class ScriptManagementServiceTests: XCTestCase {
                 )
             ]
         )
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
         let initialLastViewedAt = createdScript.lastViewedAt
 
         // When: lastViewedAt을 갱신했을 때
-        Thread.sleep(forTimeInterval: 0.01)
-        try sut.updateLastViewedAt(forScriptId: createdScript.id!)
+        try await Task.sleep(nanoseconds: 10_000_000) // 0.01초
+        try await sut.updateLastViewedAt(forScriptId: createdScript.id!)
 
         // Then: 타임스탬프가 업데이트되어야 함
-        let updatedScript = try sut.fetchScript(id: createdScript.id!)
+        let updatedScript = try await sut.fetchScript(id: createdScript.id!)
         XCTAssertNotNil(updatedScript)
         XCTAssertNotEqual(updatedScript?.lastViewedAt, initialLastViewedAt)
         XCTAssertTrue(updatedScript!.lastViewedAt > initialLastViewedAt)
     }
 
-    func test_updateLastViewedAt_whenScriptDoesNotExist_thenThrowsError() throws {
+    func test_updateLastViewedAt_whenScriptDoesNotExist_thenThrowsError() async throws {
         // Given: 존재하지 않는 Script ID가 있을 때
         let nonExistentId: Int64 = 9999
 
         // When-Then: 업데이트 시 notFound 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.updateLastViewedAt(forScriptId: nonExistentId)) { error in
+        do {
+            try await sut.updateLastViewedAt(forScriptId: nonExistentId)
+            XCTFail("Expected notFound error, but no error was thrown.")
+        } catch {
             XCTAssertEqual(
                 (error as? ScriptRepositoryError)?.errorDescription,
                 ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription
@@ -477,7 +486,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         }
     }
     
-    func test_updateScriptTitle_whenScriptExists_thenUpdatesTitle() throws {
+    func test_updateScriptTitle_whenScriptExists_thenUpdatesTitle() async throws {
         // Given: Script가 존재할 때
         let scriptData = ScriptData(
             title: "Original Title",
@@ -490,25 +499,28 @@ final class ScriptManagementServiceTests: XCTestCase {
                 )
             ]
         )
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
         let newTitle = "Updated Title"
         
         // When: Script 제목을 갱신했을 때
-        try sut.updateScriptTitle(scriptId: createdScript.id!, newTitle: newTitle)
+        try await sut.updateScriptTitle(scriptId: createdScript.id!, newTitle: newTitle)
         
         // Then: 제목이 올바르게 업데이트되어야 함
-        let updatedScript = try sut.fetchScript(id: createdScript.id!)
+        let updatedScript = try await sut.fetchScript(id: createdScript.id!)
         XCTAssertNotNil(updatedScript)
         XCTAssertEqual(updatedScript?.title, newTitle)
     }
     
-    func test_updateScriptTitle_whenScriptDoesNotExist_thenThrowsError() throws {
+    func test_updateScriptTitle_whenScriptDoesNotExist_thenThrowsError() async throws {
         // Given: 존재하지 않는 Script ID가 있을 때
         let nonExistentId: Int64 = 9999
         let newTitle = "Any Title"
         
         // When-Then: 업데이트 시 notFound 오류가 발생해야 함
-        XCTAssertThrowsError(try sut.updateScriptTitle(scriptId: nonExistentId, newTitle: newTitle)) { error in
+        do {
+            try await sut.updateScriptTitle(scriptId: nonExistentId, newTitle: newTitle)
+            XCTFail("Expected notFound error, but no error was thrown.")
+        } catch {
             XCTAssertEqual(
                 (error as? ScriptRepositoryError)?.errorDescription,
                 ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription
@@ -518,7 +530,7 @@ final class ScriptManagementServiceTests: XCTestCase {
 
     // MARK: - Script Delete Tests
 
-    func test_deleteScript_whenScriptExists_thenDeletesScriptAndAllRelatedEntities() throws {
+    func test_deleteScript_whenScriptExists_thenDeletesScriptAndAllRelatedEntities() async throws {
         // Given: Script와 연관된 모든 엔티티들이 존재할 때
         let scriptData = ScriptData(
             title: "Script to be deleted",
@@ -533,22 +545,22 @@ final class ScriptManagementServiceTests: XCTestCase {
                 )
             ]
         )
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
         let scriptId = createdScript.id!
 
         // When: Script를 삭제했을 때
-        try sut.deleteScript(id: scriptId)
+        try await sut.deleteScript(id: scriptId)
 
         // Then: Script와 모든 연관 엔티티들이 삭제되어야 함
-        let fetchedScript = try sut.fetchScript(id: scriptId)
+        let fetchedScript = try await sut.fetchScript(id: scriptId)
         XCTAssertNil(fetchedScript)
 
-        let sentenceCount = try dbQueue.read { db in
+        let sentenceCount = try await dbQueue.read { db in
             try Sentence.filter(Column("scriptId") == scriptId).fetchCount(db)
         }
         XCTAssertEqual(sentenceCount, 0)
 
-        let chunkCount = try dbQueue.read { db in
+        let chunkCount = try await dbQueue.read { db in
             try Chunk.fetchCount(db)
         }
         XCTAssertEqual(chunkCount, 0)
@@ -556,7 +568,7 @@ final class ScriptManagementServiceTests: XCTestCase {
 
     // MARK: - Feedback Create Tests
     
-    func test_createFeedbackSummary_withWordDiffDetails_thenDetailsAreSavedCorrectly() throws {
+    func test_createFeedbackSummary_withWordDiffDetails_thenDetailsAreSavedCorrectly() async throws {
         // Given: 스크립트와 피드백 상세 데이터
         let scriptData = ScriptData(
             title: "Feedback Test Script",
@@ -572,7 +584,7 @@ final class ScriptManagementServiceTests: XCTestCase {
                 )
             ]
         )
-        let createdScript = try sut.createScript(scriptData: scriptData)
+        let createdScript = try await sut.createScript(scriptData: scriptData)
         
         let feedbackDetailsData: [(
             wordDiff: WordDiff,
@@ -601,7 +613,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         ]
         
         // When: 피드백 요약을 생성했을 때
-        let summary = try sut.createFeedbackSummary(
+        let summary = try await sut.createFeedbackSummary(
             scriptId: createdScript.id!,
             accuracy: 0.7,
             missingWordCount: 1,
@@ -612,7 +624,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         
         // Then: FeedbackDetail이 올바르게 저장되어야 함
-        let fetchedDetails = try sut.fetchFeedbackDetails(forFeedbackSummaryId: summary.id!)
+        let fetchedDetails = try await sut.fetchFeedbackDetails(forFeedbackSummaryId: summary.id!)
         
         XCTAssertEqual(fetchedDetails.count, 3)
         
