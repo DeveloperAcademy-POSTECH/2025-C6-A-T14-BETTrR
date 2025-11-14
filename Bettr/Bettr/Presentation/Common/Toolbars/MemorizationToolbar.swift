@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// FunctionMode enum은 그대로 둡니다.
 enum FunctionMode {
     case hide   // 가리기
     case read   // 재생
