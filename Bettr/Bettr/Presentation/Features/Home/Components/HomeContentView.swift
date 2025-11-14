@@ -39,23 +39,31 @@ struct HomeContentView: View {
 }
 
 #Preview("Empty Scripts") {
-    HomeContentView(
-        onSelectPhoto: {},
-        onTakePhoto: {},
-        onSelectFile: {},
-        requestDelete: { _ in }
-    )
-    .environment(DatabaseContainer.getForPreview(withMockData: false))
-    .environment(NavigationRouter())
+    AsyncPreview(operation: {
+        try await DatabaseContainer.getForPreview(withMockData: false)
+    }) { container in
+        HomeContentView(
+            onSelectPhoto: {},
+            onTakePhoto: {},
+            onSelectFile: {},
+            requestDelete: { _ in }
+        )
+        .environment(container)
+        .environment(NavigationRouter())
+    }
 }
 
 #Preview("With Scripts") {
-    HomeContentView(
-        onSelectPhoto: {},
-        onTakePhoto: {},
-        onSelectFile: {},
-        requestDelete: { _ in }
-    )
-    .environment(DatabaseContainer.getForPreview(withMockData: true))
-    .environment(NavigationRouter())
+    AsyncPreview(operation: {
+        try await DatabaseContainer.getForPreview(withMockData: true)
+    }) { container in
+        HomeContentView(
+            onSelectPhoto: {},
+            onTakePhoto: {},
+            onSelectFile: {},
+            requestDelete: { _ in }
+        )
+        .environment(container)
+        .environment(NavigationRouter())
+    }
 }
