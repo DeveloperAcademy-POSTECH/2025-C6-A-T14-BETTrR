@@ -39,7 +39,12 @@ struct ScriptConfirmView: View {
     
     init(initialText: String?, initialTitle: String?) {
         let content = initialText ?? ""
-        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
+        
+        // 처음부터 영어/숫자/기호만 남김 (OCR에서 한국어 들어와도 여기서 제거됨)
+        let asciiFiltered = content.unicodeScalars.filter { $0.isASCII }
+        let cleaned = String(String.UnicodeScalarView(asciiFiltered))
+        _scriptContent = State(initialValue: String(cleaned.prefix(Self.maxCharacterCount)))
+//        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
         _scriptTitle = State(initialValue: initialTitle ?? "")
     }
     
