@@ -55,33 +55,44 @@ class HistoricalFeedbackViewModel {
         self.isLoading = true
         self.loadError = nil
         
-        do {
-            async let scriptTask = scriptManagementService.fetchScriptWithSentences(id: summary.scriptId)
-            async let detailsTask = scriptManagementService.fetchFeedbackDetails(forFeedbackSummaryId: summaryId)
-            
-            let originalScriptData = try await scriptTask
-            let feedbackDetails = try await detailsTask
-            
-            self.resultModel = self.processor.reconstructResult(
-                fromHistory: self.summary,
-                scriptTitle: self.scriptTitle,
-                feedbackNumber: self.feedbackNumber,
-                details: feedbackDetails,
-                sentences: originalScriptData.sentences
-            )
-            
-            self.isLoading = false
-            
-        } catch let error as ScriptRepositoryError where error.isNotFoundError {
-            // 1. 서비스/레포지토리에서 DataNotFound 에러가 발생한 경우
-            print("피드백 상세 정보 불러오기 실패 (DataNotFound): \(error)")
-            self.loadError = .dataNotFound("과거 피드백 데이터를 찾는 데 실패했습니다. (원본 스크립트 또는 피드백 상세 정보를 찾을 수 없습니다.)")
-            self.isLoading = false
-        } catch {
-            // 2. 그 외 일반적인 에러 (네트워크 등)
-            print("피드백 상세 정보 불러오기 실패: \(error)")
-            self.loadError = .networkError(error.localizedDescription)
-            self.isLoading = false
+        let maxRetries = 2
+        
+        defer { self.isLoading = false }
+        
+        for attempt in 0...maxRetries {
+            do {
+                async let scriptTask = scriptManagementService.fetchScriptWithSentences(id: summary.scriptId)
+                async let detailsTask = scriptManagementService.fetchFeedbackDetails(forFeedbackSummaryId: summaryId)
+                
+                let originalScriptData = try await scriptTask
+                let feedbackDetails = try await detailsTask
+                
+                self.resultModel = self.processor.reconstructResult(
+                    fromHistory: self.summary,
+                    scriptTitle: self.scriptTitle,
+                    feedbackNumber: self.feedbackNumber,
+                    details: feedbackDetails,
+                    sentences: originalScriptData.sentences
+                )
+                
+                self.loadError = nil
+                return
+                
+            } catch {
+                let appError = error.toAppError()
+                
+                if !appError.isRetryable || attempt == maxRetries {
+                    if case .dataNotFound = appError {
+                        self.loadError = .dataNotFound("과거 피드백 데이터를 찾는 데 실패했습니다.")
+                    } else {
+                        self.loadError = appError
+                    }
+                    return
+                }
+                
+                let delaySeconds = UInt64(pow(2, Double(attempt)))
+                try? await Task.sleep(nanoseconds: delaySeconds * 1_000_000_000)
+            }
         }
     }
 }
