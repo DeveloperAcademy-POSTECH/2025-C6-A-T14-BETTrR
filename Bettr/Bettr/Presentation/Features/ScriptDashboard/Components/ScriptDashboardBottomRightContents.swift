@@ -9,11 +9,21 @@ import SwiftUI
 
 struct ScriptDashboardBottomRightContents: View {
     @Environment(NavigationRouter.self) var router
-
-    var scriptId: Int64
-    var sentences: [ScriptDashboardSentenceModel]
-    let scriptTitle: String
-    let currentFeedbackNumber: Int
+    
+    let viewModel: ScriptDashboardViewModel
+    
+    private var scriptId: Int64 {
+        viewModel.scriptId
+    }
+    private var sentences: [ScriptDashboardSentenceModel] {
+        viewModel.scriptDashboardData?.sentences ?? []
+    }
+    private var scriptTitle: String {
+        viewModel.currentTitle
+    }
+    private var currentFeedbackCount: Int {
+        viewModel.scriptDashboardData?.stats.feedbackCount ?? 0
+    }
     
     private var combinedSentences: String {
         sentences.map { $0.englishText }.joined(separator: "\n\n")
@@ -37,7 +47,7 @@ struct ScriptDashboardBottomRightContents: View {
                     .fill(.defaultWhite50.opacity(0.3))
                 
                 Button(action: {
-                    router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle, currentFeedbackNumber: currentFeedbackNumber))
+                    router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle, currentFeedbackCount: currentFeedbackCount))
                 }) {
                     Text("암기하기")
                         .font(.labelBold16)

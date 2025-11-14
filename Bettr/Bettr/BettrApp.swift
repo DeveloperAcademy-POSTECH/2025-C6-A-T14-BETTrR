@@ -37,12 +37,25 @@ class BettrCheckProviderFactory: NSObject, AppCheckProviderFactory {
 @main
 struct BettrApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
     private let database = AppDatabase.shared
+    
+    @State private var router = NavigationRouter()
+    @State private var audioService = AudioPlaybackService()
+    
+    @State private var databaseContainer: DatabaseContainer
+    
+    init() {
+        _databaseContainer = State(initialValue: DatabaseContainer(database: AppDatabase.shared))
+    }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(DatabaseContainer(database: database))
+                .environment(databaseContainer)
+            //    .environment(DatabaseContainer(database: database))
+                .environment(router)
+                .environment(audioService)
         }
     }
 }

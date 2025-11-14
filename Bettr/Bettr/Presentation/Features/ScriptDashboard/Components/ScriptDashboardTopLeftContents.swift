@@ -15,11 +15,11 @@ struct FeedbackChartDataPoint: Identifiable {
 }
 
 struct ScriptDashboardTopLeftContents: View {
-    var feedbacks: [FeedbackSummary]
+    let recentFeedbacks: [FeedbackSummary]
     
     // 차트 데이터 계산
     private var chartData: [FeedbackChartDataPoint] {
-        feedbacks.enumerated().map { (index, feedback) in
+        return recentFeedbacks.enumerated().map { (index, feedback) in
             FeedbackChartDataPoint(session: index + 1, score: feedback.accuracy * 100)
         }
     }

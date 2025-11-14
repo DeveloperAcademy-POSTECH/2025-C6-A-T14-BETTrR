@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 암기뷰에 청크 모드를 구현하기 위한 커스텀 레이아웃
+/// Text를 조합하여 HStack처럼 가로로 나열할 때, 적절한 길이로 줄바꿈이 되도록 하기 위한 커스텀 레이아웃
+/// horizontalSpacing,verticalSpacing을 통해 가로, 세로 간격 커스텀 가능
 @available(iOS 16.0, macOS 13.0, *)
 struct CustomFlowLayout: Layout {
     var horizontalSpacing: CGFloat // 뷰 사이의 '가로' 간격

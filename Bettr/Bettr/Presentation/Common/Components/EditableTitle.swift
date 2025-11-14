@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+/// 툴바 내 편집 가능한 제목
+/// 제목에 대해 20자 제한을 둠
 struct EditableTitle: View {
     @Binding var title: String
     let showEditIcon: Bool
