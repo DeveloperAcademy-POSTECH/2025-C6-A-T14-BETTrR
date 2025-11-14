@@ -36,9 +36,7 @@ struct ChunkModeView: View {
                     text: chunk.englishText,
                     isHidden: viewModel.interactionState.hiddenEngChunks.contains(chunkID),
                     isHighlighted: viewModel.uiState.tappedPlaybackText == chunk.englishText,
-                    onTap: {
-                        viewModel.handleChunkTap(chunk: chunk, identifier: chunkID)
-                    }
+                    onTap: { handleChunkTap(chunk: chunk, identifier: chunkID) }
                 )
                 
                 if chunk.orderIndex != lastChunkIndex {
@@ -72,6 +70,13 @@ struct ChunkModeView: View {
                         .opacity(viewModel.uiState.isKoreanVisible ? 1.0 : 0.0)
                 }
             }
+        }
+    }
+    
+    /// 애니메이션 로직을 포함한 탭 핸들러
+    private func handleChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
+        withAnimation(.easeInOut(duration: 0.02)) {
+            viewModel.handleChunkTap(chunk: chunk, identifier: identifier)
         }
     }
 }

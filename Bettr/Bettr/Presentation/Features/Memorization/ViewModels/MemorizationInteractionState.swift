@@ -16,22 +16,18 @@ class MemorizationInteractionState {
     
     // 이 객체와 관련된 로직을 메서드로 제공
     func toggleHiddenState(in set: inout Set<ChunkIdentifier>, for item: ChunkIdentifier) {
-        withAnimation(.easeInOut(duration: 0.02)) {
-            if set.contains(item) {
-                set.remove(item)
-            } else {
-                set.insert(item)
-            }
+        if set.contains(item) {
+            set.remove(item)
+        } else {
+            set.insert(item)
         }
     }
     
     func toggleHiddenState(in set: inout Set<Int>, for item: Int) {
-        withAnimation(.easeInOut(duration: 0.02)) {
-            if set.contains(item) {
-                set.remove(item)
-            } else {
-                set.insert(item)
-            }
+        if set.contains(item) {
+            set.remove(item)
+        } else {
+            set.insert(item)
         }
     }
     

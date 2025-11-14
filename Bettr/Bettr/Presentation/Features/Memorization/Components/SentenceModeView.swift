@@ -18,9 +18,7 @@ struct SentenceModeView: View {
                     text: sentence.englishText,
                     isHidden: viewModel.isSentenceHidden(sentence.orderIndex),
                     isHighlighted: viewModel.isTextHighlighted(sentence.englishText),
-                    onTap: {
-                        viewModel.handleSentenceTap(sentence: sentence)
-                    }
+                    onTap: { handleSentenceTap(sentence: sentence) }
                 )
                 
                 KoreanScriptTextView(
@@ -29,6 +27,13 @@ struct SentenceModeView: View {
                 )
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+    
+    /// 애니메이션 로직을 포함한 탭 핸들러
+    private func handleSentenceTap(sentence: SentenceData) {
+        withAnimation(.easeInOut(duration: 0.02)) {
+            viewModel.handleSentenceTap(sentence: sentence)
         }
     }
 }
