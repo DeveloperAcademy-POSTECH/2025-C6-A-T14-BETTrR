@@ -17,6 +17,7 @@ struct ResultBottomContents: View {
                 .foregroundStyle(.normalBlack900)
             
             MistakesListView(filteredSentenceDiffs: model.filteredSentenceDiffs)
+                .frame(maxHeight: .infinity)
         }
     }
 }
@@ -25,14 +26,7 @@ struct MistakesListView: View {
     let filteredSentenceDiffs: [FeedbackResultModel.FilteredSentenceDiff]
     
     var body: some View {
-        if filteredSentenceDiffs.isEmpty {
-            Text("틀린 문장이 하나도 없습니다.")
-                .font(.labelBold16)
-                .foregroundColor(.normalBlack900)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                .cardBorderedFilled(padding: 36)
-        } else {
-            HStack(spacing: 36) {
+            HStack(alignment: .top, spacing: 36) {
                 VStack(spacing: 36) {
                     ForEach(filteredSentenceDiffs, id: \.index) { (originalIndex, sentenceData) in
                         OriginalScriptSentenceView(diffs: sentenceData.diffs)
@@ -56,7 +50,46 @@ struct MistakesListView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .cardBordered(padding: 36)
-        }
     }
+}
+
+#Preview("틀린 문장 있음") {
+    let model = FeedbackResultModel(
+        scriptTitle: "Preview Script Title",
+        feedbackNumber: 5,
+        accuracy: 0.75,
+        totalRecordingTime: 120.5,
+        missingCount: 2,
+        extraCount: 1,
+        replacedCount: 1,
+        filteredSentenceDiffs: [
+            (index: 0, data: (original: "Hello world, how are you?", diffs: [
+                .matched(word: "Hello"), .matched(word: "world"), .missing(expected: "how"),
+                .extra(actual: "are"), .replaced(expected: "you", actual: "yoo")
+            ])),
+            (index: 1, data: (original: "I am fine, thank you.", diffs: [
+                .matched(word: "I"), .matched(word: "am"), .matched(word: "fine"),
+                .extra(actual: "very"), .matched(word: "thank"), .missing(expected: "you")
+            ]))
+        ]
+    )
+    
+    return ResultBottomContents(model: model)
+}
+
+#Preview("틀린 문장 없음 (완벽)") {
+    let perfectModel = FeedbackResultModel(
+        scriptTitle: "Perfect Script",
+        feedbackNumber: 1,
+        accuracy: 1.0,
+        totalRecordingTime: 60.0,
+        missingCount: 0,
+        extraCount: 0,
+        replacedCount: 0,
+        filteredSentenceDiffs: []
+    )
+    
+    return ResultBottomContents(model: perfectModel)
 }
