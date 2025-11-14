@@ -115,6 +115,10 @@ class SpeechRecognizer: ObservableObject {
                 self.recognitionRequest = nil
                 self.recognitionTask = nil
                 
+                // 오디오 세션 비활성화
+                let audioSession = AVAudioSession.sharedInstance()
+                try? audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+                
                 let totalTime = self.recordingStartTime.map { Date().timeIntervalSince($0) } ?? 0.0
                 let finalTranscript = result?.bestTranscription.formattedString ?? ""
                 
@@ -170,6 +174,10 @@ class SpeechRecognizer: ObservableObject {
         audioEngine.stop()
         recognitionRequest?.endAudio()
         audioEngine.inputNode.removeTap(onBus: 0)
+        
+        // 오디오 세션 비활성화
+        let audioSession = AVAudioSession.sharedInstance()
+        try? audioSession.setActive(false, options: .notifyOthersOnDeactivation)
     }
     
     // MARK: - 녹음 취소 (분석 실행 X)
@@ -184,7 +192,11 @@ class SpeechRecognizer: ObservableObject {
         recognitionRequest = nil
         audioEngine.inputNode.removeTap(onBus: 0)
         
-        // 상태를 수동으로 리셋
+        // 오디오 세션 비활성화
+        let audioSession = AVAudioSession.sharedInstance()
+        try? audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+        
+        // 상태 리셋
         isRecording = false
         transcript = ""
         self.hasRecorded = false
@@ -202,8 +214,8 @@ class SpeechRecognizer: ObservableObject {
         elapsedTime = 0.0
         
         lastTranscription = nil
-                lastRecordedDuration = 0.0
-                recordingDidFinishEmpty = false
+        lastRecordedDuration = 0.0
+        recordingDidFinishEmpty = false
     }
     
     // MARK: - 녹음 분석
