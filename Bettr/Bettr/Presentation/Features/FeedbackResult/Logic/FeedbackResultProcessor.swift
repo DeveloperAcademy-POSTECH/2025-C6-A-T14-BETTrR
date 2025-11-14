@@ -131,10 +131,19 @@ struct FeedbackResultProcessor {
     }
     
     private func countErrors(from diffs: [WordDiff]) -> (missing: Int, extra: Int, replaced: Int) {
-        let missing = diffs.filter { if case .missing = $0 { return true }; return false }.count
-        let extra = diffs.filter { if case .extra = $0 { return true }; return false }.count
-        let replaced = diffs.filter { if case .replaced = $0 { return true }; return false }.count
-        return (missing, extra, replaced)
+        diffs.reduce(into: (missing: 0, extra: 0, replaced: 0)) { result, diff in
+            
+            switch diff {
+            case .missing:
+                result.missing += 1
+            case .extra:
+                result.extra += 1
+            case .replaced:
+                result.replaced += 1
+            case .matched:
+                break
+            }
+        }
     }
     
     private func calculateAccuracy(sentences: [String], sentenceDiffs: [(original: String, diffs: [WordDiff])]) -> Double {
@@ -154,13 +163,8 @@ struct FeedbackResultProcessor {
         var detailsData: [FeedbackDetailParams] = []
         for (sIdx, sentenceData) in sentenceDiffs.enumerated() {
             for (wIdx, diff) in sentenceData.diffs.enumerated() {
-                let originalWord: String?
-                switch diff {
-                case .matched(let word): originalWord = word
-                case .missing(let expected): originalWord = expected
-                case .replaced(let expected, _): originalWord = expected
-                case .extra: originalWord = nil
-                }
+                
+                let originalWord = diff.originalText
                 
                 detailsData.append(FeedbackDetailParams(
                     wordDiff: diff,
@@ -174,31 +178,17 @@ struct FeedbackResultProcessor {
     }
     
     private func reconstructSentenceDiffs(details: [FeedbackDetail], sentences: [Sentence]) -> [(original: String, diffs: [WordDiff])] {
-        
-        var sentenceTextMap: [Int: String] = [:]
-        for (sIdx, sentence) in sentences.enumerated() {
-            sentenceTextMap[sIdx] = sentence.englishText
-        }
-        
+
         let sortedDetails = details.sorted {
-            if $0.sentenceIndex != $1.sentenceIndex {
-                return $0.sentenceIndex < $1.sentenceIndex
-            }
-            return $0.wordIndex < $1.wordIndex
+            ($0.sentenceIndex, $0.wordIndex) < ($1.sentenceIndex, $1.wordIndex)
         }
-        
-        let detailsBySentence = Dictionary(grouping: sortedDetails, by: { $0.sentenceIndex })
-        var reconstructedSentenceDiffs: [(original: String, diffs: [WordDiff])] = []
-        
-        for sIdx in 0..<sentences.count {
-            let originalText = sentenceTextMap[sIdx] ?? ""
-            if let detailsForSentence = detailsBySentence[sIdx] {
-                let diffs = detailsForSentence.map { $0.wordDiff }
-                reconstructedSentenceDiffs.append((original: originalText, diffs: diffs))
-            } else {
-                reconstructedSentenceDiffs.append((original: originalText, diffs: []))
-            }
+
+        let grouped = Dictionary(grouping: sortedDetails, by: { $0.sentenceIndex })
+
+        return sentences.indices.map { idx in
+            let original = sentences[idx].englishText
+            let diffs = grouped[idx]?.map { $0.wordDiff } ?? []
+            return (original: original, diffs: diffs)
         }
-        return reconstructedSentenceDiffs
     }
 }

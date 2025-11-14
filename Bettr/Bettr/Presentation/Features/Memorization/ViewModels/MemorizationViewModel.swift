@@ -203,7 +203,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
                 isLoadingScript = false
                 return // 재시도 없이 즉시 함수 종료
                 
-            }catch {
+            } catch {
                 let appError = error.toAppError()
                 
                 if !appError.isRetryable || attempt == maxRetries {
