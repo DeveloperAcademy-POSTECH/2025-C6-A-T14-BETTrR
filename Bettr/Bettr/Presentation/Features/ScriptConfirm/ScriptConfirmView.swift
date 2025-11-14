@@ -96,34 +96,33 @@ struct ScriptConfirmView: View {
             }
         }
         .safeAreaInset(edge: .bottom){
-            if !isFocusedContentEditor{
-                // 분석 및 저장 버튼
-                Button(action: {
-                    Task {
-                        // 🔹 추가됨: 타임아웃 플래그 초기화
-                        didTimeout = false
-                        
-                        // 🔹 추가됨: 30초 뒤 타임아웃 트리거
-                        startTimeoutTimer()
-                        
-                        // LocalRateLimiter 검사 추가
-                        guard rateLimiter.canCall() else {
-                            await MainActor.run {
-                                showErrorAlert("요청이 너무 잦습니다.\n잠시 후 다시 시도해주세요.")
-                            }
-                            return
+            // 분석 및 저장 버튼
+            Button(action: {
+                Task {
+                    // 🔹 추가됨: 타임아웃 플래그 초기화
+                    didTimeout = false
+                    
+                    // 🔹 추가됨: 30초 뒤 타임아웃 트리거
+                    startTimeoutTimer()
+                    
+                    // LocalRateLimiter 검사 추가
+                    guard rateLimiter.canCall() else {
+                        await MainActor.run {
+                            showErrorAlert("요청이 너무 잦습니다.\n잠시 후 다시 시도해주세요.")
                         }
-                        await callGemini()
+                        return
                     }
-                }) {
-                    Text("분석 및 암기 시작")
-                        .bold()
+                    await callGemini()
                 }
-                .buttonStyle(GeneralButtonStyle(width: 404))
-                .frame(width: 404, height: 48)
-                .padding(.vertical, 10)
-                .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }) {
+                Text("분석 및 암기 시작")
+                    .bold()
             }
+            .buttonStyle(GeneralButtonStyle(width: 404))
+            .frame(width: 404, height: 48)
+            .padding(.bottom, 10)
+            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
