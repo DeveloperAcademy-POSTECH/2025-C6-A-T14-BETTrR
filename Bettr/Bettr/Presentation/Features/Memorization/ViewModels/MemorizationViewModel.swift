@@ -177,17 +177,8 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         
         for attempt in 0...maxRetries {
             do {
-                // --- 1. 데이터 로드 시도 ---
-                guard let fetchedData = try scriptService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
-                    // 실패: 404 - 데이터를 찾을 수 없음
-                    let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
-                    currentError = .dataNotFound(message)
-                    self.currentTitle = "스크립트 없음"
-                    isLoadingScript = false
-                    return // 재시도 없이 즉시 함수 종료
-                }
+                let fetchedData = try await scriptService.fetchScriptWithSentencesAndChunks(id: scriptId)
                 
-                // --- 2. 성공 ---
                 let sentenceDataList: [SentenceData] = fetchedData.sentences.map { (sentence, chunks) in
                     let chunkDataList = chunks.map { ChunkData(chunk: $0) }
                     
@@ -204,10 +195,17 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
                 currentError = nil
                 return
                 
-            } catch {
-                let appError = AppError.networkError(error.localizedDescription)
+            } catch let error as ScriptRepositoryError where error.isNotFoundError {
+                // 실패: 404 - 데이터를 찾을 수 없음
+                let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
+                currentError = .dataNotFound(message)
+                self.currentTitle = "스크립트 없음"
+                isLoadingScript = false
+                return // 재시도 없이 즉시 함수 종료
                 
-                // 재시도 불가능한 에러이거나, 마지막 시도였다면
+            } catch {
+                let appError = error.toAppError()
+                
                 if !appError.isRetryable || attempt == maxRetries {
                     currentError = appError
                     self.currentTitle = "스크립트 오류"
@@ -215,10 +213,8 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
                     return
                 }
                 
-                // 아직 재시도 기회 남음 (Exponential Backoff)
                 let delaySeconds = UInt64(pow(2, Double(attempt)))
                 try? await Task.sleep(nanoseconds: delaySeconds * 1_000_000_000)
-                // 딜레이 후, for 루프의 다음 단계(attempt + 1)로 넘어감
             }
         }
     }

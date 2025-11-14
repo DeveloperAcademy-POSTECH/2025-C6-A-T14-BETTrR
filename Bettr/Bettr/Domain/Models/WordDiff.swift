@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - 분석 결과 상세 모델 (WordDiff)
 /// 단어별 분석 상태를 나타내는 열거형
-enum WordDiff: Hashable {
+enum WordDiff: Hashable, Sendable {
     // 원본과 일치하는 단어
     case matched(word: String)
     // 원본에 있지만 발화에서 누락된 단어
@@ -28,4 +28,18 @@ enum WordDiff: Hashable {
         case .replaced: return "replaced"
         }
     }
+    
+    // DB 저장을 위한 원본 스크립트 단어
+    var originalText: String? {
+            switch self {
+            case .matched(let word):
+                return word
+            case .missing(let expected):
+                return expected
+            case .replaced(let expected, _):
+                return expected
+            case .extra:
+                return nil
+            }
+        }
 }

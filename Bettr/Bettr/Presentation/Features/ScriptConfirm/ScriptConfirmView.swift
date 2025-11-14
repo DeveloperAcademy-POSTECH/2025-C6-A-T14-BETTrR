@@ -113,7 +113,7 @@ struct ScriptConfirmView: View {
                     // LocalRateLimiter 검사 추가
                     guard rateLimiter.canCall() else {
                         await MainActor.run {
-                            showErrorAlert("요청이 너무 잦습니다.\n잠시 후 다시 시도해주세요.")
+                            showErrorAlert("시스템 처리량이 초과되어 요청을 잠시 제한합니다.\n1분 후 다시 시도해 주세요.")
                         }
                         return
                     }
@@ -148,13 +148,13 @@ struct ScriptConfirmView: View {
                 )
             }
         }
-        .alert("진행 상황을 잃게 됩니다", isPresented: $showBackAlert) {
+        .alert("저장하지 않고 나가시겠어요?", isPresented: $showBackAlert) {
             Button("취소", role: .cancel) {}
             Button("나가기", role: .destructive) {
                 dismiss()
             }
         } message: {
-            Text("이 화면을 나가면 작성 중인 내용이 저장되지 않습니다.")
+            Text("편집 중인 스크립트는 저장되지 않고 삭제됩니다.")
         }
         .alert("오류", isPresented: $showErrorAlert) {
             Button("확인", role: .cancel) {}
@@ -186,7 +186,7 @@ struct ScriptConfirmView: View {
             await MainActor.run {
                 didTimeout = true
                 isLoading = false
-                showErrorAlert("요청이 너무 오래 걸립니다.\n네트워크 상태를 확인하고 다시 시도해주세요.")
+                showErrorAlert("네트워크 연결 상태를 확인해 주세요.\n연결에 문제가 없다면 잠시 후 다시 시도해 주세요.")
             }
         }
     }
@@ -237,7 +237,7 @@ struct ScriptConfirmView: View {
                 let finalTitle = scriptTitle.isEmpty ? scriptData.title : scriptTitle
                 let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
                 
-                let script = try databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
+                let script = try await databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
                 print("✅ 스크립트가 성공적으로 저장되었습니다.")
                 
                 if let scriptId = script.id {
@@ -265,20 +265,24 @@ struct ScriptConfirmView: View {
 }
 
 #Preview {
-    NavigationStack {
-        ScriptConfirmView(initialText: """
-            Hello everyone, my name is Dewy.
-            Today, I want to talk about the power of challenge.
-            I used to be afraid of speaking English in front of others.
-            But my teacher told me, "Mistakes are part of learning."
-            So I decided to join the English speech contest.
-            At first, I was really nervous, but I didn't give up.
-            When I finished, I felt proud of myself.
-            That experience taught me to be brave.
-            Now I know every challenge helps me grow.
-            Thank you for listening.
-            """, initialTitle: "Dewy's Speech")
-        .environment(DatabaseContainer.getForPreview())
-        .environment(NavigationRouter())
+    AsyncPreview(operation: {
+        try await DatabaseContainer.getForPreview(withMockData: true)
+    }) { container in
+        NavigationStack {
+            ScriptConfirmView(initialText: """
+                Hello everyone, my name is Dewy.
+                Today, I want to talk about the power of challenge.
+                I used to be afraid of speaking English in front of others.
+                But my teacher told me, "Mistakes are part of learning."
+                So I decided to join the English speech contest.
+                At first, I was really nervous, but I didn't give up.
+                When I finished, I felt proud of myself.
+                That experience taught me to be brave.
+                Now I know every challenge helps me grow.
+                Thank you for listening.
+                """, initialTitle: "Dewy's Speech")
+            .environment(container)
+            .environment(NavigationRouter())
+        }
     }
 }

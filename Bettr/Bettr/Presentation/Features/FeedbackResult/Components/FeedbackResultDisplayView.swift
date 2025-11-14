@@ -10,14 +10,25 @@ import SwiftUI
 
 struct FeedbackResultDisplayView: View {
     let model: FeedbackResultModel
-
+    
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 64) {
-                ResultTopContents(model: model)
-                ResultBottomContents(model: model)
+        Group {
+            if model.filteredSentenceDiffs.isEmpty {
+                VStack(alignment: .leading, spacing: 64) {
+                    ResultTopContents(model: model)
+                    PerfectResultBottomView()
+                }
+                .safeAreaPadding(.horizontal, 84)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 64) {
+                        ResultTopContents(model: model)
+                        ResultBottomContents(model: model)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .safeAreaPadding(.horizontal, 84)
+                }
             }
-            .safeAreaPadding(.horizontal, 84)
         }
         .safeAreaPadding(.top, 24)
         .safeAreaPadding(.bottom, 48)
@@ -27,7 +38,6 @@ struct FeedbackResultDisplayView: View {
 // MARK: - Preview
 
 #Preview("일반 피드백") {
-    // Preview도 모델을 생성하여 주입합니다.
     let model = FeedbackResultModel(
         scriptTitle: "Preview Script Title",
         feedbackNumber: 5,
