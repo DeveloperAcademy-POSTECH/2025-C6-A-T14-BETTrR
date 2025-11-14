@@ -62,7 +62,7 @@ struct ScriptDashboardTopLeftContents: View {
                 
             }
             .chartXScale(domain: 0...(chartData.count + 1))
-            .chartYScale(domain: .automatic(includesZero: true))
+            .chartYScale(domain: 0...(maxScore + 5))
             .chartXAxis {
                 AxisMarks(values: Array(0...chartData.count)) { value in
                     AxisGridLine()
@@ -77,7 +77,7 @@ struct ScriptDashboardTopLeftContents: View {
                 AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
                     let labelValue = value.as(Double.self) ?? 0
                     
-                    if labelValue == 0 || (labelValue > 0 && labelValue < maxScore) {
+                    if labelValue == 0 || (labelValue > 0 && labelValue < maxScore + 5) {
                         AxisValueLabel()
                         AxisGridLine()
                         AxisTick()
