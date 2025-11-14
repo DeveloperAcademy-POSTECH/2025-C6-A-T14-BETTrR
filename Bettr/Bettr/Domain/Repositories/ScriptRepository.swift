@@ -108,7 +108,42 @@ class ScriptRepository {
         practiceDuration: Double,
         feedbackDetailsData: [(wordDiff: WordDiff, originalText: String?, sentenceIndex: Int, wordIndex: Int)]
     ) async throws -> FeedbackSummary {
-        try await dbQueue.write { db in
+        // Define a temporary struct to hold pre-calculated values.
+        // This struct is Sendable because all its properties are Sendable.
+        struct DetailInfo: Sendable {
+            let wordDiffType: String
+            let wordDiffExpected: String?
+            let wordDiffActual: String?
+            let originalText: String?
+            let sentenceIndex: Int
+            let wordIndex: Int
+        }
+
+        // Map the input data to the Sendable struct *before* the closure.
+        // The access to `dbTypeValue` and other properties happens here, on the original actor.
+        let detailInfos = feedbackDetailsData.map { detailData -> DetailInfo in
+            let wordDiff = detailData.wordDiff
+            return DetailInfo(
+                wordDiffType: wordDiff.dbTypeValue,
+                wordDiffExpected: {
+                    switch wordDiff {
+                    case .missing(let expected), .replaced(let expected, _): return expected
+                    default: return nil
+                    }
+                }(),
+                wordDiffActual: {
+                    switch wordDiff {
+                    case .extra(let actual), .replaced(_, let actual): return actual
+                    default: return nil
+                    }
+                }(),
+                originalText: detailData.originalText,
+                sentenceIndex: detailData.sentenceIndex,
+                wordIndex: detailData.wordIndex
+            )
+        }
+
+        return try await dbQueue.write { db in
             var summary = FeedbackSummary(
                 scriptId: scriptId,
                 accuracy: accuracy,
@@ -124,25 +159,16 @@ class ScriptRepository {
                 throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created FeedbackSummary")
             }
             
-            for detailData in feedbackDetailsData {
+            // Inside the @Sendable closure, only use the pre-calculated, Sendable data.
+            for info in detailInfos {
                 var detail = FeedbackDetail(
                     feedbackSummaryId: summaryId,
-                    wordDiffType: detailData.wordDiff.dbTypeValue,
-                    wordDiffExpected: {
-                        switch detailData.wordDiff {
-                        case .missing(let expected), .replaced(let expected, _): return expected
-                        default: return nil
-                        }
-                    }(),
-                    wordDiffActual: {
-                        switch detailData.wordDiff {
-                        case .extra(let actual), .replaced(_, let actual): return actual
-                        default: return nil
-                        }
-                    }(),
-                    originalText: detailData.originalText, // Keep originalText
-                    sentenceIndex: detailData.sentenceIndex,
-                    wordIndex: detailData.wordIndex
+                    wordDiffType: info.wordDiffType,
+                    wordDiffExpected: info.wordDiffExpected,
+                    wordDiffActual: info.wordDiffActual,
+                    originalText: info.originalText,
+                    sentenceIndex: info.sentenceIndex,
+                    wordIndex: info.wordIndex
                 )
                 try detail.save(db)
             }

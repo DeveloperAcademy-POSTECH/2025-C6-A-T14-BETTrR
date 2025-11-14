@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - 분석 결과 상세 모델 (WordDiff)
 /// 단어별 분석 상태를 나타내는 열거형
-enum WordDiff: Hashable {
+enum WordDiff: Hashable, Sendable {
     // 원본과 일치하는 단어
     case matched(word: String)
     // 원본에 있지만 발화에서 누락된 단어
