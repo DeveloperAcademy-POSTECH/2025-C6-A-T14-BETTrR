@@ -18,6 +18,7 @@ struct ResultTopContents: View {
             
             ResultSummaryGridView(model: model)
         }
+        .frame(maxHeight: 242)
     }
 }
 
