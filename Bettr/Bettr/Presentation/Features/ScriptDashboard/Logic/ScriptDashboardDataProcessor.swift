@@ -64,10 +64,10 @@ struct ScriptDashboardDataProcessor {
     
     /// IQR을 사용해 이상치를 제거한 평균 연습 시간을 계산합니다.
     private func calculateAverageDurationWithOutlierRemoval(from feedbacks: [FeedbackSummary]) -> Double {
-        let durations = feedbacks.map { $0.practiceDuration }
-        guard !durations.isEmpty else { return 0.0 }
+        let sortedDurations = feedbacks.map { $0.practiceDuration }.sorted()
         
-        let sortedDurations = durations.sorted()
+        guard !sortedDurations.isEmpty else { return 0.0 }
+        
         let count = sortedDurations.count
         
         // 데이터가 너무 적으면 IQR이 무의미하므로 단순 평균 반환
