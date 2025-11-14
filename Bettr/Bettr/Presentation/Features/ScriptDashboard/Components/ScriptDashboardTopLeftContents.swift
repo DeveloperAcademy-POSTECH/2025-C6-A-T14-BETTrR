@@ -10,8 +10,8 @@ import Charts
 
 struct FeedbackChartDataPoint: Identifiable {
     let id = UUID()
-    let session: Int // X축 (1, 2, 3...)
-    let score: Double  // Y축 (totalScore * 100)
+    let session: Int
+    let score: Int
 }
 
 struct ScriptDashboardTopLeftContents: View {
@@ -20,18 +20,21 @@ struct ScriptDashboardTopLeftContents: View {
     // 차트 데이터 계산
     private var chartData: [FeedbackChartDataPoint] {
         return recentFeedbacks.reversed().enumerated().map { (index, feedback) in
-            FeedbackChartDataPoint(session: index + 1, score: feedback.accuracy * 100)
+            return FeedbackChartDataPoint(
+                session: index + 1,
+                score: Int(feedback.accuracy * 100)
+            )
         }
     }
     
     // 평균 점수 계산
     private var averageScore: Double {
         guard !chartData.isEmpty else { return 0 }
-        return chartData.map { $0.score }.reduce(0, +) / Double(chartData.count)
+        return Double(chartData.map { $0.score }.reduce(0, +)) / Double(chartData.count)
     }
     
     // 최대값 계산
-    private var maxScore: Double {
+    private var maxScore: Int {
         chartData.map { $0.score }.max() ?? 0
     }
     
@@ -40,7 +43,7 @@ struct ScriptDashboardTopLeftContents: View {
         if maxScore == 0 {
             return 10.0
         }
-        return maxScore * 1.2
+        return Double(maxScore) * 1.7
     }
     
     var body: some View {
@@ -82,14 +85,10 @@ struct ScriptDashboardTopLeftContents: View {
                 }
             }
             .chartYAxis {
-                AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
-                    let labelValue = value.as(Double.self) ?? 0
-                    
-                    if labelValue == 0 || labelValue < (yAxisMax * 0.8) {
+                AxisMarks(position: .leading, values: .automatic(desiredCount: 2)) { value in
                         AxisValueLabel()
                         AxisGridLine()
                         AxisTick()
-                    }
                 }
             }
         }
