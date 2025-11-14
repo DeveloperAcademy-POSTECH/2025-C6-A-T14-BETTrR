@@ -43,7 +43,7 @@ struct ResultSummaryGridView: View {
                             Text("\(model.feedbackNumber)")
                                 .font(.subtitleBold32)
                             
-                            Text("번")
+                            Text("회")
                                 .font(.calloutRegular20)
                         }
                     }
