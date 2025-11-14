@@ -189,19 +189,9 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
                 
                 // --- 2. 성공 ---
                 let sentenceDataList: [SentenceData] = fetchedData.sentences.map { (sentence, chunks) in
-                    let chunkDataList: [ChunkData] = chunks.map { chunk in
-                        return ChunkData(
-                            orderIndex: chunk.orderIndex,
-                            englishText: chunk.englishText,
-                            koreanText: chunk.koreanText
-                        )
-                    }
-                    return SentenceData(
-                        orderIndex: sentence.orderIndex,
-                        englishText: sentence.englishText,
-                        koreanText: sentence.koreanText,
-                        chunks: chunkDataList
-                    )
+                    let chunkDataList = chunks.map { ChunkData(chunk: $0) }
+                    
+                    return SentenceData(sentence: sentence, chunks: chunkDataList)
                 }
                 
                 self.scriptData = ScriptData(
