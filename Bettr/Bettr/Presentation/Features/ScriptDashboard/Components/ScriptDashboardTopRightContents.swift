@@ -45,7 +45,7 @@ struct ScriptDashboardTopRightContents: View {
             // 누적 피드백, 평균 녹음 시간
             VStack(spacing: 16) {
                 DiagonalLayoutCard(title: "누적 피드백") {
-                    HStack(alignment: .bottom, spacing: 4) {
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
                         Text("\(stats?.feedbackCount ?? 0)")
                             .font(.subbodyBold24)
                         Text("회")
