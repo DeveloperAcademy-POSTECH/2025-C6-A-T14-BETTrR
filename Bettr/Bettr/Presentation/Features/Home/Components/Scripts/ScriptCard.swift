@@ -36,7 +36,7 @@ struct ScriptCard: View {
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(height: 193)
+            .aspectRatio(224/200, contentMode: .fit)
             .frame(maxWidth: .infinity)
         }
     }

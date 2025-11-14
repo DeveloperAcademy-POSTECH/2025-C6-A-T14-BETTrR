@@ -12,6 +12,9 @@ struct ScriptConfirmView: View {
     @State private var isEditingContent = false
     @State private var isTitleEditing: Bool = false
     
+    // TextEditor 포커스 상태 감지용 (버튼 제어)
+    @FocusState private var isFocusedContentEditor: Bool
+    
     // Gemini 분석 결과 임시 저장
     @State var parsedScript: ScriptData?
     
@@ -22,11 +25,14 @@ struct ScriptConfirmView: View {
     @State private var showBackAlert: Bool = false
     @State private var isPendingDismiss: Bool = false
     
+    // 🔹 추가됨: 30초 타임아웃 감지용 상태
+    @State private var didTimeout: Bool = false
+    
     // 글자 수 제한
     private static let maxCharacterCount = 2000
     
-    // 🔹 추가됨: Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
-    private let geminiCaller = ScriptGeminiCall()  // 🔹 추가됨
+    //Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
+    private let geminiCaller = ScriptGeminiCall()
     
     //Local Rate Limiter(사용자의 호출 제한)
     private let rateLimiter = LocalRateLimiter.shared
@@ -38,67 +44,87 @@ struct ScriptConfirmView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
-            // 스크립트 내용 (메모 앱처럼 동작)
+        VStack {
+            // 스크립트 내용
             VStack(alignment: .trailing, spacing: 8) {
                 if isEditingContent {
-                    TextEditor(text: $scriptContent)
-                        .padding(4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.gray.opacity(0.5))
-                        )
+                    ZStack(alignment: .topLeading) {
+                        TextEditor(text: $scriptContent)
+                            .padding(4)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.primaryBlue200, lineWidth: 3)
+                            )
+                            .focused($isFocusedContentEditor)
+                        //placeholder
+                        if scriptContent.isEmpty {
+                            Text("스크립트를 입력하세요.")
+                                .foregroundColor(.gray.opacity(0.5))
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 8)
+                        }
+                    }
                 } else {
                     ScrollView {
                         Text(scriptContent)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(10)
                     }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray.opacity(0.5))
-                    )
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(Color.primaryBlue200)
+                            .frame(height: 4)
+                    }
                     .onTapGesture {
                         isEditingContent = true
+                        isFocusedContentEditor = true
                     }
                 }
                 
                 // 글자 수 표시
                 Text("\(scriptContent.count) / \(Self.maxCharacterCount)")
                     .font(.caption)
-                    .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .gray)
+                    .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .secondaryBlue700)
             }
-            .padding(.horizontal)
-            
-            // 분석 및 저장 버튼
-            Button(action: {
-                Task {
-                    // LocalRateLimiter 검사 추가
-                    guard rateLimiter.canCall() else {
-                        await MainActor.run {
-                            showErrorAlert("요청이 너무 잦습니다.\n잠시 후 다시 시도해주세요.")
-                        }
-                        return
-                    }
-                    await callGemini()
-                }
-            }) {
-                Text("분석 및 암기 시작")
-                    .bold()
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent ? Color.gray : Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent)
-            .padding(.horizontal)
+            .contentShape(Rectangle())
+            .padding(.horizontal, 80)
+            .padding(.top, 36)
             .onTapGesture {
                 isTitleEditing = false
                 isEditingContent = false
+                isFocusedContentEditor = false
             }
         }
-        .padding()
+        .safeAreaInset(edge: .bottom){
+            if !isFocusedContentEditor{
+                // 분석 및 저장 버튼
+                Button(action: {
+                    Task {
+                        // 🔹 추가됨: 타임아웃 플래그 초기화
+                        didTimeout = false
+                        
+                        // 🔹 추가됨: 30초 뒤 타임아웃 트리거
+                        startTimeoutTimer()
+                        
+                        // LocalRateLimiter 검사 추가
+                        guard rateLimiter.canCall() else {
+                            await MainActor.run {
+                                showErrorAlert("요청이 너무 잦습니다.\n잠시 후 다시 시도해주세요.")
+                            }
+                            return
+                        }
+                        await callGemini()
+                    }
+                }) {
+                    Text("분석 및 암기 시작")
+                        .bold()
+                }
+                .buttonStyle(GeneralButtonStyle(width: 404))
+                .frame(width: 404, height: 48)
+                .padding(.vertical, 10)
+                .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -116,16 +142,6 @@ struct ScriptConfirmView: View {
                     showEditIcon: true,
                     isEditing: $isTitleEditing
                 )
-            }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if isEditingContent {
-                    Button("Done", systemImage: "checkmark") {
-                        isEditingContent = false
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color(.systemBlue))
-                }
             }
         }
         .alert("진행 상황을 잃게 됩니다", isPresented: $showBackAlert) {
@@ -155,14 +171,37 @@ struct ScriptConfirmView: View {
         }
     }
     
-    // MARK: - 🔹 Gemini 두 번 호출: 스크립트 분석 → 단어 추출
+    // MARK: - 🔹 추가됨: 30초 동안 로딩 시 자동 타임아웃
+    private func startTimeoutTimer() {
+        Task {
+            try? await Task.sleep(nanoseconds: 30 * 1_000_000_000)
+
+            // 이미 종료되었으면 아무 동작 X
+            if !isLoading { return }
+
+            await MainActor.run {
+                didTimeout = true
+                isLoading = false
+                showErrorAlert("요청이 너무 오래 걸립니다.\n네트워크 상태를 확인하고 다시 시도해주세요.")
+            }
+        }
+    }
+    
+    // MARK: -Gemini 두 번 호출: 스크립트 분석 → 단어 추출
     private func callGemini() async {
         isLoading = true
         
+        // 🔹 추가됨: 이미 타임아웃되었으면 호출 중단
+        if didTimeout { return }
+        
         do {
             print("🚀 [1/2] Gemini 스크립트 분석 시작")
-            // 🔹 ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
+            //ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
             if let result = try await geminiCaller.analyzeScript(scriptContent) {
+                
+                // 🔹 추가됨: 타임아웃 상황에서 결과 반영 금지
+                if didTimeout { return }
+                
                 await MainActor.run {
                     self.parsedScript = result
                 }
@@ -171,6 +210,9 @@ struct ScriptConfirmView: View {
                 throw URLError(.cannotParseResponse)
             }
         } catch {
+            // 🔹 추가됨: 타임아웃일 경우 에러 메시지 중복 출력 방지
+            if didTimeout { return }
+            
             await MainActor.run {
                 self.showErrorAlert("스크립트 분석 실패: \(error.localizedDescription)")
             }
@@ -182,6 +224,9 @@ struct ScriptConfirmView: View {
     // MARK: - 저장 및 화면 이동
     private func saveAndNavigate(with scriptData: ScriptData) {
         Task {
+            // 🔹 추가됨: 타임아웃이라면 저장/네비게이션 수행 금지
+            if didTimeout { return }
+            
             defer { isLoading = false }
             do {
                 // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
