@@ -22,8 +22,7 @@ struct ScriptCard: View {
             }
         }) {
             VStack(alignment: .leading, spacing: 12) {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(.primaryBlue200)
+                Image(.homeGridIcon)
                     .contextMenu {
                         Button(role: .destructive, action: onDelete) {
                             Label("삭제", systemImage: "trash")
