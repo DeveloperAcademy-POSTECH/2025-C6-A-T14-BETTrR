@@ -25,12 +25,26 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     override init() {
         super.init()
         synthesizer.delegate = self
-        
+    }
+    
+    // --- Private Session Helpers ---
+    
+    /// 재생 세션을 활성화하고 카테고리를 .playback으로 설정합니다.
+    private func activatePlaybackSession() {
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
-            print("Failed to set up audio session: \(error.localizedDescription)")
+            print("Failed to activate playback session: \(error.localizedDescription)")
+        }
+    }
+    
+    /// 오디오 세션을 비활성화합니다. (다른 앱이 오디오를 사용할 수 있도록)
+    private func deactivateSession() {
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Failed to deactivate audio session: \(error.localizedDescription)")
         }
     }
     
@@ -40,6 +54,8 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     func play(text: String, language: String = "en-US") {
         
         stop() // 기존 큐 중지
+        
+        activatePlaybackSession()
         
         // 읽어주기를 원하는 텍스트를 큐에 넣고 읽기 요청
         let utterance = createUtterance(text: text, language: language)
@@ -52,6 +68,8 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     /// 스크립트 전체 문장을 순서대로 재생합니다. (전체 재생 버튼용)
     func playAll(sentences: [SentenceData], language: String = "en-US") {
         stop() // 기존 큐 중지
+        
+        activatePlaybackSession()
         
         // SentenceData 배열을 AVSpeechUtterance 배열로 변환
         self.utteranceQueue = sentences
@@ -66,12 +84,14 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     func pause() {
         if synthesizer.isSpeaking {
             synthesizer.pauseSpeaking(at: .immediate)
+            deactivateSession()
         }
     }
     
     /// 일시 중지된 지점부터 다시 재생합니다.
     func resume() {
         if synthesizer.isPaused {
+            activatePlaybackSession()
             synthesizer.continueSpeaking()
         }
     }
@@ -82,6 +102,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
             synthesizer.stopSpeaking(at: .immediate)
             utteranceQueue.removeAll()
             isPlaying = false
+            deactivateSession()
         }
     }
     
@@ -93,6 +114,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
             playNextInQueue()
         } else {
             isPlaying = false
+            deactivateSession()
         }
     }
     
@@ -125,6 +147,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         guard !utteranceQueue.isEmpty else {
             // 큐가 비었으면 재생 완료
             isPlaying = false
+            deactivateSession()
             return
         }
         
