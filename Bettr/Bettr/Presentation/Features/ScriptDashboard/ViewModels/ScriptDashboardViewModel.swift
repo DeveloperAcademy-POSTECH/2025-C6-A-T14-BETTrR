@@ -106,29 +106,28 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
                 )
                 
                 self.currentTitle = fetchedScript.title
-                self.isLoading = false
                 self.currentError = nil
                 return
                 
             } catch {
-                let appError = (error as? AppError) ?? .networkError(error.localizedDescription)
+                let appError = error.toAppError()
+                print("대시보드 데이터 로드 실패 (시도 \(attempt + 1)): \(appError.userFriendlyMessage)")
                 
-                // 재시도 불가능한 에러이거나, 마지막 시도였다면
                 if !appError.isRetryable || attempt == maxRetries {
+                    if case .dataNotFound = appError {
+                        self.currentTitle = "스크립트 없음"
+                    } else {
+                        self.currentTitle = "스크립트 오류"
+                    }
                     self.currentError = appError
-                    self.currentTitle = "스크립트 오류"
-                    self.isLoading = false
-                    return // [중요] 최종 실패 시 함수(및 루프) 종료
+                    return
                 }
                 
-                // 아직 재시도 기회 남음 (Exponential Backoff)
                 do {
                     let delaySeconds = UInt64(pow(2, Double(attempt)))
                     try await Task.sleep(nanoseconds: delaySeconds * 1_000_000_000)
                 } catch {
-                    // Task.sleep이 취소된 경우 (예: 뷰가 사라져서 Task가 취소됨)
                     self.currentError = .unknown("작업이 취소되었습니다.")
-                    self.isLoading = false
                     return
                 }
             }
