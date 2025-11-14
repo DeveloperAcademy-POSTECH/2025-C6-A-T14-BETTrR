@@ -350,10 +350,10 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = BETTrR;
-				INFOPLIST_KEY_NSCameraUsageDescription = "텍스트 스크립트 생성을 위해 카메라 접근이 필요합니다.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "“App needs access to the microphone.”";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "스크립트 생성을 위해 사진 보관함에서 이미지를 가져오려면 권한이 필요합니다.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "“App needs access to Speech Recognition.”";
+				INFOPLIST_KEY_NSCameraUsageDescription = "스크립트를 촬영하여 텍스트로 변환하기 위해 필요합니다.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "스크립트 암기 피드백을 위해 사용자님의 목소리를 녹음하는 데 마이크 접근이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "사진 보관함에 저장된 스크립트 이미지를 불러와 텍스트로 변환하기 위해 필요합니다.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "녹음된 암기 내용을 분석하여, 누락 및 추가 단어 피드백을 정확하게 제공하기 위해 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -388,6 +388,7 @@
 				DEVELOPMENT_TEAM = 6CU55U45VF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = BETTrR;
 				INFOPLIST_KEY_NSCameraUsageDescription = "스크립트를 촬영하여 텍스트로 변환하기 위해 필요합니다.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "스크립트 암기 피드백을 위해 사용자님의 목소리를 녹음하는 데 마이크 접근이 필요합니다.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "사진 보관함에 저장된 스크립트 이미지를 불러와 텍스트로 변환하기 위해 필요합니다.";
