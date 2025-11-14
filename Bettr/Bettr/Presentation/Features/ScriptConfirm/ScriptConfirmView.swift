@@ -25,11 +25,14 @@ struct ScriptConfirmView: View {
     @State private var showBackAlert: Bool = false
     @State private var isPendingDismiss: Bool = false
     
+    // 🔹 추가됨: 30초 타임아웃 감지용 상태
+    @State private var didTimeout: Bool = false
+    
     // 글자 수 제한
     private static let maxCharacterCount = 2000
     
-    // 🔹 추가됨: Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
-    private let geminiCaller = ScriptGeminiCall()  // 🔹 추가됨
+    //Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
+    private let geminiCaller = ScriptGeminiCall()
     
     //Local Rate Limiter(사용자의 호출 제한)
     private let rateLimiter = LocalRateLimiter.shared
@@ -97,6 +100,12 @@ struct ScriptConfirmView: View {
                 // 분석 및 저장 버튼
                 Button(action: {
                     Task {
+                        // 🔹 추가됨: 타임아웃 플래그 초기화
+                        didTimeout = false
+                        
+                        // 🔹 추가됨: 30초 뒤 타임아웃 트리거
+                        startTimeoutTimer()
+                        
                         // LocalRateLimiter 검사 추가
                         guard rateLimiter.canCall() else {
                             await MainActor.run {
@@ -162,14 +171,37 @@ struct ScriptConfirmView: View {
         }
     }
     
-    // MARK: - 🔹 Gemini 두 번 호출: 스크립트 분석 → 단어 추출
+    // MARK: - 🔹 추가됨: 30초 동안 로딩 시 자동 타임아웃
+    private func startTimeoutTimer() {
+        Task {
+            try? await Task.sleep(nanoseconds: 30 * 1_000_000_000)
+
+            // 이미 종료되었으면 아무 동작 X
+            if !isLoading { return }
+
+            await MainActor.run {
+                didTimeout = true
+                isLoading = false
+                showErrorAlert("요청이 너무 오래 걸립니다.\n네트워크 상태를 확인하고 다시 시도해주세요.")
+            }
+        }
+    }
+    
+    // MARK: -Gemini 두 번 호출: 스크립트 분석 → 단어 추출
     private func callGemini() async {
         isLoading = true
         
+        // 🔹 추가됨: 이미 타임아웃되었으면 호출 중단
+        if didTimeout { return }
+        
         do {
             print("🚀 [1/2] Gemini 스크립트 분석 시작")
-            // 🔹 ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
+            //ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
             if let result = try await geminiCaller.analyzeScript(scriptContent) {
+                
+                // 🔹 추가됨: 타임아웃 상황에서 결과 반영 금지
+                if didTimeout { return }
+                
                 await MainActor.run {
                     self.parsedScript = result
                 }
@@ -178,6 +210,9 @@ struct ScriptConfirmView: View {
                 throw URLError(.cannotParseResponse)
             }
         } catch {
+            // 🔹 추가됨: 타임아웃일 경우 에러 메시지 중복 출력 방지
+            if didTimeout { return }
+            
             await MainActor.run {
                 self.showErrorAlert("스크립트 분석 실패: \(error.localizedDescription)")
             }
@@ -189,6 +224,9 @@ struct ScriptConfirmView: View {
     // MARK: - 저장 및 화면 이동
     private func saveAndNavigate(with scriptData: ScriptData) {
         Task {
+            // 🔹 추가됨: 타임아웃이라면 저장/네비게이션 수행 금지
+            if didTimeout { return }
+            
             defer { isLoading = false }
             do {
                 // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
