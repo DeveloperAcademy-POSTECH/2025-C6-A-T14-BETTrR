@@ -23,11 +23,10 @@ struct ChunkModeView: View {
         }
     }
     
-    @ViewBuilder
     private func englishChunkLine(for sentence: SentenceData) -> some View {
         let lastChunkIndex = sentence.chunks.last?.orderIndex
         
-        CustomFlowLayout(horizontalSpacing: 12, verticalSpacing: 8) {
+        return CustomFlowLayout(horizontalSpacing: 12, verticalSpacing: 8) {
             ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                 
                 let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)
@@ -50,11 +49,10 @@ struct ChunkModeView: View {
     }
     
     /// 한국어 청크 라인을 그리는 뷰
-    @ViewBuilder
     private func koreanChunkLine(for sentence: SentenceData) -> some View {
         let lastChunkIndex = sentence.chunks.last?.orderIndex
         
-        CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 0) {
+        return CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 0) {
             ForEach(sentence.chunks, id: \.orderIndex) { chunk in
                 
                 KoreanScriptTextView(
