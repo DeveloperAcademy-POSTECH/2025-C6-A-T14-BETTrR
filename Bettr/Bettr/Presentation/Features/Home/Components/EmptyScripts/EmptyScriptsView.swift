@@ -37,11 +37,11 @@ private struct FolderIconView: View {
 private struct GuidanceTextView: View {
     var body: some View {
         VStack(spacing: 8) {
-            Text("추가 버튼을 눌러")
+            Text("암기하고 싶은 스크립트를 등록하고,")
                 .font(.calloutRegular16)
                 .foregroundColor(.normalGray600)
             
-            Text("연습할 스크립트 파일을 추가해주세요.")
+            Text("학습을 시작해 보세요.")
                 .font(.calloutRegular16)
                 .foregroundColor(.normalGray600)
         }
@@ -55,7 +55,7 @@ private struct AddButtonView: View {
     let onSelectFile: () -> Void
     
     var body: some View {
-        Button("스크립트 추가") {
+        Button("스크립트 등록") {
         }
         .buttonStyle(.general)
         .padding(.bottom, 78) // 아래에 공간이 있어야 Menu가 아래로 열림

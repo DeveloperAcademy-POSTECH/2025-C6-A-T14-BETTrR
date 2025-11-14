@@ -178,14 +178,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         for attempt in 0...maxRetries {
             do {
                 // --- 1. 데이터 로드 시도 ---
-                guard let fetchedData = try scriptService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
-                    // 실패: 404 - 데이터를 찾을 수 없음
-                    let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
-                    currentError = .dataNotFound(message)
-                    self.currentTitle = "스크립트 없음"
-                    isLoadingScript = false
-                    return // 재시도 없이 즉시 함수 종료
-                }
+                let fetchedData = try await scriptService.fetchScriptWithSentencesAndChunks(id: scriptId)
                 
                 // --- 2. 성공 ---
                 let sentenceDataList: [SentenceData] = fetchedData.sentences.map { (sentence, chunks) in
@@ -203,6 +196,14 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
                 isLoadingScript = false
                 currentError = nil
                 return
+                
+            } catch let error as ScriptRepositoryError where error.isNotFoundError {
+                // 실패: 404 - 데이터를 찾을 수 없음
+                let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
+                currentError = .dataNotFound(message)
+                self.currentTitle = "스크립트 없음"
+                isLoadingScript = false
+                return // 재시도 없이 즉시 함수 종료
                 
             } catch {
                 let appError = AppError.networkError(error.localizedDescription)

@@ -6,6 +6,11 @@ enum ScriptRepositoryError: Error, LocalizedError, Equatable {
     case databaseError(message: String)
     case notFound(message: String)
 
+    var isNotFoundError: Bool {
+        if case .notFound = self { return true }
+        return false
+    }
+
     var errorDescription: String? {
         switch self {
         case .validationError(let message):

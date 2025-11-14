@@ -79,8 +79,12 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
-        .environment(DatabaseContainer.getForPreview())
-        .environment(NavigationRouter())
-        .environment(AudioPlaybackService())
+    AsyncPreview(operation: {
+        try await DatabaseContainer.getForPreview(withMockData: true)
+    }) { container in
+        ContentView()
+            .environment(container)
+            .environment(NavigationRouter())
+            .environment(AudioPlaybackService())
+    }
 }
