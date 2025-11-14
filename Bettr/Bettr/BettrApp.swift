@@ -43,18 +43,17 @@ struct BettrApp: App {
     @State private var router = NavigationRouter()
     @State private var audioService = AudioPlaybackService()
     
-    // 앱 상태가 바뀔 때마다 DatabaseContainer를 매번 새로 생성하여 잠재적인 버그와 성능 저하를 유발할 수 있다면서 아래처럼 바꾸라는데 저는 이걸 잘 몰라서 한 번 확인 해주세요.
-    //    @State private var databaseContainer: DatabaseContainer
+    @State private var databaseContainer: DatabaseContainer
     
-    //    init() {
-    //            _databaseContainer = State(initialValue: DatabaseContainer(database: AppDatabase.shared))
-    //        }
+    init() {
+        _databaseContainer = State(initialValue: DatabaseContainer(database: AppDatabase.shared))
+    }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-            //  .environment(databaseContainer)
-                .environment(DatabaseContainer(database: database))
+                .environment(databaseContainer)
+            //    .environment(DatabaseContainer(database: database))
                 .environment(router)
                 .environment(audioService)
         }
