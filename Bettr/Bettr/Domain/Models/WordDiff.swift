@@ -28,4 +28,18 @@ enum WordDiff: Hashable, Sendable {
         case .replaced: return "replaced"
         }
     }
+    
+    // DB 저장을 위한 원본 스크립트 단어
+    var originalText: String? {
+            switch self {
+            case .matched(let word):
+                return word
+            case .missing(let expected):
+                return expected
+            case .replaced(let expected, _):
+                return expected
+            case .extra:
+                return nil
+            }
+        }
 }
