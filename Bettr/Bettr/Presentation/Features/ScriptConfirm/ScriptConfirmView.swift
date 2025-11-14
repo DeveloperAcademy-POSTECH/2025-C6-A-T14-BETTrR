@@ -74,7 +74,6 @@ struct ScriptConfirmView: View {
                     }
                     .onTapGesture {
                         isEditingContent = true
-                        // 🔹 [추가됨] 포커스 활성화
                         isFocusedContentEditor = true
                     }
                 }
@@ -90,7 +89,6 @@ struct ScriptConfirmView: View {
             .onTapGesture {
                 isTitleEditing = false
                 isEditingContent = false
-                // 🔹 [추가됨] 포커스 해제 → 버튼 다시 나타남
                 isFocusedContentEditor = false
             }
         }
