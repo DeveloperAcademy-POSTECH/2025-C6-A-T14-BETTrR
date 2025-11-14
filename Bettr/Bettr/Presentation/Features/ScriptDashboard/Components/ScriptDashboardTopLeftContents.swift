@@ -35,6 +35,14 @@ struct ScriptDashboardTopLeftContents: View {
         chartData.map { $0.score }.max() ?? 0
     }
     
+    // Y축 최대값을 동적으로 계산 (20% 여유 공간 추가)
+    private var yAxisMax: Double {
+        if maxScore == 0 {
+            return 10.0
+        }
+        return maxScore * 1.2
+    }
+    
     var body: some View {
         Group {
             Chart(chartData) { point in
@@ -62,7 +70,7 @@ struct ScriptDashboardTopLeftContents: View {
                 
             }
             .chartXScale(domain: 0...(chartData.count + 1))
-            .chartYScale(domain: 0...(maxScore + 5))
+            .chartYScale(domain: 0...yAxisMax)
             .chartXAxis {
                 AxisMarks(values: Array(0...chartData.count)) { value in
                     AxisGridLine()
@@ -77,7 +85,7 @@ struct ScriptDashboardTopLeftContents: View {
                 AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
                     let labelValue = value.as(Double.self) ?? 0
                     
-                    if labelValue == 0 || (labelValue > 0 && labelValue < maxScore + 5) {
+                    if labelValue == 0 || labelValue < (yAxisMax * 0.8) {
                         AxisValueLabel()
                         AxisGridLine()
                         AxisTick()
