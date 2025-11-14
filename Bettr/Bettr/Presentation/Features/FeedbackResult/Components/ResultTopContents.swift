@@ -17,7 +17,6 @@ struct ResultTopContents: View {
                 .foregroundStyle(.normalBlack900)
             
             ResultSummaryGridView(model: model)
-                .frame(maxHeight: 242)
         }
     }
 }
@@ -50,7 +49,7 @@ struct ResultSummaryGridView: View {
                     .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: 192)
                 }
-                .frame(maxWidth: .infinity, maxHeight: 116)
+                .frame(maxWidth: .infinity)
                 
                 // 왼쪽 하단: 총 녹음 시간, 누락∙대체∙추가된 단어
                 HStack(spacing: 16) {
@@ -97,10 +96,10 @@ struct ResultSummaryGridView: View {
                     .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: 150)
                 }
-                .frame(maxWidth: .infinity, maxHeight: 120)
+                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity)
-            
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             // 오른쪽: 종합 평가 점수
             DiagonalLayoutCard(title: "종합 평가 점수") {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -112,7 +111,49 @@ struct ResultSummaryGridView: View {
                 }
             }
             .cardBordered(padding: 24, cornerRadius: 10)
-            .frame(maxWidth: 242)
+            .frame(maxWidth: 242, maxHeight: .infinity)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+}
+
+// MARK: - Preview
+
+#Preview("일반 피드백 요약") {
+    let model = FeedbackResultModel(
+        scriptTitle: "Preview Script Title",
+        feedbackNumber: 5,
+        accuracy: 0.75,
+        totalRecordingTime: 120.5,
+        missingCount: 2,
+        extraCount: 1,
+        replacedCount: 1,
+        filteredSentenceDiffs: [
+            (index: 0, data: (original: "Hello world, how are you?", diffs: [
+                .matched(word: "Hello"), .matched(word: "world"), .missing(expected: "how"),
+                .extra(actual: "are"), .replaced(expected: "you", actual: "yoo")
+            ])),
+            (index: 1, data: (original: "I am fine, thank you.", diffs: [
+                .matched(word: "I"), .matched(word: "am"), .matched(word: "fine"),
+                .extra(actual: "very"), .matched(word: "thank"), .missing(expected: "you")
+            ]))
+        ]
+    )
+    
+    return ResultTopContents(model: model)
+}
+
+#Preview("완벽한 발음 요약") {
+    let perfectModel = FeedbackResultModel(
+        scriptTitle: "Perfect Script",
+        feedbackNumber: 1,
+        accuracy: 1.0,
+        totalRecordingTime: 60.0,
+        missingCount: 0,
+        extraCount: 0,
+        replacedCount: 0,
+        filteredSentenceDiffs: []
+    )
+    
+    return ResultTopContents(model: perfectModel)
 }
