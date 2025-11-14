@@ -27,9 +27,8 @@ struct WordListOverlay: View {
                 words: $viewModel.words,
                 isLoading: $viewModel.isLoading
             )
-            .padding(.top, 0)
             .padding(.trailing, 10)
-            .padding(.bottom, 13)
+            .padding(.bottom, 4)
             .transition(.move(edge: .trailing).combined(with: .opacity))
         }
     }

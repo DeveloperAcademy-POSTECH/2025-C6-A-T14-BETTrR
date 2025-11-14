@@ -13,6 +13,7 @@ struct BorderedCardStyle: ViewModifier {
     var bottom: CGFloat
     var leading: CGFloat
     var trailing: CGFloat
+    var cornerRadius: CGFloat
     
     func body(content: Content) -> some View {
         content
@@ -21,7 +22,7 @@ struct BorderedCardStyle: ViewModifier {
             .padding(.leading, leading)
             .padding(.trailing, trailing)
             .background(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: cornerRadius)
                     .strokeBorder(.primaryBlue200)
             )
     }
@@ -34,6 +35,7 @@ struct FilledCardStyle: ViewModifier {
     var bottom: CGFloat
     var leading: CGFloat
     var trailing: CGFloat
+    var cornerRadius: CGFloat
     
     func body(content: Content) -> some View {
         content
@@ -42,7 +44,7 @@ struct FilledCardStyle: ViewModifier {
             .padding(.leading, leading)
             .padding(.trailing, trailing)
             .background(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(.primaryBlue50)
             )
     }
@@ -55,6 +57,7 @@ struct BorderedFilledCardStyle: ViewModifier {
     var bottom: CGFloat
     var leading: CGFloat
     var trailing: CGFloat
+    var cornerRadius: CGFloat
     
     func body(content: Content) -> some View {
         content
@@ -63,10 +66,10 @@ struct BorderedFilledCardStyle: ViewModifier {
             .padding(.leading, leading)
             .padding(.trailing, trailing)
             .background(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(.primaryBlue50)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 20)
+                        RoundedRectangle(cornerRadius: cornerRadius)
                             .strokeBorder(.primaryBlue200)
                     )
             )
@@ -75,33 +78,53 @@ struct BorderedFilledCardStyle: ViewModifier {
 
 extension View {
     /// 4면의 패딩이 모두 같은 테두리가 있는 카드 스타일
-    func cardBordered(padding: CGFloat) -> some View {
-        self.modifier(BorderedCardStyle(top: padding, bottom: padding, leading: padding, trailing: padding))
+    func cardBordered(padding: CGFloat, cornerRadius: CGFloat = 20) -> some View {
+        self.modifier(BorderedCardStyle(top: padding,
+                                        bottom: padding,
+                                        leading: padding,
+                                        trailing: padding,
+                                        cornerRadius: cornerRadius))
     }
     
     /// trailing의 패딩 값만 다른 테두리가 있는 카드 스타일
     /// - 기본값: padding = 24, trailing = 16
-    func cardBordered(padding: CGFloat = 24, trailing: CGFloat = 16) -> some View {
-        self.modifier(BorderedCardStyle(top: padding, bottom: padding, leading: padding, trailing: trailing))
+    func cardBordered(padding: CGFloat = 24, trailing: CGFloat = 16, cornerRadius: CGFloat = 20) -> some View {
+        self.modifier(BorderedCardStyle(top: padding,
+                                        bottom: padding,
+                                        leading: padding,
+                                        trailing: trailing,
+                                        cornerRadius: cornerRadius))
     }
     
     /// 4면의 패딩이 모두 같은 배경색이 있는 카드 스타일
-    func cardFilled(padding: CGFloat) -> some View {
+    func cardFilled(padding: CGFloat, cornerRadius: CGFloat = 20) -> some View {
         self.modifier(
-            FilledCardStyle(top: padding, bottom: padding, leading: padding, trailing: padding)
+            FilledCardStyle(top: padding,
+                            bottom: padding,
+                            leading: padding,
+                            trailing: padding,
+                            cornerRadius: cornerRadius)
         )
     }
     
     /// 4면의 패딩값을 모두 지정할 수 있는 배경색이 있는 카드 스타일
     /// - 기본값: top = 0,  bottom = 31, leading = 22, trailing = 0
-    func cardFilled(top: CGFloat = 0, bottom: CGFloat = 31, leading: CGFloat = 22, trailing: CGFloat = 0) -> some View {
+    func cardFilled(top: CGFloat = 0, bottom: CGFloat = 31, leading: CGFloat = 22, trailing: CGFloat = 0, cornerRadius: CGFloat = 20) -> some View {
         self.modifier(
-            FilledCardStyle(top: top, bottom: bottom, leading: leading, trailing: trailing)
+            FilledCardStyle(top: top,
+                            bottom: bottom,
+                            leading: leading,
+                            trailing: trailing,
+                            cornerRadius: cornerRadius)
         )
     }
     
     /// 4면의 패딩이 모두 같은 배경색과 테두리가 있는 카드 스타일
-    func cardBorderedFilled(padding: CGFloat) -> some View {
-        self.modifier(BorderedFilledCardStyle(top: padding, bottom: padding, leading: padding, trailing: padding))
+    func cardBorderedFilled(padding: CGFloat, cornerRadius: CGFloat = 20) -> some View {
+        self.modifier(BorderedFilledCardStyle(top: padding,
+                                              bottom: padding,
+                                              leading: padding,
+                                              trailing: padding,
+                                              cornerRadius: cornerRadius))
     }
 }

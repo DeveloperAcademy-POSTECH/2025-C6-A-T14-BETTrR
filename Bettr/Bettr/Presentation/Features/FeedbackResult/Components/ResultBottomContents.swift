@@ -42,7 +42,9 @@ struct MistakesListView: View {
                 }
                 .frame(maxWidth: .infinity)
                 
-                Divider().foregroundStyle(.primaryBlue200)
+                Rectangle()
+                    .foregroundStyle(.primaryBlue300)
+                    .frame(width: 1)
                     .frame(maxHeight: .infinity)
                 
                 VStack(spacing: 36) {

@@ -32,16 +32,14 @@ struct ResultSummaryGridView: View {
                 // 왼쪽 상단: 스크립트 제목, 피드백 회차
                 HStack(spacing: 16) {
                     DiagonalLayoutCard(title: "스크립트 제목") {
-                        HStack(alignment: .bottom, spacing: 4) {
                             Text(model.scriptTitle)
                                 .font(.subbodyBold24)
-                        }
                     }
-                    .cardBordered(padding: 24)
+                    .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: .infinity)
                     
                     DiagonalLayoutCard(title: "피드백 회차") {
-                        HStack(alignment: .bottom, spacing: 4) {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("\(model.feedbackNumber)")
                                 .font(.subtitleBold32)
                             
@@ -49,7 +47,7 @@ struct ResultSummaryGridView: View {
                                 .font(.calloutRegular20)
                         }
                     }
-                    .cardBordered(padding: 24)
+                    .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: 192)
                 }
                 .frame(maxWidth: .infinity, maxHeight: 116)
@@ -57,16 +55,14 @@ struct ResultSummaryGridView: View {
                 // 왼쪽 하단: 총 녹음 시간, 누락∙대체∙추가된 단어
                 HStack(spacing: 16) {
                     DiagonalLayoutCard(title: "총 녹음 시간") {
-                        HStack(alignment: .bottom, spacing: 4) {
                             Text(model.totalRecordingTime.toMMSSms())
                                 .font(.subbodyBold24)
-                        }
                     }
-                    .cardBordered(padding: 24)
+                    .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: .infinity)
                     
                     DiagonalLayoutCard(title: "누락된 단어") {
-                        HStack(alignment: .bottom, spacing: 4) {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("\(model.missingCount)")
                                 .font(.subbodyBold24)
                             
@@ -74,11 +70,11 @@ struct ResultSummaryGridView: View {
                                 .font(.calloutRegular16)
                         }
                     }
-                    .cardBordered(padding: 24)
+                    .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: 150)
                     
                     DiagonalLayoutCard(title: "대체된 단어") {
-                        HStack(alignment: .bottom, spacing: 4) {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("\(model.replacedCount)")
                                 .font(.subbodyBold24)
                             
@@ -86,11 +82,11 @@ struct ResultSummaryGridView: View {
                                 .font(.calloutRegular16)
                         }
                     }
-                    .cardBordered(padding: 24)
+                    .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: 150)
                     
                     DiagonalLayoutCard(title: "추가된 단어") {
-                        HStack(alignment: .bottom, spacing: 4) {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("\(model.extraCount)")
                                 .font(.subbodyBold24)
                             
@@ -98,7 +94,7 @@ struct ResultSummaryGridView: View {
                                 .font(.calloutRegular16)
                         }
                     }
-                    .cardBordered(padding: 24)
+                    .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: 150)
                 }
                 .frame(maxWidth: .infinity, maxHeight: 120)
@@ -107,7 +103,7 @@ struct ResultSummaryGridView: View {
             
             // 오른쪽: 종합 평가 점수
             DiagonalLayoutCard(title: "종합 평가 점수") {
-                HStack(alignment: .bottom, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text("\(Int(model.accuracy * 100))")
                         .font(.labelMedium64)
                     
@@ -115,7 +111,7 @@ struct ResultSummaryGridView: View {
                         .font(.bodyRegular24)
                 }
             }
-            .cardBordered(padding: 24)
+            .cardBordered(padding: 24, cornerRadius: 10)
             .frame(maxWidth: 242)
         }
     }
