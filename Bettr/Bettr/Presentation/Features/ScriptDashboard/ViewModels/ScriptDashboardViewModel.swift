@@ -71,6 +71,8 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
         let scriptId = self.scriptId
         let maxRetries = 2
         
+        defer { self.isLoading = false }
+        
         for attempt in 0...maxRetries {
             do {
                 let (fetchedScript, fetchedSentences) = try await self.scriptService.fetchScriptWithSentences(id: scriptId)
