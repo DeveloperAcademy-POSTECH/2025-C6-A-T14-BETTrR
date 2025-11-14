@@ -28,8 +28,8 @@ struct ScriptConfirmView: View {
     // 글자 수 제한
     private static let maxCharacterCount = 2000
     
-    // 🔹 추가됨: Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
-    private let geminiCaller = ScriptGeminiCall()  // 🔹 추가됨
+    //Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
+    private let geminiCaller = ScriptGeminiCall()
     
     //Local Rate Limiter(사용자의 호출 제한)
     private let rateLimiter = LocalRateLimiter.shared
@@ -162,13 +162,13 @@ struct ScriptConfirmView: View {
         }
     }
     
-    // MARK: - 🔹 Gemini 두 번 호출: 스크립트 분석 → 단어 추출
+    // MARK: -Gemini 두 번 호출: 스크립트 분석 → 단어 추출
     private func callGemini() async {
         isLoading = true
         
         do {
             print("🚀 [1/2] Gemini 스크립트 분석 시작")
-            // 🔹 ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
+            //ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
             if let result = try await geminiCaller.analyzeScript(scriptContent) {
                 await MainActor.run {
                     self.parsedScript = result
