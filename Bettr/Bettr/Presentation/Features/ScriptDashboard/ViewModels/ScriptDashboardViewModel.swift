@@ -86,7 +86,7 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
                 
                 let recentDetails = try await self.fetchRecentDetails(from: recentFeedbacks)
                 
-                let statsModel = await self.dataProcessor.processDashboardStats(
+                let statsModel = self.dataProcessor.processDashboardStats(
                     from: allFeedbacks,
                     recentDetails: recentDetails,
                     recentFeedbackCount: recentFeedbackCount
