@@ -12,6 +12,9 @@ struct ScriptConfirmView: View {
     @State private var isEditingContent = false
     @State private var isTitleEditing: Bool = false
     
+    // TextEditor 포커스 상태 감지용 (버튼 제어)
+    @FocusState private var isFocusedContentEditor: Bool
+    
     // Gemini 분석 결과 임시 저장
     @State var parsedScript: ScriptData?
     
@@ -38,67 +41,81 @@ struct ScriptConfirmView: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) {
-            // 스크립트 내용 (메모 앱처럼 동작)
+        VStack {
+            // 스크립트 내용
             VStack(alignment: .trailing, spacing: 8) {
                 if isEditingContent {
-                    TextEditor(text: $scriptContent)
-                        .padding(4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.gray.opacity(0.5))
-                        )
+                    ZStack(alignment: .topLeading) {
+                        TextEditor(text: $scriptContent)
+                            .padding(4)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.primaryBlue200, lineWidth: 3)
+                            )
+                            .focused($isFocusedContentEditor)
+                        //placeholder
+                        if scriptContent.isEmpty {
+                            Text("스크립트를 입력하세요.")
+                                .foregroundColor(.gray.opacity(0.5))
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 8)
+                        }
+                    }
                 } else {
                     ScrollView {
                         Text(scriptContent)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(10)
                     }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray.opacity(0.5))
-                    )
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(Color.primaryBlue200)
+                            .frame(height: 4)
+                    }
                     .onTapGesture {
                         isEditingContent = true
+                        isFocusedContentEditor = true
                     }
                 }
                 
                 // 글자 수 표시
                 Text("\(scriptContent.count) / \(Self.maxCharacterCount)")
                     .font(.caption)
-                    .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .gray)
+                    .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .secondaryBlue700)
             }
-            .padding(.horizontal)
-            
-            // 분석 및 저장 버튼
-            Button(action: {
-                Task {
-                    // LocalRateLimiter 검사 추가
-                    guard rateLimiter.canCall() else {
-                        await MainActor.run {
-                            showErrorAlert("요청이 너무 잦습니다.\n잠시 후 다시 시도해주세요.")
-                        }
-                        return
-                    }
-                    await callGemini()
-                }
-            }) {
-                Text("분석 및 암기 시작")
-                    .bold()
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent ? Color.gray : Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-            }
-            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isEditingContent)
-            .padding(.horizontal)
+            .contentShape(Rectangle())
+            .padding(.horizontal, 80)
+            .padding(.top, 36)
             .onTapGesture {
                 isTitleEditing = false
                 isEditingContent = false
+                isFocusedContentEditor = false
             }
         }
-        .padding()
+        .safeAreaInset(edge: .bottom){
+            if !isFocusedContentEditor{
+                // 분석 및 저장 버튼
+                Button(action: {
+                    Task {
+                        // LocalRateLimiter 검사 추가
+                        guard rateLimiter.canCall() else {
+                            await MainActor.run {
+                                showErrorAlert("요청이 너무 잦습니다.\n잠시 후 다시 시도해주세요.")
+                            }
+                            return
+                        }
+                        await callGemini()
+                    }
+                }) {
+                    Text("분석 및 암기 시작")
+                        .bold()
+                }
+                .buttonStyle(GeneralButtonStyle(width: 404))
+                .frame(width: 404, height: 48)
+                .padding(.vertical, 10)
+                .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+        }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -116,16 +133,6 @@ struct ScriptConfirmView: View {
                     showEditIcon: true,
                     isEditing: $isTitleEditing
                 )
-            }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if isEditingContent {
-                    Button("Done", systemImage: "checkmark") {
-                        isEditingContent = false
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color(.systemBlue))
-                }
             }
         }
         .alert("진행 상황을 잃게 됩니다", isPresented: $showBackAlert) {
