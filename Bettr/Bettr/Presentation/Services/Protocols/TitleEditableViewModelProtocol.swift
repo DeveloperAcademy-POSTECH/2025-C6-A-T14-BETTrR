@@ -33,7 +33,7 @@ extension TitleEditableViewModelProtocol {
     private func saveTitleToDatabase(newTitle: String) {
         Task(priority: .background) {
             do {
-                try scriptService.updateScriptTitle(scriptId: scriptId, newTitle: newTitle)
+                try await scriptService.updateScriptTitle(scriptId: scriptId, newTitle: newTitle)
                 print("✅ 제목 DB 저장 성공: \(newTitle)")
             } catch {
                 print("🔥 제목 DB 저장 실패: \(error.localizedDescription)")

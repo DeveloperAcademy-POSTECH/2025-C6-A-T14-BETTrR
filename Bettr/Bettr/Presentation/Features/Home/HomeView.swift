@@ -31,8 +31,12 @@ struct HomeView: View {
             Spacer()
         }
         .padding(.top, 48)
-        .onAppear {
-            container.refreshScripts()
+        .task {
+            do {
+                try await container.refreshScripts()
+            } catch {
+                print("Failed to refresh scripts: \(error)")
+            }
         }
         .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhoto, matching: .images)
         .fullScreenCover(isPresented: $isShowingCamera) {
@@ -92,11 +96,13 @@ struct HomeView: View {
     
     private func deleteScript(script: Script) {
         guard let id = script.id else { return }
-        do {
-            try container.scriptManagementService.deleteScript(id: id)
-            container.refreshScripts()
-        } catch {
-            print("Failed to delete script: \(error)")
+        Task {
+            do {
+                try await container.scriptManagementService.deleteScript(id: id)
+                try await container.refreshScripts()
+            } catch {
+                print("Failed to delete script: \(error)")
+            }
         }
     }
     
@@ -108,13 +114,21 @@ struct HomeView: View {
 }
 
 #Preview("Empty Scripts") {
-    HomeView()
-        .environment(DatabaseContainer.getForPreview(withMockData: false))
-        .environment(NavigationRouter())
+    AsyncPreview(operation: {
+        try await DatabaseContainer.getForPreview(withMockData: false)
+    }) { container in
+        HomeView()
+            .environment(container)
+            .environment(NavigationRouter())
+    }
 }
 
 #Preview("With Scripts") {
-    HomeView()
-        .environment(DatabaseContainer.getForPreview(withMockData: true))
-        .environment(NavigationRouter())
+    AsyncPreview(operation: {
+        try await DatabaseContainer.getForPreview(withMockData: true)
+    }) { container in
+        HomeView()
+            .environment(container)
+            .environment(NavigationRouter())
+    }
 }

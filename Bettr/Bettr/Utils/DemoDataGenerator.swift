@@ -3,12 +3,12 @@ import Foundation
 import GRDB
 
 struct DemoDataGenerator {
-    static func generate(into database: AppDatabase) throws {
+    static func generate(into database: AppDatabase) async throws {
         let scriptRepository = ScriptRepository(dbQueue: database.dbQueue)
         let scriptManagementService = ScriptManagementService(scriptRepository: scriptRepository)
         
         // Check if demo data already exists to prevent duplicates
-        let existingScripts = try scriptManagementService.fetchAllScripts()
+        let existingScripts = try await scriptManagementService.fetchAllScripts()
         if !existingScripts.isEmpty {
             print("ℹ️ Demo data already exists. Skipping creation.")
             return
@@ -215,7 +215,7 @@ struct DemoDataGenerator {
         ]
         
         for (index, scriptData) in demoScriptData.enumerated() {
-            let script = try scriptManagementService.createScript(scriptData: scriptData)
+            let script = try await scriptManagementService.createScript(scriptData: scriptData)
             guard let scriptId = script.id else { continue }
             
             let feedbackDetailsData: [(wordDiff: WordDiff, originalText: String?, sentenceIndex: Int, wordIndex: Int)] = [
@@ -223,7 +223,7 @@ struct DemoDataGenerator {
                 (wordDiff: .extra(actual: "extra"), originalText: nil, sentenceIndex: 0, wordIndex: 1)
             ]
             
-            _ = try scriptManagementService.createFeedbackSummary(
+            _ = try await scriptManagementService.createFeedbackSummary(
                 scriptId: scriptId,
                 accuracy: (60.0 + Double(index * 10)) / 100.0, // Convert to accuracy (0.0 - 1.0)
                 missingWordCount: 1,

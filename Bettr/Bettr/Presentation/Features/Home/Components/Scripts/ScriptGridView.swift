@@ -39,13 +39,16 @@ struct ScriptGridView: View {
 }
 
 #Preview {
-    ScriptGridView(
-        onSelectPhoto: {},
-        onTakePhoto: {},
-        onSelectFile: {},
-        requestDelete: { _ in }
-    )
-    .environment(DatabaseContainer.getForPreview())
-    .environment(NavigationRouter())
+    AsyncPreview(operation: {
+        try await DatabaseContainer.getForPreview(withMockData: true)
+    }) { container in
+        ScriptGridView(
+            onSelectPhoto: {},
+            onTakePhoto: {},
+            onSelectFile: {},
+            requestDelete: { _ in }
+        )
+        .environment(container)
+        .environment(NavigationRouter())
+    }
 }
-

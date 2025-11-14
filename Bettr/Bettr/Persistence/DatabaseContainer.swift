@@ -11,13 +11,16 @@ import Combine
 @Observable
 class DatabaseContainer {
     let scriptRepository: ScriptRepository
-    let scriptManagementService: ScriptManagementService
+    let scriptManagementService: ScriptManagementServiceProtocol
     let wordExtractionService: WordExtractionService
     var scripts: [Script] = []
     
     init(database: AppDatabase) {
-        self.scriptRepository = ScriptRepository(dbQueue: database.dbQueue)
-        self.scriptManagementService = ScriptManagementService(scriptRepository: self.scriptRepository)
+        let scriptRepository = ScriptRepository(dbQueue: database.dbQueue)
+        let scriptManagementService = ScriptManagementService(scriptRepository: scriptRepository)
+        
+        self.scriptRepository = scriptRepository
+        self.scriptManagementService = scriptManagementService
         self.wordExtractionService = WordExtractionService(
             dbQueue: database.dbQueue,
             scriptRepository: scriptRepository,
@@ -25,25 +28,18 @@ class DatabaseContainer {
         )
     }
     
-    func refreshScripts() {
-        do {
-            self.scripts = try self.scriptManagementService.fetchAllScripts().sorted { $0.lastViewedAt > $1.lastViewedAt }
-        } catch {
-            print("Failed to fetch scripts: \(error)")
-        }
+    @MainActor
+    func refreshScripts() async throws {
+        self.scripts = try await self.scriptManagementService.fetchAllScripts().sorted { $0.lastViewedAt > $1.lastViewedAt }
     }
     
-    static func getForPreview(withMockData: Bool = true) -> DatabaseContainer {
-        do {
-            let db = try AppDatabase.makeInMemory()
-            let container = DatabaseContainer(database: db)
-            if withMockData {
-                try DemoDataGenerator.generate(into: db)
-            }
-            container.refreshScripts()
-            return container
-        } catch {
-            fatalError("Failed to create container for preview: \(error)")
+    static func getForPreview(withMockData: Bool = true) async throws -> DatabaseContainer {
+        let db = try AppDatabase.makeInMemory()
+        let container = DatabaseContainer(database: db)
+        if withMockData {
+            try await DemoDataGenerator.generate(into: db)
         }
+        try await container.refreshScripts()
+        return container
     }
 }
