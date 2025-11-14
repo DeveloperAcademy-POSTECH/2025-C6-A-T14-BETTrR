@@ -148,13 +148,13 @@ struct ScriptConfirmView: View {
                 )
             }
         }
-        .alert("진행 상황을 잃게 됩니다", isPresented: $showBackAlert) {
+        .alert("저장하지 않고 나가시겠어요?", isPresented: $showBackAlert) {
             Button("취소", role: .cancel) {}
             Button("나가기", role: .destructive) {
                 dismiss()
             }
         } message: {
-            Text("이 화면을 나가면 작성 중인 내용이 저장되지 않습니다.")
+            Text("편집 중인 스크립트는 저장되지 않고 삭제됩니다.")
         }
         .alert("오류", isPresented: $showErrorAlert) {
             Button("확인", role: .cancel) {}

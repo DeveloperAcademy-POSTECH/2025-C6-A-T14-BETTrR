@@ -65,13 +65,13 @@ struct HomeView: View {
                 selectedPhoto = nil
             }
         }
-        .alert("스크립트 삭제", isPresented: $showingDeleteConfirm, presenting: scriptToDelete) { script in
+        .alert("스크립트를 삭제하시겠어요?", isPresented: $showingDeleteConfirm, presenting: scriptToDelete) { script in
             Button("삭제", role: .destructive) {
                 deleteScript(script: script)
             }
             Button("취소", role: .cancel) {}
         } message: { script in
-            Text("'\(script.title)' 스크립트를 정말 삭제하시겠습니까? 이 동작은 되돌릴 수 없습니다.")
+            Text("선택하신 스크립트 '\(script.title)'과 학습 기록은 복구할 수 없습니다.")
         }
         .alert("오류", isPresented: $showingFileErrorAlert) {
             Button("확인", role: .cancel) {}
