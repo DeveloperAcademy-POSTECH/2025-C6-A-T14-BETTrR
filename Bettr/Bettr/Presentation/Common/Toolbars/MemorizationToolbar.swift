@@ -16,7 +16,7 @@ struct MemorizationToolbarContent: ToolbarContent {
     
     @Bindable var viewModel: MemorizationViewModel
     let showEditIcon: Bool
-
+    
     var body: some ToolbarContent {
         // 타이틀
         ToolbarItem(placement: .principal) {
@@ -89,50 +89,50 @@ struct MemorizationToolbarContent: ToolbarContent {
     }
     
     @ToolbarContentBuilder
-        private var bottomToolbarItems: some ToolbarContent {
-            ToolbarItemGroup(placement: .bottomBar) {
-                // 왼쪽 버튼 (재생/일시정지/정지)
-                playbackControls
-                
-                Spacer()
-                
-                // 오른쪽 버튼 (피드백)
-                feedbackButton
-            }
+    private var bottomToolbarItems: some ToolbarContent {
+        ToolbarItemGroup(placement: .bottomBar) {
+            // 왼쪽 버튼 (재생/일시정지/정지)
+            playbackControls
+            
+            Spacer()
+            
+            // 오른쪽 버튼 (피드백)
+            feedbackButton
         }
+    }
     
     @ViewBuilder
-        private var playbackControls: some View {
-            if viewModel.uiState.isPlaying {
-                ControlGroup {
-                    Button(action: {
-                        viewModel.togglePauseResume()
-                    }) {
-                        Image(systemName: viewModel.uiState.isPause ? "play.fill" : "pause.fill")
-                    }
-                    
-                    Button(action: {
-                        viewModel.togglePlayStop()
-                    }) {
-                        Image(systemName: "stop.fill")
-                    }
+    private var playbackControls: some View {
+        if viewModel.uiState.isPlaying {
+            ControlGroup {
+                Button(action: {
+                    viewModel.togglePauseResume()
+                }) {
+                    Image(systemName: viewModel.uiState.isPause ? "play.fill" : "pause.fill")
                 }
-            } else {
+                
                 Button(action: {
                     viewModel.togglePlayStop()
                 }) {
-                    Image(systemName: "play.fill")
+                    Image(systemName: "stop.fill")
                 }
             }
+        } else {
+            Button(action: {
+                viewModel.togglePlayStop()
+            }) {
+                Image(systemName: "play.fill")
+            }
         }
+    }
     
     private var feedbackButton: some View {
-            Button(action: {
-                viewModel.uiState.showFeedbackModal.toggle()
-            }) {
-                Image(systemName: "append.page")
-                    .toolbarButtonStyle(enabled: !viewModel.isRecordingDisabled)
-            }
-            .disabled(viewModel.isRecordingDisabled)
+        Button(action: {
+            viewModel.uiState.showFeedbackModal.toggle()
+        }) {
+            Image(systemName: "append.page")
+                .toolbarButtonStyle(enabled: !viewModel.isRecordingDisabled)
         }
+        .disabled(viewModel.isRecordingDisabled)
+    }
 }

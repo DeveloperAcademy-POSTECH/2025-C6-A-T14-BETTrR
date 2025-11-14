@@ -88,7 +88,6 @@ struct MemorizationView: View {
     }
     
     /// 성공 뷰
-    @ViewBuilder
     private var successView: some View {
         ScrollView {
             VStack(spacing: 24) {
