@@ -39,7 +39,12 @@ struct ScriptConfirmView: View {
     
     init(initialText: String?, initialTitle: String?) {
         let content = initialText ?? ""
-        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
+        
+        // 처음부터 영어/숫자/기호만 남김 (OCR에서 한국어 들어와도 여기서 제거됨)
+        let asciiFiltered = content.unicodeScalars.filter { $0.isASCII }
+        let cleaned = String(String.UnicodeScalarView(asciiFiltered))
+        _scriptContent = State(initialValue: String(cleaned.prefix(Self.maxCharacterCount)))
+//        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
         _scriptTitle = State(initialValue: initialTitle ?? "")
     }
     
@@ -96,34 +101,33 @@ struct ScriptConfirmView: View {
             }
         }
         .safeAreaInset(edge: .bottom){
-            if !isFocusedContentEditor{
-                // 분석 및 저장 버튼
-                Button(action: {
-                    Task {
-                        // 🔹 추가됨: 타임아웃 플래그 초기화
-                        didTimeout = false
-                        
-                        // 🔹 추가됨: 30초 뒤 타임아웃 트리거
-                        startTimeoutTimer()
-                        
-                        // LocalRateLimiter 검사 추가
-                        guard rateLimiter.canCall() else {
-                            await MainActor.run {
-                                showErrorAlert("요청이 너무 잦습니다.\n잠시 후 다시 시도해주세요.")
-                            }
-                            return
+            // 분석 및 저장 버튼
+            Button(action: {
+                Task {
+                    // 🔹 추가됨: 타임아웃 플래그 초기화
+                    didTimeout = false
+                    
+                    // 🔹 추가됨: 30초 뒤 타임아웃 트리거
+                    startTimeoutTimer()
+                    
+                    // LocalRateLimiter 검사 추가
+                    guard rateLimiter.canCall() else {
+                        await MainActor.run {
+                            showErrorAlert("요청이 너무 잦습니다.\n잠시 후 다시 시도해주세요.")
                         }
-                        await callGemini()
+                        return
                     }
-                }) {
-                    Text("분석 및 암기 시작")
-                        .bold()
+                    await callGemini()
                 }
-                .buttonStyle(GeneralButtonStyle(width: 404))
-                .frame(width: 404, height: 48)
-                .padding(.vertical, 10)
-                .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }) {
+                Text("분석 및 암기 시작")
+                    .bold()
             }
+            .buttonStyle(GeneralButtonStyle(width: 404))
+            .frame(width: 404, height: 48)
+            .padding(.bottom, 10)
+            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
