@@ -25,7 +25,7 @@ struct FeedbackResultView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {
-                await viewModel.saveFeedbackResult(practiceDuration: viewModel.practiceDuration)
+                await viewModel.saveFeedbackResult()
             }
         }
     }
