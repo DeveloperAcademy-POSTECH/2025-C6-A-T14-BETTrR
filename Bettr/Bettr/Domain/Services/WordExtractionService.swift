@@ -40,9 +40,7 @@ class WordExtractionService {
         
         do {
             // 1️⃣ 스크립트 불러오기
-            guard let scriptData = try await scriptManagementService.fetchScriptWithSentencesAndChunks(id: scriptId) else {
-                throw WordExtractionError.scriptNotFound
-            }
+            let scriptData = try await scriptManagementService.fetchScriptWithSentencesAndChunks(id: scriptId)
             
             // 2️⃣ 텍스트 합치기
             let fullText = scriptData.sentences.map { $0.sentence.englishText }.joined(separator: " ")

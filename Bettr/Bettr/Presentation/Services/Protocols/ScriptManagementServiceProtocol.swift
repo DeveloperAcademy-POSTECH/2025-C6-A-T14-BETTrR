@@ -17,8 +17,8 @@ protocol ScriptManagementServiceProtocol {
     func fetchAllScripts() async throws -> [Script]
     
     // MARK: - Script Read with Relations
-    func fetchScriptWithSentences(id: Int64) async throws -> (script: Script, sentences: [Sentence])?
-    func fetchScriptWithSentencesAndChunks(id: Int64) async throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])])?
+    func fetchScriptWithSentences(id: Int64) async throws -> (script: Script, sentences: [Sentence])
+    func fetchScriptWithSentencesAndChunks(id: Int64) async throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])])
 
     // MARK: - Script Update
     func updateLastViewedAt(forScriptId scriptId: Int64) async throws

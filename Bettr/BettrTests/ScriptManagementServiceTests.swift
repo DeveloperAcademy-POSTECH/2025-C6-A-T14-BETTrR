@@ -360,23 +360,27 @@ final class ScriptManagementServiceTests: XCTestCase {
         let result = try await sut.fetchScriptWithSentences(id: createdScript.id!)
 
         // Then: Script와 Sentence들이 올바르게 반환되어야 함
-        XCTAssertNotNil(result)
-        XCTAssertEqual(result?.script.id, createdScript.id)
-        XCTAssertEqual(result?.script.title, "Script with Sentences")
-        XCTAssertEqual(result?.sentences.count, 2)
-        XCTAssertEqual(result?.sentences[0].englishText, "First sentence.")
-        XCTAssertEqual(result?.sentences[1].englishText, "Second sentence.")
+        XCTAssertEqual(result.script.id, createdScript.id)
+        XCTAssertEqual(result.script.title, "Script with Sentences")
+        XCTAssertEqual(result.sentences.count, 2)
+        XCTAssertEqual(result.sentences[0].englishText, "First sentence.")
+        XCTAssertEqual(result.sentences[1].englishText, "Second sentence.")
     }
 
-    func test_fetchScriptWithSentences_whenScriptDoesNotExist_thenReturnsNil() async throws {
+    func test_fetchScriptWithSentences_whenScriptDoesNotExist_thenThrowsError() async throws {
         // Given: 존재하지 않는 Script ID가 있을 때
         let nonExistentId: Int64 = 9999
 
-        // When: 해당 ID로 Script와 Sentence들을 조회했을 때
-        let result = try await sut.fetchScriptWithSentences(id: nonExistentId)
-
-        // Then: nil이 반환되어야 함
-        XCTAssertNil(result)
+        // When-Then: 해당 ID로 Script와 Sentence들을 조회했을 때 notFound 오류가 발생해야 함
+        do {
+            _ = try await sut.fetchScriptWithSentences(id: nonExistentId)
+            XCTFail("Expected notFound error, but no error was thrown.")
+        } catch {
+            XCTAssertEqual(
+                (error as? ScriptRepositoryError)?.errorDescription,
+                ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription
+            )
+        }
     }
 
     func test_fetchScriptWithSentencesAndChunks_whenScriptExistsWithSentencesAndChunks_thenReturnsScriptSentencesAndChunks() async throws {
@@ -411,34 +415,38 @@ final class ScriptManagementServiceTests: XCTestCase {
         let result = try await sut.fetchScriptWithSentencesAndChunks(id: createdScript.id!)
 
         // Then: Script, Sentence, Chunk들이 올바르게 반환되어야 함
-        XCTAssertNotNil(result)
-        XCTAssertEqual(result?.script.id, createdScript.id)
-        XCTAssertEqual(result?.script.title, "Script with Sentences and Chunks")
-        XCTAssertEqual(result?.sentences.count, 2)
+        XCTAssertEqual(result.script.id, createdScript.id)
+        XCTAssertEqual(result.script.title, "Script with Sentences and Chunks")
+        XCTAssertEqual(result.sentences.count, 2)
 
         // 첫 번째 문장 검증
-        XCTAssertEqual(result?.sentences[0].sentence.englishText, "Hello world.")
-        XCTAssertEqual(result?.sentences[0].chunks.count, 2)
-        XCTAssertEqual(result?.sentences[0].chunks[0].englishText, "Hello")
-        XCTAssertEqual(result?.sentences[0].chunks[1].englishText, "world")
+        XCTAssertEqual(result.sentences[0].sentence.englishText, "Hello world.")
+        XCTAssertEqual(result.sentences[0].chunks.count, 2)
+        XCTAssertEqual(result.sentences[0].chunks[0].englishText, "Hello")
+        XCTAssertEqual(result.sentences[0].chunks[1].englishText, "world")
 
         // 두 번째 문장 검증
-        XCTAssertEqual(result?.sentences[1].sentence.englishText, "How are you?")
-        XCTAssertEqual(result?.sentences[1].chunks.count, 3)
-        XCTAssertEqual(result?.sentences[1].chunks[0].englishText, "How")
-        XCTAssertEqual(result?.sentences[1].chunks[1].englishText, "are")
-        XCTAssertEqual(result?.sentences[1].chunks[2].englishText, "you")
+        XCTAssertEqual(result.sentences[1].sentence.englishText, "How are you?")
+        XCTAssertEqual(result.sentences[1].chunks.count, 3)
+        XCTAssertEqual(result.sentences[1].chunks[0].englishText, "How")
+        XCTAssertEqual(result.sentences[1].chunks[1].englishText, "are")
+        XCTAssertEqual(result.sentences[1].chunks[2].englishText, "you")
     }
 
-    func test_fetchScriptWithSentencesAndChunks_whenScriptDoesNotExist_thenReturnsNil() async throws {
+    func test_fetchScriptWithSentencesAndChunks_whenScriptDoesNotExist_thenThrowsError() async throws {
         // Given: 존재하지 않는 Script ID가 있을 때
         let nonExistentId: Int64 = 9999
 
-        // When: 해당 ID로 Script, Sentence, Chunk들을 조회했을 때
-        let result = try await sut.fetchScriptWithSentencesAndChunks(id: nonExistentId)
-
-        // Then: nil이 반환되어야 함
-        XCTAssertNil(result)
+        // When-Then: 해당 ID로 Script, Sentence, Chunk들을 조회했을 때 notFound 오류가 발생해야 함
+        do {
+            _ = try await sut.fetchScriptWithSentencesAndChunks(id: nonExistentId)
+            XCTFail("Expected notFound error, but no error was thrown.")
+        } catch {
+            XCTAssertEqual(
+                (error as? ScriptRepositoryError)?.errorDescription,
+                ScriptRepositoryError.notFound(message: "Script with ID \(nonExistentId) not found.").errorDescription
+            )
+        }
     }
 
     // MARK: - Script Update Tests

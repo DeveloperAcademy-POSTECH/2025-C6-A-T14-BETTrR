@@ -59,17 +59,17 @@ class ScriptManagementService {
     }
     
     // MARK: - Script Read with Relations
-    func fetchScriptWithSentences(id: Int64) async throws -> (script: Script, sentences: [Sentence])? {
+    func fetchScriptWithSentences(id: Int64) async throws -> (script: Script, sentences: [Sentence]) {
         guard let script = try await scriptRepository.fetchScript(id: id) else {
-            return nil
+            throw ScriptRepositoryError.notFound(message: "Script with ID \(id) not found.")
         }
         let sentences = try await scriptRepository.fetchSentences(forScriptId: script.id!)
         return (script, sentences)
     }
 
-    func fetchScriptWithSentencesAndChunks(id: Int64) async throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])])? {
+    func fetchScriptWithSentencesAndChunks(id: Int64) async throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])]) {
         guard let script = try await scriptRepository.fetchScript(id: id) else {
-            return nil
+            throw ScriptRepositoryError.notFound(message: "Script with ID \(id) not found.")
         }
         
         let sentences = try await scriptRepository.fetchSentences(forScriptId: script.id!)

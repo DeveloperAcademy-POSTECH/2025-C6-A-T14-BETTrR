@@ -88,7 +88,7 @@ class HistoricalFeedbackViewModel {
             let feedbackDetails = try await detailsTask // (DB에 저장된 '모든' diff 목록)
             
             // --- 2. 원본 문장 데이터 준비 ---
-            let originalSentences = originalScriptData?.sentences ?? []
+            let originalSentences = originalScriptData.sentences
             // (원본 문장 텍스트를 `sentenceIndex`로 빠르게 찾기 위한 맵)
             var sentenceTextMap: [Int: String] = [:]
             for (sIdx, sentence) in originalSentences.enumerated() {

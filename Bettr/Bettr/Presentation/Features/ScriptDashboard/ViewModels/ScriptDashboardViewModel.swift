@@ -73,10 +73,7 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
         
         for attempt in 0...maxRetries {
             do {
-                guard let (fetchedScript, fetchedSentences) = try await self.scriptService.fetchScriptWithSentences(id: scriptId) else {
-                    let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
-                    throw AppError.dataNotFound(message)
-                }
+                let (fetchedScript, fetchedSentences) = try await self.scriptService.fetchScriptWithSentences(id: scriptId)
                 
                 let allFeedbacks = try await self.scriptService.fetchFeedbackSummaries(forScriptId: scriptId)
                 let sortedFeedbacks = allFeedbacks.sorted { $0.createdAt > $1.createdAt }
