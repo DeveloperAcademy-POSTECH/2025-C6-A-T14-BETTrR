@@ -27,7 +27,15 @@ struct MemorizationToolbarContent: ToolbarContent {
             )
         }
         
-        // 상단 오른쪽 툴 바 (청크 모드)
+        topToolbarItems
+        
+        bottomToolbarItems
+    }
+    
+    
+    @ToolbarContentBuilder
+    private var topToolbarItems: some ToolbarContent {
+        // 청크 모드
         ToolbarItem {
             Button(action: {
                 viewModel.toggleChunkMode()
@@ -78,10 +86,23 @@ struct MemorizationToolbarContent: ToolbarContent {
                     .toolbarButtonStyle(emphasized: viewModel.uiState.showWordList)
             }
         }
-        
-        // 하단 툴 바
-        ToolbarItemGroup(placement: .bottomBar) {
-            // 왼쪽 버튼
+    }
+    
+    @ToolbarContentBuilder
+        private var bottomToolbarItems: some ToolbarContent {
+            ToolbarItemGroup(placement: .bottomBar) {
+                // 왼쪽 버튼 (재생/일시정지/정지)
+                playbackControls
+                
+                Spacer()
+                
+                // 오른쪽 버튼 (피드백)
+                feedbackButton
+            }
+        }
+    
+    @ViewBuilder
+        private var playbackControls: some View {
             if viewModel.uiState.isPlaying {
                 ControlGroup {
                     Button(action: {
@@ -103,10 +124,9 @@ struct MemorizationToolbarContent: ToolbarContent {
                     Image(systemName: "play.fill")
                 }
             }
-            
-            Spacer()
-            
-            // 오른쪽 버튼
+        }
+    
+    private var feedbackButton: some View {
             Button(action: {
                 viewModel.uiState.showFeedbackModal.toggle()
             }) {
@@ -115,5 +135,4 @@ struct MemorizationToolbarContent: ToolbarContent {
             }
             .disabled(viewModel.isRecordingDisabled)
         }
-    }
 }
