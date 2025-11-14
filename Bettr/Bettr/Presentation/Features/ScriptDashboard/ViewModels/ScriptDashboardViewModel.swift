@@ -83,13 +83,16 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
                     
                     let allFeedbacks = try await self.scriptService.fetchFeedbackSummaries(forScriptId: scriptId)
                     let sortedFeedbacks = allFeedbacks.sorted { $0.createdAt > $1.createdAt }
+                    
                     let recentFeedbacks = Array(sortedFeedbacks.prefix(5))
+                    let recentFeedbackCount = recentFeedbacks.count
                     
                     let recentDetails = try await self.fetchRecentDetails(from: recentFeedbacks)
                     
                     let statsModel = await self.dataProcessor.processDashboardStats(
                         from: allFeedbacks,
-                        recentDetails: recentDetails
+                        recentDetails: recentDetails,
+                        recentFeedbackCount: recentFeedbackCount
                     )
                     
                     let sentenceModelList = fetchedSentences.map {

@@ -11,13 +11,12 @@ struct ScriptDashboardDataProcessor {
     
     func processDashboardStats(
         from allFeedbacks: [FeedbackSummary],
-        recentDetails: [FeedbackDetail]
+        recentDetails: [FeedbackDetail],
+        recentFeedbackCount: Int
     ) -> ScriptDashboardStats {
         
         let averageDuration = calculateAverageDurationWithOutlierRemoval(from: allFeedbacks)
         let top3Words = processTopIncorrectWords(from: recentDetails)
-        
-        let recentFeedbackCount = recentDetails.isEmpty ? 0 : (allFeedbacks.sorted { $0.createdAt > $1.createdAt }.prefix(5).count)
         
         return ScriptDashboardStats(
             feedbackCount: allFeedbacks.count,
@@ -28,7 +27,7 @@ struct ScriptDashboardDataProcessor {
     }
     
     // MARK: - Private Helpers
-
+    
     /// FeedbackDetail에서 틀린 단어를 집계하는 헬퍼 함수
     private func processTopIncorrectWords(from details: [FeedbackDetail]) -> [IncorrectWordCount] {
         
