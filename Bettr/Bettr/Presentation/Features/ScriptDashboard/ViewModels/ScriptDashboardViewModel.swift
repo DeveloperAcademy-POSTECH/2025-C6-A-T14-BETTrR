@@ -119,12 +119,7 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
                     return
                     
                 } catch {
-                    let appError: AppError
-                    if let knownError = error as? AppError {
-                        appError = knownError
-                    } else {
-                        appError = .networkError(error.localizedDescription)
-                    }
+                    let appError = (error as? AppError) ?? .networkError(error.localizedDescription)
                     
                     // 재시도 불가능한 에러이거나, 마지막 시도였다면
                     if !appError.isRetryable || attempt == maxRetries {
@@ -168,11 +163,9 @@ class ScriptDashboardViewModel: TitleEditableViewModelProtocol {
                 }
             }
             
-            var detailsList: [FeedbackDetail] = []
-            for try await details in taskGroup {
-                detailsList.append(contentsOf: details)
+            return try await taskGroup.reduce(into: [FeedbackDetail]()) { accumulator, details in
+                accumulator.append(contentsOf: details)
             }
-            return detailsList
         }
     }
 }
