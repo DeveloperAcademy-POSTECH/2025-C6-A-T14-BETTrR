@@ -1,6 +1,6 @@
 import Foundation
 
-struct SentenceData: Codable, Hashable {
+struct SentenceData: Codable, Hashable, Sendable {
     var orderIndex: Int
     var englishText: String
     var koreanText: String
