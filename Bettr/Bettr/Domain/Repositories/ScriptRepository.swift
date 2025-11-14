@@ -185,19 +185,19 @@ class ScriptRepository {
     }
     
     // MARK: - Word
-    func save(word: inout Word, in db: Database) throws -> Word {
+    nonisolated func save(word: inout Word, in db: Database) throws -> Word {
         try word.save(db)
         return word
     }
 
-    func fetchWords(forScriptId scriptId: Int64, in db: Database) throws -> [Word] {
+    nonisolated func fetchWords(forScriptId scriptId: Int64, in db: Database) throws -> [Word] {
         try Word
             .filter(Column("scriptId") == scriptId)
             .order(Column("orderIndex"))
             .fetchAll(db)
     }
 
-    func deleteWords(forScriptId scriptId: Int64, in db: Database) throws {
+    nonisolated func deleteWords(forScriptId scriptId: Int64, in db: Database) throws {
         try Word.filter(Column("scriptId") == scriptId).deleteAll(db)
     }
 }
