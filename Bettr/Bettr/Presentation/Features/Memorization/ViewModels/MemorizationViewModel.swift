@@ -62,7 +62,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             handleTitleChange(oldValue: oldValue, newValue: currentTitle)
         }
     }
-
+    
     func updateLocalModelTitle(_ newTitle: String) {
         self.scriptData?.title = newTitle
     }
@@ -147,6 +147,20 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             self.uiState.isPlaying = false
             self.uiState.isPause = false
         }
+    }
+    
+    // MARK: - View State Logic
+    
+    func isChunkHidden(_ identifier: ChunkIdentifier) -> Bool {
+        return interactionState.hiddenEngChunks.contains(identifier)
+    }
+    
+    func isSentenceHidden(_ index: Int) -> Bool {
+        return interactionState.hiddenEngSentences.contains(index)
+    }
+    
+    func isTextHighlighted(_ text: String) -> Bool {
+        return uiState.tappedPlaybackText == text
     }
     
     // MARK: - Data Fetching
