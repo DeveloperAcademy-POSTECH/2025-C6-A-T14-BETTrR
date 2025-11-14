@@ -12,7 +12,7 @@ class HistoricalFeedbackViewModel {
     
     // MARK: - 1. UI State Properties
     var isLoading = true
-    var loadError: Error?
+    var loadError: AppError? = nil
     
     // MARK: - 2. Display Properties (View Data)
     var resultModel: FeedbackResultModel?
@@ -46,8 +46,9 @@ class HistoricalFeedbackViewModel {
     
     func loadFeedbackData() async {
         guard let summaryId = summary.id else {
-            loadError = NSError(domain: "HistoricalFeedbackViewModel", code: -1, userInfo: [NSLocalizedDescriptionKey: "FeedbackSummary ID가 없습니다."])
-            isLoading = false
+            let errorMsg = "FeedbackSummary ID가 없습니다."
+            self.loadError = .dataNotFound(errorMsg)
+            self.isLoading = false
             return
         }
         
@@ -71,9 +72,15 @@ class HistoricalFeedbackViewModel {
             
             self.isLoading = false
             
+        } catch let error as ScriptRepositoryError where error.isNotFoundError {
+            // 1. 서비스/레포지토리에서 DataNotFound 에러가 발생한 경우
+            print("피드백 상세 정보 불러오기 실패 (DataNotFound): \(error)")
+            self.loadError = .dataNotFound("과거 피드백 데이터를 찾는 데 실패했습니다. (원본 스크립트 또는 피드백 상세 정보를 찾을 수 없습니다.)")
+            self.isLoading = false
         } catch {
+            // 2. 그 외 일반적인 에러 (네트워크 등)
             print("피드백 상세 정보 불러오기 실패: \(error)")
-            self.loadError = error
+            self.loadError = .networkError(error.localizedDescription)
             self.isLoading = false
         }
     }

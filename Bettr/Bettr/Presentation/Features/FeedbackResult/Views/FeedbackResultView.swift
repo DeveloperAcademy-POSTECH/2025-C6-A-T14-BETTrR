@@ -17,12 +17,28 @@ struct FeedbackResultView: View {
     }
     
     var body: some View {
-        VStack {
-            FeedbackResultDisplayView(model: viewModel.resultModel)
+        ZStack {
+            VStack {
+                FeedbackResultDisplayView(model: viewModel.resultModel)
+            }
+            .navigationBarBackButtonHidden()
+            .cancelToolbar()
+            .navigationBarTitleDisplayMode(.inline)
+            
+            // 로딩
+            if viewModel.isSaving {
+                ProgressView()
+            }
+            
+            // 에러
+            if let error = viewModel.saveError {
+                ErrorView(error: error) {
+                    Task {
+                        await viewModel.saveFeedbackResult()
+                    }
+                }
+            }
         }
-        .navigationBarBackButtonHidden()
-        .cancelToolbar()
-        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {
                 await viewModel.saveFeedbackResult()

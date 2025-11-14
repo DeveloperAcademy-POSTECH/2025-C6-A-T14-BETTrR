@@ -29,15 +29,15 @@ enum AppError: Error, Equatable {
     var userFriendlyMessage: String {
         switch self {
         case .networkError(let message):
-            return "일시적인 오류가 발생했습니다. 인터넷 연결을 확인 후 다시 시도해 주세요. (오류: \(message))"
+            return "일시적인 오류가 발생했습니다.\n\(message)"
         case .dataNotFound(let message):
             return message
         case .apiError(let message):
-            return "일시적인 오류가 발생했습니다. (오류: \(message))"
+            return "일시적인 오류가 발생했습니다.\n\(message)"
         case .permissionDenied(let type):
-            return "\(type) 권한이 필요합니다. 설정에서 허용해 주세요."
+            return "\(type) 권한이 필요합니다.\n설정에서 허용해 주세요."
         case .unknown(let message):
-            return "알 수 없는 오류가 발생했습니다. (\(message))"
+            return "알 수 없는 오류가 발생했습니다.\n\(message)"
         }
     }
 }

@@ -13,7 +13,7 @@ class FeedbackViewModel {
     
     // MARK: - 1. UI State Properties
     var isSaving = false
-    var saveError: Error?
+    var saveError: AppError? = nil
     
     // MARK: - 2. View-Specific Logic Properties
     let resultModel: FeedbackResultModel
@@ -83,9 +83,9 @@ class FeedbackViewModel {
             print("피드백 저장 성공. Summary ID: \(summary.id ?? -1)")
             isSaving = false
             
-        } catch {
+        }catch {
             print("피드백 저장 실패: \(error)")
-            saveError = error
+            self.saveError = .apiError("피드백 저장에 실패했습니다. \(error.localizedDescription)")
             isSaving = false
         }
     }
