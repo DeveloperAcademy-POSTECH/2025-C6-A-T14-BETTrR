@@ -92,6 +92,43 @@ struct ScriptDashboardTopLeftContents: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: 272)
         .cardFilled()
     }
+}
+
+// MARK: - Preview
+
+fileprivate struct ChartPreviewData {
+    
+    static func date(_ daysAgo: Int) -> Date {
+        return Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!
+    }
+
+    static let sampleFeedbacks: [FeedbackSummary] = [
+        .init(id: 1, scriptId: 1, accuracy: 0.65, missingWordCount: 5, addedWordCount: 2, replacedWordCount: 1, practiceDuration: 120.5, createdAt: date(5)), // 65점
+        .init(id: 2, scriptId: 1, accuracy: 0.72, missingWordCount: 4, addedWordCount: 3, replacedWordCount: 0, practiceDuration: 110.0, createdAt: date(4)), // 72점
+        .init(id: 3, scriptId: 1, accuracy: 0.68, missingWordCount: 6, addedWordCount: 1, replacedWordCount: 2, practiceDuration: 130.2, createdAt: date(3)), // 68점
+        .init(id: 4, scriptId: 1, accuracy: 0.85, missingWordCount: 2, addedWordCount: 0, replacedWordCount: 1, practiceDuration: 100.0, createdAt: date(2)), // 85점
+        .init(id: 5, scriptId: 1, accuracy: 0.91, missingWordCount: 1, addedWordCount: 0, replacedWordCount: 0, practiceDuration: 95.5, createdAt: date(1))  // 91점
+    ]
+    
+    static let singleFeedback: [FeedbackSummary] = [
+        .init(id: 1, scriptId: 1, accuracy: 0.80, missingWordCount: 3, addedWordCount: 1, replacedWordCount: 1, practiceDuration: 105.0, createdAt: date(1)) // 80점
+    ]
+    
+    static let emptyFeedbacks: [FeedbackSummary] = []
+}
+
+// 4. 프리뷰 프로바이더
+#Preview("데이터가 5개인 경우") {
+    ScriptDashboardTopLeftContents(recentFeedbacks: ChartPreviewData.sampleFeedbacks)
+}
+
+#Preview("데이터가 1개인 경우") {
+    ScriptDashboardTopLeftContents(recentFeedbacks: ChartPreviewData.singleFeedback)
+}
+
+#Preview("데이터가 없는 경우") {
+    ScriptDashboardTopLeftContents(recentFeedbacks: ChartPreviewData.emptyFeedbacks)
 }

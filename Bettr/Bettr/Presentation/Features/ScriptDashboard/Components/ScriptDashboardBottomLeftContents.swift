@@ -85,5 +85,9 @@ struct ScriptDashboardBottomLeftContents: View {
                 .cardBordered(padding: 36)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: 607)
     }
 }
+
+// MARK: - Preview
+

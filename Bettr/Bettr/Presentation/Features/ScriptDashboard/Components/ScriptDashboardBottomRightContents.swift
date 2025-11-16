@@ -39,8 +39,8 @@ struct ScriptDashboardBottomRightContents: View {
             
             Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity)
         .cardFilled(padding: 36)
+        .frame(maxWidth: .infinity, maxHeight: 607)
         .overlay(alignment:. center) {
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
