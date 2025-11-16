@@ -18,6 +18,7 @@ struct FeedbackResultDisplayView: View {
                     ResultTopContents(model: model)
                     PerfectResultBottomView()
                 }
+                .frame(maxWidth: .infinity)
                 .safeAreaPadding(.horizontal, 84)
             } else {
                 ScrollView {

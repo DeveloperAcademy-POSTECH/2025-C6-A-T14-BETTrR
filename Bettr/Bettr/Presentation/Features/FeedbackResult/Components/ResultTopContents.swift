@@ -13,11 +13,11 @@ struct ResultTopContents: View {
     var body: some View {
         ViewThatFits {
             FullResultTopContents(model: model)
+            
             CompactResultTopContents(model: model)
         }
     }
 }
-
 
 // MARK: - Full ver
 
@@ -188,7 +188,7 @@ struct CompactResultSummaryGrid: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: 242)
+            .frame(maxWidth: .infinity)
             
             // 하단
             HStack(spacing: 16) {
@@ -242,7 +242,6 @@ struct CompactResultSummaryGrid: View {
                 .cardBordered(padding: 24, cornerRadius: 10)
                 .frame(maxWidth: .infinity)
             }
-            .frame(maxHeight: 360)
         }
         .frame(maxWidth: .infinity)
     }
