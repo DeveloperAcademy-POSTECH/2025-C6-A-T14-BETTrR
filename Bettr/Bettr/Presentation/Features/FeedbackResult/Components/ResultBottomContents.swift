@@ -55,6 +55,8 @@ struct MistakesListView: View {
     }
 }
 
+// MARK: - Preview
+
 #Preview("틀린 문장 있음") {
     let model = FeedbackResultModel(
         scriptTitle: "Preview Script Title",
