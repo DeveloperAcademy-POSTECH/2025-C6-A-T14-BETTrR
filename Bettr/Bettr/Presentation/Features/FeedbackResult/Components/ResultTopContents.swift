@@ -13,7 +13,6 @@ struct ResultTopContents: View {
     var body: some View {
         ViewThatFits {
             FullResultTopContents(model: model)
-            
             CompactResultTopContents(model: model)
         }
     }
@@ -31,13 +30,13 @@ struct FullResultTopContents: View {
                 .font(.headingBold28)
                 .foregroundStyle(.normalBlack900)
             
-            ResultSummaryGridView(model: model)
+            FullResultSummaryGrid(model: model)
         }
         .frame(maxHeight: 242)
     }
 }
 
-struct ResultSummaryGridView: View {
+struct FullResultSummaryGrid: View {
     let model: FeedbackResultModel
     
     var body: some View {
@@ -141,6 +140,20 @@ struct CompactResultTopContents: View {
     let model: FeedbackResultModel
     
     var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            Text("피드백 결과 요약")
+                .font(.headingBold28)
+                .foregroundStyle(.normalBlack900)
+            
+            CompactResultSummaryGrid(model: model)
+        }
+    }
+}
+
+struct CompactResultSummaryGrid: View {
+    let model: FeedbackResultModel
+    
+    var body: some View {
         VStack(spacing: 16) {
             // 상단
             VStack(spacing: 16) {
@@ -161,8 +174,6 @@ struct CompactResultTopContents: View {
                             .fixedSize(horizontal: true, vertical: false)
                     }
                     .cardBordered(padding: 24, cornerRadius: 10)
-                    .frame(maxWidth: .infinity)
-                    
                     
                     DiagonalLayoutCard(title: "피드백 회차") {
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -176,10 +187,8 @@ struct CompactResultTopContents: View {
                     .cardBordered(padding: 24, cornerRadius: 10)
                 }
                 .frame(maxWidth: .infinity)
-                
-                
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: 242)
             
             // 하단
             HStack(spacing: 16) {
@@ -231,10 +240,11 @@ struct CompactResultTopContents: View {
                     }
                 }
                 .cardBordered(padding: 24, cornerRadius: 10)
-                .frame(maxHeight: .infinity)
+                .frame(maxWidth: .infinity)
             }
+            .frame(maxHeight: 360)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
     }
 }
 

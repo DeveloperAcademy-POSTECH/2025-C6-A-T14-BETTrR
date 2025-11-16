@@ -25,7 +25,7 @@ struct FeedbackResultDisplayView: View {
                         ResultTopContents(model: model)
                         ResultBottomContents(model: model)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(maxWidth: .infinity)
                     .safeAreaPadding(.horizontal, 84)
                 }
             }
