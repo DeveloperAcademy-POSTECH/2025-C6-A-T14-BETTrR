@@ -24,4 +24,7 @@ class MemorizationUIState {
     var isPlaying: Bool = false
     var isPause: Bool = false
     var tappedPlaybackText: String? = nil
+    
+    // 토스터 상태
+    var toasterMessage: String? = nil
 }

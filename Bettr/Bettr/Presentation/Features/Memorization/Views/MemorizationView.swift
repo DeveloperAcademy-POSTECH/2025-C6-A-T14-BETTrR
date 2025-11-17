@@ -30,6 +30,8 @@ struct MemorizationView: View {
                     viewModel: wordListViewModel
                 )
             }
+            
+            toasterOverlay
         }
         .onTapGesture {
             viewModel.endTitleEditing()
@@ -63,6 +65,7 @@ struct MemorizationView: View {
                 await wordListViewModel.loadWords()
             }
         }
+        .animation(.spring(), value: viewModel.uiState.toasterMessage)
     }
     
     /// 메인 콘텐츠 뷰
@@ -103,4 +106,18 @@ struct MemorizationView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+    
+    /// 토스터 오버레이 뷰
+    @ViewBuilder
+        private var toasterOverlay: some View {
+            VStack {
+                Spacer()
+                
+                if let message = viewModel.uiState.toasterMessage {
+                    ToasterView(message: message)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+            }
+            .allowsHitTesting(viewModel.uiState.toasterMessage != nil)
+        }
 }

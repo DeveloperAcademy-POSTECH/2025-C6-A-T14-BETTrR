@@ -26,6 +26,9 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     var isRecordingDisabled: Bool { scriptData == nil }
     var referenceSentences: [String] { scriptData?.sentences.map { $0.englishText } ?? [] }
     
+    // MARK: Toaster Task
+    private var toasterTask: Task<Void, Never>?
+    
     // MARK: - Initialization
     
     init(
@@ -78,6 +81,9 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         
         interactionState.clearAllHiddenStates()
         uiState.tappedPlaybackText = nil
+        
+        let message = uiState.isChunkMode ? "청크 모드" : "문장 모드"
+        showToaster(message: message)
     }
     
     func setFunctionMode(_ newMode: FunctionMode) {
@@ -87,6 +93,20 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             interactionState.clearAllHiddenStates()
         }
         uiState.tappedPlaybackText = nil
+        
+        switch newMode {
+        case .hide:
+            showToaster(message: "탭하여 가리기")
+        case .read:
+            showToaster(message: "탭하여 재생하기")
+        }
+    }
+    
+    func toggleKoreanVisibility() {
+        uiState.isKoreanVisible.toggle()
+        
+        let message = uiState.isKoreanVisible ? "번역 보기" : "번역 숨기기"
+        showToaster(message: message)
     }
     
     // MARK: Playback Controls
@@ -161,6 +181,27 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     func isTextHighlighted(_ text: String) -> Bool {
         return uiState.tappedPlaybackText == text
+    }
+    
+    // MARK: - Toaster Logic
+    
+    /// 토스터 메시지를 2초간 표시
+    func showToaster(message: String, duration: TimeInterval = 2.0) {
+        toasterTask?.cancel()
+        
+        uiState.toasterMessage = message
+        
+        toasterTask = Task {
+            do {
+                try await Task.sleep(for: .seconds(duration))
+                
+                if uiState.toasterMessage == message {
+                    uiState.toasterMessage = nil
+                }
+            } catch {
+                // Task가 취소(새 토스터가 호출되면)되었을 때 이전 토스터의 숨김 타이머를 조용히 무시하고 종료
+            }
+        }
     }
     
     // MARK: - Data Fetching

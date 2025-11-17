@@ -17,6 +17,8 @@ struct MemorizationToolbarContent: ToolbarContent {
     @Bindable var viewModel: MemorizationViewModel
     let showEditIcon: Bool
     
+    @Namespace private var modeAnimation
+    
     var body: some ToolbarContent {
         // 타이틀
         ToolbarItem(placement: .principal) {
@@ -40,7 +42,7 @@ struct MemorizationToolbarContent: ToolbarContent {
             Button(action: {
                 viewModel.toggleChunkMode()
             }) {
-                Image(systemName: "text.word.spacing")
+                Image(systemName: viewModel.uiState.isChunkMode ? "text.word.spacing": "text.justify")
                     .toolbarButtonStyle(emphasized: viewModel.uiState.isChunkMode)
             }
         }
@@ -52,9 +54,10 @@ struct MemorizationToolbarContent: ToolbarContent {
             Button(action: {
                 viewModel.setFunctionMode(.hide)
             }) {
-                Image(systemName: "bandage")
+                Image(systemName: "eye.slash")
                     .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .hide)
             }
+            
             Button(action: {
                 viewModel.setFunctionMode(.read)
             }) {
@@ -68,7 +71,7 @@ struct MemorizationToolbarContent: ToolbarContent {
         // 한국어 토글
         ToolbarItem {
             Button(action: {
-                viewModel.uiState.isKoreanVisible.toggle()
+                viewModel.toggleKoreanVisibility()
             }) {
                 Text("한")
                     .toolbarButtonStyle(emphasized: viewModel.uiState.isKoreanVisible)
@@ -130,7 +133,7 @@ struct MemorizationToolbarContent: ToolbarContent {
         Button(action: {
             viewModel.uiState.showFeedbackModal.toggle()
         }) {
-            Image(systemName: "append.page")
+            Image(systemName: "waveform")
                 .toolbarButtonStyle(enabled: !viewModel.isRecordingDisabled)
         }
         .disabled(viewModel.isRecordingDisabled)
