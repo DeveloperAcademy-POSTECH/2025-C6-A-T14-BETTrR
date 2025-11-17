@@ -54,13 +54,12 @@ struct ScriptDashboardTopLeftContents: View {
                     y: .value("점수", point.score)
                 )
                 .lineStyle(StrokeStyle(lineWidth: 4))
-                .foregroundStyle(by: .value("범례", "점수"))
+                .foregroundStyle(.secondaryBlue700)
                 
                 PointMark(
                     x: .value("회차", point.session),
                     y: .value("점수", point.score)
                 )
-                .foregroundStyle(by: .value("범례", "점수"))
                 .symbol {
                     Circle()
                         .fill(.primaryBlue50)
@@ -71,13 +70,9 @@ struct ScriptDashboardTopLeftContents: View {
                 RuleMark(
                     y: .value("평균", averageScore)
                 )
-                .foregroundStyle(by: .value("범례", "평균"))
+                .foregroundStyle(.alertRed01)
             }
-            .chartLegend(position: .top)
-            .chartForegroundStyleScale([
-                "점수": .secondaryBlue700,
-                "평균": .alertRed01
-            ])
+            .chartLegend(.hidden)
             .chartXScale(domain: 0...(chartData.count + 1))
             .chartYScale(domain: 0...yAxisMax)
             .chartXAxis {
@@ -100,6 +95,35 @@ struct ScriptDashboardTopLeftContents: View {
         }
         .frame(maxWidth: .infinity, maxHeight: 272)
         .cardFilled()
+        .overlay(alignment: .topTrailing) {
+            LegendContent()
+                .padding(16)
+        }
+    }
+}
+
+struct LegendContent: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(.secondaryBlue700)
+                    .frame(width: 8, height: 8)
+                Text("점수")
+                    .font(.footerRegular11)
+                    .foregroundStyle(.normalGray600)
+            }
+
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(.alertRed01)
+                    .frame(width: 8, height: 8)
+                Text("평균")
+                    .font(.footerRegular11)
+                    .foregroundStyle(.normalGray600)
+            }
+        }
+        .padding(.trailing, 12)
     }
 }
 
