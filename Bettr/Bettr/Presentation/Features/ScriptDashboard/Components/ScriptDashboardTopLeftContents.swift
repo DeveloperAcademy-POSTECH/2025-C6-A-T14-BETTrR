@@ -123,7 +123,6 @@ struct LegendContent: View {
                     .foregroundStyle(.normalGray600)
             }
         }
-        .padding(.trailing, 12)
     }
 }
 
