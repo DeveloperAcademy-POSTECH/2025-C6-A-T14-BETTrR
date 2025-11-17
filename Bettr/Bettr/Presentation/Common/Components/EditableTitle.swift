@@ -62,13 +62,14 @@ struct EditableTitle: View {
                 }
             } else {
                 // --- 수정 중이 아닐 때 ---
-                HStack(spacing: 4) {
+                HStack(alignment: .center, spacing: 4) {
                     Text(title)
                         .foregroundStyle(.normalBlack900)
                     
                     if showEditIcon {
-                        Image(systemName: "chevron.down.circle.fill")
-                            .font(.system(size: 12))
+                        Image(systemName: "pencil.line")
+                            .font(.system(size: 11))
+                            .fontWeight(.black)
                             .foregroundStyle(.primaryBlue300)
                     }
                 }
