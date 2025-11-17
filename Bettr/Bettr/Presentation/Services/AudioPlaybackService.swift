@@ -19,8 +19,10 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         synthesizer.isPaused
     }
     
+    var currentPlayingSentenceIndex: Int? = nil
+    
     private let synthesizer = AVSpeechSynthesizer()
-    private var utteranceQueue: [AVSpeechUtterance] = []
+    private var utteranceQueue: [(index: Int, utterance: AVSpeechUtterance)] = []
     
     /// 발화 속도 (기본 0.5보다 느리게 설정)
     private let speechRate: Float = 0.45
@@ -63,6 +65,8 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         
         activatePlaybackSession()
         
+        self.currentPlayingSentenceIndex = nil
+        
         // 읽어주기를 원하는 텍스트를 큐에 넣고 읽기 요청
         let utterance = createUtterance(text: text, language: language)
         synthesizer.speak(utterance)
@@ -77,10 +81,10 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         
         activatePlaybackSession()
         
-        // SentenceData 배열을 AVSpeechUtterance 배열로 변환
+        // SentenceData 배열을 AVSpeechUtterance 큐에 인덱스와 함께 저장
         self.utteranceQueue = sentences
-            .sorted { $0.orderIndex < $1.orderIndex } // 순서 보장
-            .map { createUtterance(text: $0.englishText, language: language) }
+            .sorted { $0.orderIndex < $1.orderIndex }
+            .map { (index: $0.orderIndex, utterance: createUtterance(text: $0.englishText, language: language)) }
         
         // 큐의 첫 번째 항목부터 재생 시작
         playNextInQueue()
@@ -108,6 +112,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
             synthesizer.stopSpeaking(at: .immediate)
             utteranceQueue.removeAll()
             isPlaying = false
+            currentPlayingSentenceIndex = nil
             deactivateSession()
         }
     }
@@ -122,6 +127,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
             }
         } else {
             isPlaying = false
+            currentPlayingSentenceIndex = nil
             deactivateSession()
         }
     }
@@ -155,11 +161,13 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         guard !utteranceQueue.isEmpty else {
             // 큐가 비었으면 재생 완료
             isPlaying = false
+            currentPlayingSentenceIndex = nil
             deactivateSession()
             return
         }
         
-        let utterance = utteranceQueue.removeFirst()
+        let (index, utterance) = utteranceQueue.removeFirst()
+        self.currentPlayingSentenceIndex = index
         synthesizer.speak(utterance)
         isPlaying = true
     }

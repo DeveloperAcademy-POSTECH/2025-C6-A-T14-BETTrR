@@ -27,6 +27,7 @@ struct SentenceModeView: View {
                 )
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .id(sentence.orderIndex)
         }
     }
     

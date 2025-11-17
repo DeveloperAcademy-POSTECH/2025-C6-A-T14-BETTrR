@@ -20,6 +20,7 @@ struct ChunkModeView: View {
                 koreanChunkLine(for: sentence)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .id(sentence.orderIndex)
         }
     }
     

@@ -92,32 +92,41 @@ struct MemorizationView: View {
     
     /// 성공 뷰
     private var successView: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                if viewModel.uiState.isChunkMode {
-                    ChunkModeView(viewModel: viewModel)
-                } else {
-                    SentenceModeView(viewModel: viewModel)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(spacing: 24) {
+                    if viewModel.uiState.isChunkMode {
+                        ChunkModeView(viewModel: viewModel)
+                    } else {
+                        SentenceModeView(viewModel: viewModel)
+                    }
+                }
+                .padding(.horizontal, 80)
+                .padding(.top, 36)
+                .padding(.bottom, 48)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .onChange(of: audioService.currentPlayingSentenceIndex) { _, newIndex in
+                if let newIndex {
+                    withAnimation {
+                        proxy.scrollTo(newIndex, anchor: .top)
+                    }
                 }
             }
-            .padding(.horizontal, 80)
-            .padding(.top, 36)
-            .padding(.bottom, 48)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     /// 토스터 오버레이 뷰
     @ViewBuilder
-        private var toasterOverlay: some View {
-            VStack {
-                Spacer()
-                
-                if let message = viewModel.uiState.toasterMessage {
-                    ToasterView(message: message)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-                }
+    private var toasterOverlay: some View {
+        VStack {
+            Spacer()
+            
+            if let message = viewModel.uiState.toasterMessage {
+                ToasterView(message: message)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
-            .allowsHitTesting(viewModel.uiState.toasterMessage != nil)
         }
+        .allowsHitTesting(viewModel.uiState.toasterMessage != nil)
+    }
 }
