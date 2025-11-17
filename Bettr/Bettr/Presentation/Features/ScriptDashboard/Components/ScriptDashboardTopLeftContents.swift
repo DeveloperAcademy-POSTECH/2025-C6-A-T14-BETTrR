@@ -50,28 +50,34 @@ struct ScriptDashboardTopLeftContents: View {
         Group {
             Chart(chartData) { point in
                 LineMark(
-                    x: .value("Session", point.session),
-                    y: .value("Score", point.score)
+                    x: .value("회차", point.session),
+                    y: .value("점수", point.score)
                 )
-                .foregroundStyle(.secondaryBlue700)
                 .lineStyle(StrokeStyle(lineWidth: 4))
+                .foregroundStyle(by: .value("범례", "점수"))
                 
                 PointMark(
-                    x: .value("Session", point.session),
-                    y: .value("Score", point.score)
+                    x: .value("회차", point.session),
+                    y: .value("점수", point.score)
                 )
+                .foregroundStyle(by: .value("범례", "점수"))
                 .symbol {
                     Circle()
                         .fill(.primaryBlue50)
                         .strokeBorder(.secondaryBlue700, lineWidth: 4)
                         .frame(width: 16, height: 16)
                 }
-                RuleMark(
-                    y: .value("Average", averageScore)
-                )
-                .foregroundStyle(.alertRed01)
                 
+                RuleMark(
+                    y: .value("평균", averageScore)
+                )
+                .foregroundStyle(by: .value("범례", "평균"))
             }
+            .chartLegend(position: .top)
+            .chartForegroundStyleScale([
+                "점수": .secondaryBlue700,
+                "평균": .alertRed01
+            ])
             .chartXScale(domain: 0...(chartData.count + 1))
             .chartYScale(domain: 0...yAxisMax)
             .chartXAxis {
