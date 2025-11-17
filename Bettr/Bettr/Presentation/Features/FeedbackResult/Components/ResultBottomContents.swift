@@ -17,7 +17,9 @@ struct ResultBottomContents: View {
                 .foregroundStyle(.normalBlack900)
             
             MistakesListView(filteredSentenceDiffs: model.filteredSentenceDiffs)
+                .frame(maxHeight: .infinity, alignment: .top)
         }
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 }
 
@@ -44,7 +46,7 @@ struct MistakesListView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .cardBordered(padding: 36)
         .overlay {
             Rectangle()

@@ -17,6 +17,7 @@ struct DiagonalLayoutCard<Content: View>: View {
             Text(title)
                 .font(.calloutRegular16)
                 .foregroundStyle(.normalBlack900)
+                .fixedSize(horizontal: true, vertical: false)
             
             Spacer()
 
