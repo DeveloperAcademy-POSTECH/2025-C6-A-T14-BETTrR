@@ -21,14 +21,9 @@ struct ScriptDashboardBottomLeftContents: View {
     private var scriptTitle: String {
         viewModel.currentTitle
     }
-    private var feedbackNumber: Int {
-        viewModel.scriptDashboardData?.stats.feedbackCount ?? 0
-    }
     
     var body: some View {
-        
         VStack(spacing: 8) {
-            
             // 타이틀과 더보기 버튼
             HStack {
                 Text("최근 생성된 피드백")
@@ -39,7 +34,7 @@ struct ScriptDashboardBottomLeftContents: View {
                 
                 if allFeedbacks.count > 5 {
                     Button(action: {
-                        router.push(Route.allFeedback(feedbacks: allFeedbacks, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber))
+                        router.push(Route.allFeedback(feedbacks: allFeedbacks, scriptTitle: scriptTitle))
                     }) {
                         HStack(spacing: 4) {
                             Text("더보기")
@@ -69,8 +64,14 @@ struct ScriptDashboardBottomLeftContents: View {
                 )
             } else {
                 VStack(spacing: 16) {
-                    ForEach(recentFeedbacks, id: \.id) { feedback in
-                        FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber)
+                    
+                    let totalFeedbackCount = allFeedbacks.count
+                    
+                    ForEach(Array(recentFeedbacks.enumerated()), id: \.element.id) { (index, feedback) in
+                        
+                        let specificFeedbackNumber = totalFeedbackCount - index
+                        
+                        FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: specificFeedbackNumber)
                         Spacer(minLength: 0)
                     }
                     
