@@ -22,6 +22,12 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     private let synthesizer = AVSpeechSynthesizer()
     private var utteranceQueue: [AVSpeechUtterance] = []
     
+    /// 발화 속도 (기본 0.5보다 느리게 설정)
+    private let speechRate: Float = 0.45
+    
+    /// 문장과 문장 사이 딜레이
+    private let interSentenceDelay: TimeInterval = 0.5
+    
     override init() {
         super.init()
         synthesizer.delegate = self
@@ -111,7 +117,9 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     /// 한 문장의 재생이 완료되었을 때 호출됩니다.
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         if !utteranceQueue.isEmpty {
-            playNextInQueue()
+            DispatchQueue.main.asyncAfter(deadline: .now() + interSentenceDelay) { [weak self] in
+                self?.playNextInQueue()
+            }
         } else {
             isPlaying = false
             deactivateSession()
@@ -136,7 +144,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     private func createUtterance(text: String, language: String) -> AVSpeechUtterance {
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: language)
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate // 기본 속도
+        utterance.rate = self.speechRate
         utterance.pitchMultiplier = 1.0
         utterance.volume = 1.0
         return utterance
