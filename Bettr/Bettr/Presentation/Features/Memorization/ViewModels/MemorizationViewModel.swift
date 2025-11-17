@@ -80,7 +80,6 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         uiState.isChunkMode.toggle()
         
         interactionState.clearAllHiddenStates()
-        uiState.tappedPlaybackText = nil
         
         let message = uiState.isChunkMode ? "청크 모드" : "문장 모드"
         showToaster(message: message)
@@ -92,7 +91,6 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         if uiState.funcMode == .read {
             interactionState.clearAllHiddenStates()
         }
-        uiState.tappedPlaybackText = nil
         
         switch newMode {
         case .hide:
@@ -121,10 +119,8 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             }
             audioService.playAll(sentences: scriptData.sentences)
             uiState.isPause = false
-            uiState.tappedPlaybackText = nil
         } else {
             audioService.stop()
-            uiState.tappedPlaybackText = nil
         }
     }
     
@@ -147,7 +143,6 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngChunks, for: identifier)
         } else {
             audioService.play(text: chunk.englishText)
-            uiState.tappedPlaybackText = chunk.englishText
         }
     }
     
@@ -156,7 +151,6 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngSentences, for: sentence.orderIndex)
         } else {
             audioService.play(text: sentence.englishText)
-            uiState.tappedPlaybackText = sentence.englishText
         }
     }
     
@@ -178,11 +172,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     func isSentenceHidden(_ index: Int) -> Bool {
         return interactionState.hiddenEngSentences.contains(index)
     }
-    
-    func isTextHighlighted(_ text: String) -> Bool {
-        return uiState.tappedPlaybackText == text
-    }
-    
+
     // MARK: - Toaster Logic
     
     /// 토스터 메시지를 2초간 표시
