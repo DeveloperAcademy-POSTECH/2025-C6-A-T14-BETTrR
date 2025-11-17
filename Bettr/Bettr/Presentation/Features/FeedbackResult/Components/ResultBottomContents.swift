@@ -46,12 +46,12 @@ struct MistakesListView: View {
         }
         .frame(maxWidth: .infinity)
         .cardBordered(padding: 36)
-        .overlay(
+        .overlay {
             Rectangle()
                 .foregroundStyle(.primaryBlue300)
                 .frame(width: 1)
                 .padding(.vertical, 36)
-        )
+        }
     }
 }
 

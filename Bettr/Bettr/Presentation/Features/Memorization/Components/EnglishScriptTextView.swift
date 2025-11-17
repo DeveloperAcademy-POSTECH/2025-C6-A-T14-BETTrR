@@ -23,10 +23,10 @@ struct EnglishScriptTextView: View {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(.normalGray200)
             )
-            .overlay(
+            .overlay {
                 RoundedRectangle(cornerRadius: 2)
                     .stroke(isHighlighted ? .primaryBlue300 : .clear, lineWidth: 4)
-            )
+            }
             .onTapGesture(perform: onTap)
     }
 }

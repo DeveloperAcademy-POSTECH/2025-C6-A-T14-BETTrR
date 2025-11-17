@@ -55,13 +55,13 @@ struct ScriptDashboardBottomLeftContents: View {
                     }
                 }
                 .cardBordered(padding: 36)
-                .overlay(
+                .overlay {
                     VStack(alignment: .center) {
                         Text("데이터가 충분하지 않아요")
                             .font(.labelBold16)
                             .foregroundStyle(.normalBlack900)
                     }
-                )
+                }
             } else {
                 VStack(spacing: 16) {
                     
