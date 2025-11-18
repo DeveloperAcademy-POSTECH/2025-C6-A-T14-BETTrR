@@ -44,7 +44,7 @@ struct ScriptDashboardBottomRightContents: View {
         .overlay(alignment: .center) {
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(.red.opacity(0.7))
+                    .fill(.defaultWhite50.opacity(0.3))
                 
                 Button(action: {
                     router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle, currentFeedbackCount: currentFeedbackCount))
