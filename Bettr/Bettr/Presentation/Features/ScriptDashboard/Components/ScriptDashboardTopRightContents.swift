@@ -10,7 +10,7 @@ import SwiftUI
 struct ScriptDashboardTopRightContents: View {
     
     let stats: ScriptDashboardStats?
-
+    
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
             
@@ -31,8 +31,9 @@ struct ScriptDashboardTopRightContents: View {
                             }
                         }
                     } else {
-                        Text("데이터가 충분하지 않아요")
-                            .font(.labelBold16)
+                        Text("없음")
+                            .font(.calloutRegular16)
+                            .foregroundStyle(.normalGray600)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -81,7 +82,7 @@ fileprivate struct MockStatsData {
         averagePracticeDuration: 123.5, // "2m 3s"
         recentFeedbackCount: 10
     )
-
+    
 }
 
 #Preview("데이터가 풍부한 경우") {
