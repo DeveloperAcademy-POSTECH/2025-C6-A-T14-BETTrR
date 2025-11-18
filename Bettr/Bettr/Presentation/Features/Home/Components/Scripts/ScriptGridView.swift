@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct ScriptGridView: View {
-    @Environment(DatabaseContainer.self) var container
-    
+    let scripts: [Script]
     let onSelectPhoto: () -> Void
     let onTakePhoto: () -> Void
     let onSelectFile: () -> Void
@@ -26,7 +25,7 @@ struct ScriptGridView: View {
                 )
                 .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
                 
-                ForEach(container.scripts) { script in
+                ForEach(scripts) { script in
                     ScriptCard(script: script, onDelete: {
                         requestDelete(script)
                     })
@@ -39,16 +38,16 @@ struct ScriptGridView: View {
 }
 
 #Preview {
-    AsyncPreview(operation: {
-        try await DatabaseContainer.getForPreview(withMockData: true)
-    }) { container in
-        ScriptGridView(
-            onSelectPhoto: {},
-            onTakePhoto: {},
-            onSelectFile: {},
-            requestDelete: { _ in }
-        )
-        .environment(container)
-        .environment(NavigationRouter())
-    }
+    ScriptGridView(
+        scripts: [
+            Script(id: 1, title: "Sample Script 1", createdAt: Date(), lastViewedAt: Date()),
+            Script(id: 2, title: "Sample Script 2", createdAt: Date(), lastViewedAt: Date()),
+            Script(id: 3, title: "Sample Script 3", createdAt: Date(), lastViewedAt: Date())
+        ],
+        onSelectPhoto: {},
+        onTakePhoto: {},
+        onSelectFile: {},
+        requestDelete: { _ in }
+    )
+    .environment(NavigationRouter())
 }
