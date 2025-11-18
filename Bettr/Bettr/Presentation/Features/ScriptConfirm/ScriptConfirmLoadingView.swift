@@ -6,11 +6,11 @@ struct ScriptConfirmLoadingView: View {
             VStack(spacing: 8) {
                 Text("스크립트를 확인하고 있어요")
                     .font(.system(size: 28, weight: .semibold))
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
                 
                 Text("더 나은 암기 환경을 위해 잠시만 기다려 주세요")
                     .font(.system(size: 15))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
             .padding(.top, 36)
             .padding(.bottom, 60)

@@ -19,7 +19,7 @@ struct AddNewScriptCard: View {
                     .overlay {
                         Image(systemName: "plus")
                             .font(.labelBold16)
-                            .foregroundColor(.defaultWhite50)
+                            .foregroundStyle(.defaultWhite50)
                     }
                     .glassEffect()
                     .overlay {

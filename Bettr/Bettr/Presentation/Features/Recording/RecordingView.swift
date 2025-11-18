@@ -42,7 +42,7 @@ struct RecordingView: View {
                 // 타이머
                 Text(speechRecognizer.elapsedTime.toMMSSms())
                     .font(.labelMedium64)
-                    .foregroundColor(.normalBlack900)
+                    .foregroundStyle(.normalBlack900)
 
                 Spacer(minLength: 60)
                 

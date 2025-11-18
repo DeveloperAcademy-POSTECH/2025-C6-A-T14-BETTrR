@@ -64,7 +64,7 @@ struct ScriptConfirmView: View {
                         //placeholder
                         if scriptContent.isEmpty {
                             Text("스크립트를 입력하세요.")
-                                .foregroundColor(.gray.opacity(0.5))
+                                .foregroundStyle(.gray.opacity(0.5))
                                 .padding(.vertical, 12)
                                 .padding(.horizontal, 8)
                         }
@@ -89,7 +89,7 @@ struct ScriptConfirmView: View {
                 // 글자 수 표시
                 Text("\(scriptContent.count) / \(Self.maxCharacterCount)")
                     .font(.caption)
-                    .foregroundColor(scriptContent.count == Self.maxCharacterCount ? .red : .secondaryBlue700)
+                    .foregroundStyle(scriptContent.count == Self.maxCharacterCount ? .red : .secondaryBlue700)
             }
             .contentShape(Rectangle())
             .padding(.horizontal, 80)
