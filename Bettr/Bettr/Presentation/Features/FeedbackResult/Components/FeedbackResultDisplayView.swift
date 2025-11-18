@@ -18,15 +18,19 @@ struct FeedbackResultDisplayView: View {
                     ResultTopContents(model: model)
                     PerfectResultBottomView()
                 }
+                .frame(maxWidth: .infinity)
                 .safeAreaPadding(.horizontal, 84)
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 64) {
-                        ResultTopContents(model: model)
-                        ResultBottomContents(model: model)
+                GeometryReader { geometry in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 64) {
+                            ResultTopContents(model: model)
+                            ResultBottomContents(model: model)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .safeAreaPadding(.horizontal, 84)
+                        .frame(minHeight: geometry.size.height)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .safeAreaPadding(.horizontal, 84)
                 }
             }
         }

@@ -18,6 +18,8 @@ struct AllFeedbackView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 64) {
+                let totalCount = viewModel.allFeedbackCount
+                
                 // --- 섹션 1: 최근 1시간 동안 생성된 피드백 ---
                 if !viewModel.recentFeedbacks.isEmpty {
                     VStack(alignment: .leading, spacing: 24) {
@@ -27,7 +29,11 @@ struct AllFeedbackView: View {
                         
                         LazyVGrid(columns: gridColumns, spacing: 36) {
                             ForEach(viewModel.recentFeedbacks) { feedback in
-                                FeedbackSummaryCard(feedback: feedback, scriptTitle: viewModel.scriptTitle, feedbackNumber: viewModel.feedbackNumber)
+                                
+                                let index = viewModel.allSortedFeedbacks.firstIndex(where: { $0.id == feedback.id }) ?? 0
+                                let specificFeedbackNumber = totalCount - index
+                                
+                                FeedbackSummaryCard(feedback: feedback, scriptTitle: viewModel.scriptTitle, feedbackNumber: specificFeedbackNumber)
                             }
                         }
                         .cardBordered(padding: 36)
@@ -43,7 +49,11 @@ struct AllFeedbackView: View {
                         
                         LazyVGrid(columns: gridColumns, spacing: 36) {
                             ForEach(viewModel.previousFeedbacks) { feedback in
-                                FeedbackSummaryCard(feedback: feedback, scriptTitle: viewModel.scriptTitle, feedbackNumber: viewModel.feedbackNumber)
+                                
+                                let index = viewModel.allSortedFeedbacks.firstIndex(where: { $0.id == feedback.id }) ?? 0
+                                let specificFeedbackNumber = totalCount - index
+                                
+                                FeedbackSummaryCard(feedback: feedback, scriptTitle: viewModel.scriptTitle, feedbackNumber: specificFeedbackNumber)
                             }
                         }
                         .cardBordered(padding: 36)
@@ -94,7 +104,6 @@ struct AllFeedbackView: View {
     let viewModel = AllFeedbackViewModel(
         allFeedbacks: mockFeedbacks,
         scriptTitle: "스티브 잡스 스탠포드 연설",
-        feedbackNumber: 5
     )
     
     return NavigationStack {
@@ -115,7 +124,6 @@ struct AllFeedbackView: View {
     let viewModel = AllFeedbackViewModel(
         allFeedbacks: mockFeedbacks,
         scriptTitle: "최근 스크립트",
-        feedbackNumber: 1
     )
     
     return NavigationStack {
@@ -136,7 +144,6 @@ struct AllFeedbackView: View {
     let viewModel = AllFeedbackViewModel(
         allFeedbacks: mockFeedbacks,
         scriptTitle: "오래된 스크립트",
-        feedbackNumber: 1
     )
     
     return NavigationStack {

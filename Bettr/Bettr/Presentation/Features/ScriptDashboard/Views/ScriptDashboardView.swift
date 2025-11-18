@@ -14,6 +14,10 @@ struct ScriptDashboardView: View {
     init(viewModel: ScriptDashboardViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
+
+    let columns: [GridItem] = [
+        GridItem(.adaptive(minimum: 382), spacing: 32)
+    ]
     
     var body: some View {
         Group {
@@ -27,18 +31,11 @@ struct ScriptDashboardView: View {
                 }
             } else if let data = viewModel.scriptDashboardData { // 성공
                 ScrollView {
-                    VStack(spacing: 36) {
-                        HStack(alignment: .top, spacing: 32) {
-                            ScriptDashboardTopLeftContents(recentFeedbacks: data.recentFeedbacks)
-                            ScriptDashboardTopRightContents(stats: data.stats)
-                        }
-                        .frame(maxHeight: 272)
-                        
-                        HStack(alignment: .top, spacing: 32) {
-                            ScriptDashboardBottomLeftContents(viewModel: viewModel)
-                            ScriptDashboardBottomRightContents(viewModel: viewModel)
-                        }
-                        .frame(maxHeight: 607)
+                    LazyVGrid(columns: columns, spacing: 36) {
+                        ScriptDashboardTopLeftContents(recentFeedbacks: data.recentFeedbacks)
+                        ScriptDashboardTopRightContents(stats: data.stats)
+                        ScriptDashboardBottomLeftContents(viewModel: viewModel)
+                        ScriptDashboardBottomRightContents(viewModel: viewModel)
                     }
                     .safeAreaPadding(.horizontal, 84)
                 }

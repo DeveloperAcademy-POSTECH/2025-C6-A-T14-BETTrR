@@ -20,6 +20,7 @@ struct ChunkModeView: View {
                 koreanChunkLine(for: sentence)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .id(sentence.orderIndex)
         }
     }
     
@@ -34,7 +35,6 @@ struct ChunkModeView: View {
                 EnglishScriptTextView(
                     text: chunk.englishText,
                     isHidden: viewModel.interactionState.hiddenEngChunks.contains(chunkID),
-                    isHighlighted: viewModel.uiState.tappedPlaybackText == chunk.englishText,
                     onTap: { handleChunkTap(chunk: chunk, identifier: chunkID) }
                 )
                 

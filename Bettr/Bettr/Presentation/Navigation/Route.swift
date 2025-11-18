@@ -13,7 +13,7 @@ enum Route: Hashable {
     case scriptDashboard(scriptId: Int64)
     case memorization(scriptId: Int64, scriptTitle: String, currentFeedbackCount: Int)
     case historicalFeedback(summary: FeedbackSummary, scriptTitle: String, feedbackNumber: Int)
-    case allFeedback(feedbacks: [FeedbackSummary], scriptTitle: String, feedbackNumber: Int)
+    case allFeedback(feedbacks: [FeedbackSummary], scriptTitle: String)
 }
 
 enum ModalRoute: Hashable {

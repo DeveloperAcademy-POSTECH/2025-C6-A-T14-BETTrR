@@ -9,22 +9,24 @@ import SwiftUI
 import Speech
 import AVFoundation
 import Combine
+import Observation
 
 // MARK: - 음성 인식기
 @MainActor
-class SpeechRecognizer: ObservableObject {
-    @Published var transcript = ""
-    @Published var isRecording = false
-    @Published var hasRecorded: Bool = false
-    @Published var recordingDidFinishEmpty: Bool = false
-    @Published var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
-    @Published var microphoneAuthorizationStatus: AVAudioApplication.recordPermission = .undetermined
-    @Published var analyzedDiffs: [WordDiff]? = nil
-    @Published var analyzedPracticeDuration: TimeInterval? = nil
+@Observable
+class SpeechRecognizer {
+ var transcript = ""
+     var isRecording = false
+     var hasRecorded: Bool = false
+     var recordingDidFinishEmpty: Bool = false
+     var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
+     var microphoneAuthorizationStatus: AVAudioApplication.recordPermission = .undetermined
+     var analyzedDiffs: [WordDiff]? = nil
+     var analyzedPracticeDuration: TimeInterval? = nil
     
     
     // 실시간 경과 시간
-    @Published var elapsedTime: TimeInterval = 0.0
+     var elapsedTime: TimeInterval = 0.0
     
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en"))
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -47,10 +49,8 @@ class SpeechRecognizer: ObservableObject {
     
     init(sentences: [String]) {
         self.sentences = sentences
-        DispatchQueue.main.async { [weak self] in
-            self?.microphoneAuthorizationStatus = AVAudioApplication.shared.recordPermission
-            self?.checkAuthorization()
-        }
+        self.microphoneAuthorizationStatus = AVAudioApplication.shared.recordPermission
+        self.checkAuthorization()
     }
     
     // MARK: - 권한 확인

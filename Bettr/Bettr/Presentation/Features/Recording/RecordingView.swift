@@ -14,7 +14,7 @@ struct RecordingView: View {
     
     @State private var modalRouter = NavigationRouter()
     
-    @StateObject private var speechRecognizer: SpeechRecognizer
+    @State private var speechRecognizer: SpeechRecognizer
     @State private var showEmptyTranscriptAlert = false
     
     private let scriptId: Int64
@@ -30,28 +30,31 @@ struct RecordingView: View {
         self.scriptId = scriptId
         self.scriptTitle = scriptTitle
         self.currentFeedbackCount = currentFeedbackCount
-        _speechRecognizer = StateObject(wrappedValue: SpeechRecognizer(sentences: sentences))
+        _speechRecognizer = State(wrappedValue: SpeechRecognizer(sentences: sentences))
     }
     
     var body: some View {
         NavigationStack(path: $modalRouter.path) {
             VStack(alignment: .center) {
+                
+                Spacer(minLength: 0)
+                
                 // 타이머
                 Text(speechRecognizer.elapsedTime.toMMSSms())
                     .font(.labelMedium64)
                     .foregroundColor(.normalBlack900)
 
-                Spacer()
+                Spacer(minLength: 60)
                 
                 Image(.waveForm)
                     .resizable()
                     .scaledToFit()
-                    .frame(maxHeight: 254)
-                    .padding(.horizontal, 68)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 48)
                 
-                Spacer()
+                Spacer(minLength: 60)
                                 
-                HStack(spacing: 60) {
+                HStack(spacing: 30) {
                     let isRecording = speechRecognizer.isRecording
                     let hasRecorded = speechRecognizer.hasRecorded
                     
@@ -75,7 +78,6 @@ struct RecordingView: View {
                               didFinishRecording
                     )
 
-                    
                     Spacer()
                     
                     Button(action: { speechRecognizer.triggerAnalysis() }) {
@@ -84,10 +86,12 @@ struct RecordingView: View {
                     .buttonStyle(RecordingButtonStyle(isRecording: false))
                     .disabled(!didFinishRecording)
                 }
+                
+                Spacer(minLength: 0)
             }
-            .safeAreaPadding(.horizontal, 144)
-            .safeAreaPadding(.top, 48)
-            .safeAreaPadding(.bottom, 72)
+            .safeAreaPadding(.horizontal, 180)
+            .safeAreaPadding(.top, 24)
+            .safeAreaPadding(.bottom, 48)
             .onChange(of: speechRecognizer.analyzedDiffs) { _, newDiffs in
                 if let diffs = newDiffs, let practiceDuration = speechRecognizer.analyzedPracticeDuration {
                     // 결과 화면으로 이동

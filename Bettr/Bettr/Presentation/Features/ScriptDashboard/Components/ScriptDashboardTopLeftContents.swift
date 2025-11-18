@@ -50,15 +50,15 @@ struct ScriptDashboardTopLeftContents: View {
         Group {
             Chart(chartData) { point in
                 LineMark(
-                    x: .value("Session", point.session),
-                    y: .value("Score", point.score)
+                    x: .value("회차", point.session),
+                    y: .value("점수", point.score)
                 )
-                .foregroundStyle(.secondaryBlue700)
                 .lineStyle(StrokeStyle(lineWidth: 4))
+                .foregroundStyle(.secondaryBlue700)
                 
                 PointMark(
-                    x: .value("Session", point.session),
-                    y: .value("Score", point.score)
+                    x: .value("회차", point.session),
+                    y: .value("점수", point.score)
                 )
                 .symbol {
                     Circle()
@@ -66,12 +66,13 @@ struct ScriptDashboardTopLeftContents: View {
                         .strokeBorder(.secondaryBlue700, lineWidth: 4)
                         .frame(width: 16, height: 16)
                 }
+                
                 RuleMark(
-                    y: .value("Average", averageScore)
+                    y: .value("평균", averageScore)
                 )
                 .foregroundStyle(.alertRed01)
-                
             }
+            .chartLegend(.hidden)
             .chartXScale(domain: 0...(chartData.count + 1))
             .chartYScale(domain: 0...yAxisMax)
             .chartXAxis {
@@ -85,13 +86,72 @@ struct ScriptDashboardTopLeftContents: View {
                 }
             }
             .chartYAxis {
-                AxisMarks(position: .leading, values: .automatic(desiredCount: 2)) { value in
+                if maxScore == 0 {
+                    AxisMarks(position: .leading, values: [0]) { _ in
                         AxisValueLabel()
                         AxisGridLine()
                         AxisTick()
+                    }
+                } else {
+                    AxisMarks(position: .leading, values: .automatic(desiredCount: 2)) { _ in
+                        AxisValueLabel()
+                        AxisGridLine()
+                        AxisTick()
+                    }
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: 272)
         .cardFilled()
+        .overlay(alignment: .topTrailing) {
+            LegendContent()
+                .padding(16)
+        }
     }
+}
+
+struct LegendContent: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(.secondaryBlue700)
+                    .frame(width: 8, height: 8)
+                Text("점수")
+                    .font(.footerRegular11)
+                    .foregroundStyle(.normalGray600)
+            }
+            
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(.alertRed01)
+                    .frame(width: 8, height: 8)
+                Text("평균")
+                    .font(.footerRegular11)
+                    .foregroundStyle(.normalGray600)
+            }
+        }
+    }
+}
+
+// MARK: - Preview
+
+#Preview("데이터가 5개인 경우") {
+    ScriptDashboardTopLeftContents(recentFeedbacks: [
+        .init(id: 1, scriptId: 1, accuracy: 0.65, missingWordCount: 5, addedWordCount: 2, replacedWordCount: 1, practiceDuration: 120.5, createdAt: Calendar.current.date(byAdding: .day, value: -5, to: Date())!), // 65점
+        .init(id: 2, scriptId: 1, accuracy: 0.72, missingWordCount: 4, addedWordCount: 3, replacedWordCount: 0, practiceDuration: 110.0, createdAt: Calendar.current.date(byAdding: .day, value: -4, to: Date())!), // 72점
+        .init(id: 3, scriptId: 1, accuracy: 0.68, missingWordCount: 6, addedWordCount: 1, replacedWordCount: 2, practiceDuration: 130.2, createdAt: Calendar.current.date(byAdding: .day, value: -3, to: Date())!), // 68점
+        .init(id: 4, scriptId: 1, accuracy: 0.85, missingWordCount: 2, addedWordCount: 0, replacedWordCount: 1, practiceDuration: 100.0, createdAt: Calendar.current.date(byAdding: .day, value: -2, to: Date())!), // 85점
+        .init(id: 5, scriptId: 1, accuracy: 0.91, missingWordCount: 1, addedWordCount: 0, replacedWordCount: 0, practiceDuration: 95.5, createdAt: Calendar.current.date(byAdding: .day, value: -1, to: Date())!)  // 91점
+    ])
+}
+
+#Preview("데이터가 1개인 경우") {
+    ScriptDashboardTopLeftContents(recentFeedbacks: [
+        .init(id: 1, scriptId: 1, accuracy: 0.80, missingWordCount: 3, addedWordCount: 1, replacedWordCount: 1, practiceDuration: 105.0, createdAt: Calendar.current.date(byAdding: .day, value: -1, to: Date())!) // 80점
+    ])
+}
+
+#Preview("데이터가 없는 경우") {
+    ScriptDashboardTopLeftContents(recentFeedbacks: [])
 }
