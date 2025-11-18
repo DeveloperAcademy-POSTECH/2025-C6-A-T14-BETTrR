@@ -9,7 +9,11 @@ struct HomeContentView: View {
     let requestDelete: (Script) -> Void
     
     var body: some View {
-        if container.scripts.isEmpty {
+        if container.isLoadingScripts {
+            Spacer()
+            ProgressView()
+            Spacer()
+        } else if container.scripts.isEmpty {
             VStack {
                 Spacer()
                 Spacer()

@@ -14,6 +14,7 @@ class DatabaseContainer {
     let scriptManagementService: ScriptManagementServiceProtocol
     let wordExtractionService: WordExtractionService
     var scripts: [Script] = []
+    var isLoadingScripts: Bool = false
     
     init(database: AppDatabase) {
         let scriptRepository = ScriptRepository(dbQueue: database.dbQueue)
@@ -30,6 +31,9 @@ class DatabaseContainer {
     
     @MainActor
     func refreshScripts() async throws {
+        self.isLoadingScripts = true
+        defer { self.isLoadingScripts = false }
+        
         self.scripts = try await self.scriptManagementService.fetchAllScripts().sorted { $0.lastViewedAt > $1.lastViewedAt }
     }
     
