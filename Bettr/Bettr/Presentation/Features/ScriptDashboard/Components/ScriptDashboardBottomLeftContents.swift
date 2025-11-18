@@ -54,6 +54,7 @@ struct ScriptDashboardBottomLeftContents: View {
                         Spacer(minLength: 0)
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: 546)
                 .cardBordered(padding: 36)
                 .overlay {
                     Text("최근 생성된 피드백이 없습니다")
@@ -81,10 +82,10 @@ struct ScriptDashboardBottomLeftContents: View {
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: 546)
                 .cardBordered(padding: 36)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: 607)
     }
 }
 

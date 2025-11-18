@@ -56,6 +56,7 @@ struct EditableTitle: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(.primaryBlue50)
                 }
+                .clipShape(RoundedRectangle(cornerRadius: 10))
                 .onAppear {
                     editedTitle = title
                     isFocused = true

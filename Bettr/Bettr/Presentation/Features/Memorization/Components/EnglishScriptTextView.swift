@@ -62,10 +62,9 @@ struct EnglishScriptTextView: View {
 
 struct ScriptButtonStyle: ButtonStyle {
     
-    let normalShadowColor = Color.normalBlack900.opacity(0.2)
-    let normalShadowRadius: CGFloat = 2
-    let normalShadowX: CGFloat = 2
-    let normalShadowY: CGFloat = 2
+    private let cornerRadius: CGFloat = 2
+    private let shadowColor = Color.normalBlack900.opacity(0.2)
+    private let shadowOffset: CGFloat = 2
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -73,12 +72,16 @@ struct ScriptButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(.normalGray200)
                     .shadow(
-                        color: configuration.isPressed ? .clear : normalShadowColor,
-                        radius: configuration.isPressed ? 0 : normalShadowRadius,
-                        x: configuration.isPressed ? 0 : normalShadowX,
-                        y: configuration.isPressed ? 0 : normalShadowY
+                        color: configuration.isPressed ? .clear : shadowColor,
+                        radius: configuration.isPressed ? 0 : shadowOffset,
+                        x: configuration.isPressed ? 0 : shadowOffset,
+                        y: configuration.isPressed ? 0 : shadowOffset
                     )
             }
-            .offset(y: configuration.isPressed ? normalShadowY : 0)
+            .offset(
+                x: configuration.isPressed ? shadowOffset : 0,
+                y: configuration.isPressed ? shadowOffset : 0
+            )
+            .contentShape(RoundedRectangle(cornerRadius: cornerRadius))
     }
 }
