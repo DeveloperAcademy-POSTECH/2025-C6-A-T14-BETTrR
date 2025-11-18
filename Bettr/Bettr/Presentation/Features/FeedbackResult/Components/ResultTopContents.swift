@@ -162,7 +162,6 @@ struct CompactResultSummaryGrid: View {
                     .fixedSize(horizontal: true, vertical: false)
             }
             .cardBordered(padding: 24, cornerRadius: 10)
-            
             .frame(maxWidth: .infinity, maxHeight: 120)
             
             // 하단
