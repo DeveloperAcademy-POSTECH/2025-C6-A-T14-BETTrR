@@ -52,10 +52,10 @@ struct EditableTitle: View {
                 .frame(minWidth: 200)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(
+                .background {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(.primaryBlue50)
-                )
+                }
                 .onAppear {
                     editedTitle = title
                     isFocused = true

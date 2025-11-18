@@ -69,7 +69,7 @@ struct ScriptButtonStyle: ButtonStyle {
     
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .background(
+            .background {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(.normalGray200)
                     .shadow(
@@ -78,7 +78,7 @@ struct ScriptButtonStyle: ButtonStyle {
                         x: configuration.isPressed ? 0 : normalShadowX,
                         y: configuration.isPressed ? 0 : normalShadowY
                     )
-            )
+            }
             .offset(y: configuration.isPressed ? normalShadowY : 0)
     }
 }

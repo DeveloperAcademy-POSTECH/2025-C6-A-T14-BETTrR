@@ -21,10 +21,10 @@ struct BorderedCardStyle: ViewModifier {
             .padding(.bottom, bottom)
             .padding(.leading, leading)
             .padding(.trailing, trailing)
-            .background(
+            .background {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .strokeBorder(.primaryBlue200)
-            )
+            }
     }
 }
 
@@ -43,10 +43,10 @@ struct FilledCardStyle: ViewModifier {
             .padding(.bottom, bottom)
             .padding(.leading, leading)
             .padding(.trailing, trailing)
-            .background(
+            .background {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(.primaryBlue50)
-            )
+            }
     }
 }
 
@@ -65,14 +65,14 @@ struct BorderedFilledCardStyle: ViewModifier {
             .padding(.bottom, bottom)
             .padding(.leading, leading)
             .padding(.trailing, trailing)
-            .background(
+            .background {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(.primaryBlue50)
                     .overlay {
                         RoundedRectangle(cornerRadius: cornerRadius)
                             .strokeBorder(.primaryBlue200)
                     }
-            )
+            }
     }
 }
 

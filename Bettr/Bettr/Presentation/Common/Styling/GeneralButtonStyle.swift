@@ -25,10 +25,10 @@ struct GeneralButtonStyle: ButtonStyle {
             .padding(.vertical, paddingVertical)
             .frame(width: width)
             .foregroundStyle(currentForegroundColor)
-            .background(
+            .background {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(currentBackgroundColor)
-            )
+            }
             .glassEffect(.regular.interactive(true))
     }
 }
