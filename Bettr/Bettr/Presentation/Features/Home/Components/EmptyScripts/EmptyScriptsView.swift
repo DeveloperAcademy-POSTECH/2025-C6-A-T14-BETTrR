@@ -59,8 +59,8 @@ private struct AddButtonView: View {
         }
         .buttonStyle(.general)
         .padding(.bottom, 78) // 아래에 공간이 있어야 Menu가 아래로 열림
-        .overlay(
+        .overlay {
             AddScriptMenuView(onSelectPhoto: onSelectPhoto, onTakePhoto: onTakePhoto, onSelectFile: onSelectFile)
-        )
+        }
     }
 }

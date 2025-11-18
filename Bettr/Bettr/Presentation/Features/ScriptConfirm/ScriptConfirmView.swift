@@ -44,7 +44,7 @@ struct ScriptConfirmView: View {
         let asciiFiltered = content.unicodeScalars.filter { $0.isASCII }
         let cleaned = String(String.UnicodeScalarView(asciiFiltered))
         _scriptContent = State(initialValue: String(cleaned.prefix(Self.maxCharacterCount)))
-//        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
+        //        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
         _scriptTitle = State(initialValue: initialTitle ?? "")
     }
     
@@ -56,10 +56,10 @@ struct ScriptConfirmView: View {
                     ZStack(alignment: .topLeading) {
                         TextEditor(text: $scriptContent)
                             .padding(4)
-                            .overlay(
+                            .overlay {
                                 RoundedRectangle(cornerRadius: 10)
                                     .stroke(Color.primaryBlue200, lineWidth: 3)
-                            )
+                            }
                             .focused($isFocusedContentEditor)
                         //placeholder
                         if scriptContent.isEmpty {
@@ -179,10 +179,10 @@ struct ScriptConfirmView: View {
     private func startTimeoutTimer() {
         Task {
             try? await Task.sleep(nanoseconds: 30 * 1_000_000_000)
-
+            
             // 이미 종료되었으면 아무 동작 X
             if !isLoading { return }
-
+            
             await MainActor.run {
                 didTimeout = true
                 isLoading = false

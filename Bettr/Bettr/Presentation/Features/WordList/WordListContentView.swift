@@ -44,10 +44,10 @@ private struct WordRow: View {
                     .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(Color.clear)
-                            .overlay(
+                            .overlay {
                                 RoundedRectangle(cornerRadius: 4)
                                     .stroke(.primaryBlue500, lineWidth: 1)
-                            )
+                            }
                     )
                     .foregroundStyle(.primaryBlue500)
                 Spacer(minLength: 0)

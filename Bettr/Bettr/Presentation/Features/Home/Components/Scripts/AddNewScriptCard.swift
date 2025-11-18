@@ -12,24 +12,24 @@ struct AddNewScriptCard: View {
             .stroke(.primaryBlue200, style: StrokeStyle(lineWidth: 2, dash: [8, 8]))
             .aspectRatio(224/200, contentMode: .fit)
             .frame(maxWidth: .infinity)
-            .overlay(
+            .overlay {
                 Circle()
                     .fill(.primaryBlue500)
                     .frame(width: 48, height: 48)
-                    .overlay(
+                    .overlay {
                         Image(systemName: "plus")
                             .font(.labelBold16)
                             .foregroundColor(.defaultWhite50)
-                    )
+                    }
                     .glassEffect()
-                    .overlay(
+                    .overlay {
                         AddScriptMenuView(
                             onSelectPhoto: onSelectPhoto,
                             onTakePhoto: onTakePhoto,
                             onSelectFile: onSelectFile
                         )
-                    )
-            )
+                    }
+            }
     }
 }
 
