@@ -56,11 +56,9 @@ struct ScriptDashboardBottomLeftContents: View {
                 }
                 .cardBordered(padding: 36)
                 .overlay {
-                    VStack(alignment: .center) {
-                        Text("데이터가 충분하지 않아요")
-                            .font(.labelBold16)
-                            .foregroundStyle(.normalBlack900)
-                    }
+                    Text("최근 생성된 피드백이 없습니다")
+                        .font(.calloutRegular16)
+                        .foregroundStyle(.normalGray600)
                 }
             } else {
                 VStack(spacing: 16) {

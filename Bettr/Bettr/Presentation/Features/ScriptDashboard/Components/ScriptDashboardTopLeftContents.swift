@@ -104,8 +104,17 @@ struct ScriptDashboardTopLeftContents: View {
         .frame(maxWidth: .infinity, maxHeight: 272)
         .cardFilled()
         .overlay(alignment: .topTrailing) {
-            LegendContent()
-                .padding(16)
+            if !chartData.isEmpty {
+                LegendContent()
+                    .padding(16)
+            }
+        }
+        .overlay(alignment: .center) {
+            if chartData.isEmpty {
+                Text("피드백이 없어 그래프를 볼 수 없습니다")
+                    .font(.calloutRegular16)
+                    .foregroundStyle(.normalGray600)
+            }
         }
     }
 }
