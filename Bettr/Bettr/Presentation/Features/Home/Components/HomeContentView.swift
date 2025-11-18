@@ -9,35 +9,38 @@ struct HomeContentView: View {
     let requestDelete: (Script) -> Void
     
     var body: some View {
-        if container.isLoadingScripts {
+        if let scripts = container.scripts {
+            if scripts.isEmpty {
+                VStack {
+                    Spacer()
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        EmptyScriptsView(
+                            onSelectPhoto: onSelectPhoto,
+                            onTakePhoto: onTakePhoto,
+                            onSelectFile: onSelectFile
+                        )
+                        Spacer()
+                    }
+                    Spacer()
+                    Spacer()
+                    Spacer()
+                }
+            } else {
+                ScriptGridView(
+                    scripts: scripts,
+                    onSelectPhoto: onSelectPhoto,
+                    onTakePhoto: onTakePhoto,
+                    onSelectFile: onSelectFile,
+                    requestDelete: requestDelete
+                )
+                .padding(.horizontal, 125)
+            }
+        } else {
             Spacer()
             ProgressView()
             Spacer()
-        } else if container.scripts.isEmpty {
-            VStack {
-                Spacer()
-                Spacer()
-                HStack {
-                    Spacer()
-                    EmptyScriptsView(
-                        onSelectPhoto: onSelectPhoto,
-                        onTakePhoto: onTakePhoto,
-                        onSelectFile: onSelectFile
-                    )
-                    Spacer()
-                }
-                Spacer()
-                Spacer()
-                Spacer()
-            }
-        } else {
-            ScriptGridView(
-                onSelectPhoto: onSelectPhoto,
-                onTakePhoto: onTakePhoto,
-                onSelectFile: onSelectFile,
-                requestDelete: requestDelete
-            )
-            .padding(.horizontal, 125)
         }
     }
 }
