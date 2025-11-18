@@ -86,10 +86,18 @@ struct ScriptDashboardTopLeftContents: View {
                 }
             }
             .chartYAxis {
-                AxisMarks(position: .leading, values: .automatic(desiredCount: 2)) { value in
+                if maxScore == 0 {
+                    AxisMarks(position: .leading, values: [0]) { value in
                         AxisValueLabel()
                         AxisGridLine()
                         AxisTick()
+                    }
+                } else {
+                    AxisMarks(position: .leading, values: .automatic(desiredCount: 2)) { value in
+                        AxisValueLabel()
+                        AxisGridLine()
+                        AxisTick()
+                    }
                 }
             }
         }
@@ -113,7 +121,7 @@ struct LegendContent: View {
                     .font(.footerRegular11)
                     .foregroundStyle(.normalGray600)
             }
-
+            
             HStack(spacing: 6) {
                 Circle()
                     .fill(.alertRed01)
@@ -133,7 +141,7 @@ fileprivate struct ChartPreviewData {
     static func date(_ daysAgo: Int) -> Date {
         return Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date())!
     }
-
+    
     static let sampleFeedbacks: [FeedbackSummary] = [
         .init(id: 1, scriptId: 1, accuracy: 0.65, missingWordCount: 5, addedWordCount: 2, replacedWordCount: 1, practiceDuration: 120.5, createdAt: date(5)), // 65점
         .init(id: 2, scriptId: 1, accuracy: 0.72, missingWordCount: 4, addedWordCount: 3, replacedWordCount: 0, practiceDuration: 110.0, createdAt: date(4)), // 72점
