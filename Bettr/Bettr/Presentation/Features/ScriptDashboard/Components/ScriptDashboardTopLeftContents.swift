@@ -87,13 +87,13 @@ struct ScriptDashboardTopLeftContents: View {
             }
             .chartYAxis {
                 if maxScore == 0 {
-                    AxisMarks(position: .leading, values: [0]) { value in
+                    AxisMarks(position: .leading, values: [0]) { _ in
                         AxisValueLabel()
                         AxisGridLine()
                         AxisTick()
                     }
                 } else {
-                    AxisMarks(position: .leading, values: .automatic(desiredCount: 2)) { value in
+                    AxisMarks(position: .leading, values: .automatic(desiredCount: 2)) { _ in
                         AxisValueLabel()
                         AxisGridLine()
                         AxisTick()
