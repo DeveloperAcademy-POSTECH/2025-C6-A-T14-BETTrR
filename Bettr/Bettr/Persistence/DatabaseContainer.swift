@@ -13,7 +13,7 @@ class DatabaseContainer {
     let scriptRepository: ScriptRepository
     let scriptManagementService: ScriptManagementServiceProtocol
     let wordExtractionService: WordExtractionService
-    var scripts: [Script] = []
+    var scripts: [Script]? = nil
     
     init(database: AppDatabase) {
         let scriptRepository = ScriptRepository(dbQueue: database.dbQueue)

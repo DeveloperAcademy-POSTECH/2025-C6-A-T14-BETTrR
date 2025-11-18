@@ -9,31 +9,38 @@ struct HomeContentView: View {
     let requestDelete: (Script) -> Void
     
     var body: some View {
-        if container.scripts.isEmpty {
-            VStack {
-                Spacer()
-                Spacer()
-                HStack {
+        if let scripts = container.scripts {
+            if scripts.isEmpty {
+                VStack {
                     Spacer()
-                    EmptyScriptsView(
-                        onSelectPhoto: onSelectPhoto,
-                        onTakePhoto: onTakePhoto,
-                        onSelectFile: onSelectFile
-                    )
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        EmptyScriptsView(
+                            onSelectPhoto: onSelectPhoto,
+                            onTakePhoto: onTakePhoto,
+                            onSelectFile: onSelectFile
+                        )
+                        Spacer()
+                    }
+                    Spacer()
+                    Spacer()
                     Spacer()
                 }
-                Spacer()
-                Spacer()
-                Spacer()
+            } else {
+                ScriptGridView(
+                    scripts: scripts,
+                    onSelectPhoto: onSelectPhoto,
+                    onTakePhoto: onTakePhoto,
+                    onSelectFile: onSelectFile,
+                    requestDelete: requestDelete
+                )
+                .padding(.horizontal, 125)
             }
         } else {
-            ScriptGridView(
-                onSelectPhoto: onSelectPhoto,
-                onTakePhoto: onTakePhoto,
-                onSelectFile: onSelectFile,
-                requestDelete: requestDelete
-            )
-            .padding(.horizontal, 125)
+            Spacer()
+            ProgressView()
+            Spacer()
         }
     }
 }
