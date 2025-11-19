@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import FirebaseAI
+import FirebaseAILogic
 
 // MARK: - Gemini 호출 전담 클래스
 final class ScriptGeminiCall {
@@ -16,7 +16,7 @@ final class ScriptGeminiCall {
         let maxRetry = 2 // 공식문서 참조 두 번 이하 재시도
         
         //모델 초기화는 루프 밖에서 진행.
-        let ai = FirebaseAI.firebaseAI(backend: .googleAI())
+        let ai = FirebaseAI.firebaseAI(backend: .googleAI(), useLimitedUseAppCheckTokens: true)
         let model = ai.generativeModel(modelName: "gemini-2.5-flash-lite")
         
         for attempt in 1...maxRetry {
