@@ -20,7 +20,7 @@ struct MainHeaderView: View {
             
             Rectangle()
                 .frame(height: 1)
-                .foregroundColor(.primaryBlue200)
+                .foregroundStyle(.primaryBlue200)
                 .padding(.horizontal, 44)
         }
     }

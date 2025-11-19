@@ -20,7 +20,7 @@ struct PerfectResultBottomView: View {
                 
                 Text("틀린 문장이 하나도 없습니다.")
                     .font(.labelBold16)
-                    .foregroundColor(.normalBlack900)
+                    .foregroundStyle(.normalBlack900)
                 
                 Spacer()
             }

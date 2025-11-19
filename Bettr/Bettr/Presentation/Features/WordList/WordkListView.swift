@@ -28,10 +28,10 @@ struct WordkListView: View {
         .padding(.bottom, 36)
         .frame(maxWidth: 360, maxHeight: .infinity, alignment: .topLeading)
         .clipShape(RoundedRectangle(cornerRadius: 35))
-        .background(
+        .background {
             RoundedRectangle(cornerRadius: 35)
                 .fill(.regularMaterial)
-        )
+        }
         .glassEffect(in: .rect(cornerRadius: 35))
     }
 }

@@ -18,7 +18,7 @@ struct ErrorView: View {
             
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 50))
-                .foregroundColor(.yellow)
+                .foregroundStyle(.yellow)
             
             Text(error.userFriendlyMessage)
                 .font(.calloutRegular20)
@@ -45,7 +45,6 @@ struct ErrorView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemGroupedBackground))
     }
 }
 

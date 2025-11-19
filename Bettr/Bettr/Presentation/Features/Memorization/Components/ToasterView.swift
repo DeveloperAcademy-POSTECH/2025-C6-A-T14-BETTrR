@@ -13,10 +13,10 @@ struct ToasterView: View {
     var body: some View {
         Text(message)
             .font(.labelRegular14)
-            .foregroundColor(.defaultWhite50)
+            .foregroundStyle(.defaultWhite50)
             .padding(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
             .background(.normalBlack900.opacity(0.75))
-            .cornerRadius(20)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
             .shadow(radius: 5)
     }
 }
