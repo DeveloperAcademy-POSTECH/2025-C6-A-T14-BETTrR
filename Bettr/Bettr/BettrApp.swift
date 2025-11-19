@@ -12,12 +12,25 @@ import FirebaseAppCheck
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        // app check provider factory 설정
+
+        print("🔥 AppDelegate didFinishLaunching - Setting AppCheck Provider Factory")
+
         let providerFactory = BettrCheckProviderFactory()
         AppCheck.setAppCheckProviderFactory(providerFactory)
-        
+
         FirebaseApp.configure()
-        
+
+        // 강제 토큰 fetch 테스트
+        Task {
+            do {
+                print("⏳ AppCheck: Fetching token manually...")
+                let token = try await AppCheck.appCheck().token(forcingRefresh: true)
+                print("✅ AppCheck Token Fetched: \(token.token)")
+            } catch {
+                print("❌ AppCheck Token Fetch FAILED: \(error.localizedDescription)")
+            }
+        }
+
         return true
     }
 }
