@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1243719C2ECC42150001FECB /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 1243719B2ECC42150001FECB /* FirebaseAILogic */; };
+		1243719E2ECC498A0001FECB /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 1243719D2ECC498A0001FECB /* FirebaseAILogic */; };
+		124371A02ECC4AD40001FECB /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 1243719F2ECC4AD40001FECB /* FirebaseAILogic */; };
+		124371A82ECD50010001FECB /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 124371A72ECD50010001FECB /* FirebaseAILogic */; };
 		129A71882EB0B038001CE8EB /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71872EB0B038001CE8EB /* FirebaseAI */; };
 		129A718A2EB0B038001CE8EB /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71892EB0B038001CE8EB /* FirebaseAppCheck */; };
 		129A718C2EB0B038001CE8EB /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 129A718B2EB0B038001CE8EB /* FirebaseCore */; };
@@ -46,10 +50,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				124371A82ECD50010001FECB /* FirebaseAILogic in Frameworks */,
+				1243719E2ECC498A0001FECB /* FirebaseAILogic in Frameworks */,
 				129A718A2EB0B038001CE8EB /* FirebaseAppCheck in Frameworks */,
 				129A718C2EB0B038001CE8EB /* FirebaseCore in Frameworks */,
+				124371A02ECC4AD40001FECB /* FirebaseAILogic in Frameworks */,
 				129A71882EB0B038001CE8EB /* FirebaseAI in Frameworks */,
 				129A71B32EB0EEA8001CE8EB /* GRDB in Frameworks */,
+				1243719C2ECC42150001FECB /* FirebaseAILogic in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,6 +113,10 @@
 				129A71892EB0B038001CE8EB /* FirebaseAppCheck */,
 				129A718B2EB0B038001CE8EB /* FirebaseCore */,
 				129A71B22EB0EEA8001CE8EB /* GRDB */,
+				1243719B2ECC42150001FECB /* FirebaseAILogic */,
+				1243719D2ECC498A0001FECB /* FirebaseAILogic */,
+				1243719F2ECC4AD40001FECB /* FirebaseAILogic */,
+				124371A72ECD50010001FECB /* FirebaseAILogic */,
 			);
 			productName = Bettr;
 			productReference = 129A71762EB0AD3D001CE8EB /* Bettr.app */;
@@ -346,9 +358,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = RAXCR9X83K;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = RAXCR9X83K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = BETTrR;
@@ -369,6 +383,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.Bettr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = btProvisioning;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -389,9 +404,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = RAXCR9X83K;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = RAXCR9X83K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = BETTrR;
@@ -412,6 +429,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.Bettr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = btProvisioning;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -522,7 +540,7 @@
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 12.4.0;
+				minimumVersion = 12.5.0;
 			};
 		};
 		129A71B12EB0EEA8001CE8EB /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
@@ -536,6 +554,22 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1243719B2ECC42150001FECB /* FirebaseAILogic */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseAILogic;
+		};
+		1243719D2ECC498A0001FECB /* FirebaseAILogic */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseAILogic;
+		};
+		1243719F2ECC4AD40001FECB /* FirebaseAILogic */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseAILogic;
+		};
+		124371A72ECD50010001FECB /* FirebaseAILogic */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FirebaseAILogic;
+		};
 		129A71872EB0B038001CE8EB /* FirebaseAI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 129A71862EB0B038001CE8EB /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
