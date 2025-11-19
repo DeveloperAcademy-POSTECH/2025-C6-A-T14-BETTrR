@@ -96,12 +96,12 @@ struct EditableTitle: View {
         }
     }
     
+    
     private func saveAndExit() {
-        guard isEditing else { return }
-        
         if !editedTitle.isEmpty && editedTitle != title {
             title = editedTitle
         }
         isEditing = false
+        isFocused = false
     }
 }
