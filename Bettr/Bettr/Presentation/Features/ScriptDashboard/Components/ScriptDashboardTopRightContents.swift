@@ -16,7 +16,7 @@ struct ScriptDashboardTopRightContents: View {
             
             // 자주 틀린 단어
             VStack(alignment: .leading, spacing: 0) {
-                Text("자주 틀린 단어 Top 3")
+                Text("자주 틀린 단어")
                     .font(.calloutRegular16)
                     .foregroundStyle(.normalBlack900)
                 
