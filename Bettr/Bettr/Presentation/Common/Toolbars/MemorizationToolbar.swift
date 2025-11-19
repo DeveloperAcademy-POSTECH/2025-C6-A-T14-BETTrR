@@ -112,12 +112,14 @@ struct MemorizationToolbarContent: ToolbarContent {
                     viewModel.togglePauseResume()
                 }) {
                     Image(systemName: viewModel.uiState.isPause ? "play.fill" : "pause.fill")
+                        .foregroundStyle(.secondaryBlue700)
                 }
                 
                 Button(action: {
                     viewModel.togglePlayStop()
                 }) {
                     Image(systemName: "stop.fill")
+                        .foregroundStyle(.secondaryBlue700)
                 }
             }
         } else {
@@ -125,6 +127,7 @@ struct MemorizationToolbarContent: ToolbarContent {
                 viewModel.togglePlayStop()
             }) {
                 Image(systemName: "play.fill")
+                    .foregroundStyle(.secondaryBlue700)
             }
         }
     }

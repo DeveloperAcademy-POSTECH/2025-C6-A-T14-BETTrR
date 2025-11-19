@@ -13,6 +13,7 @@ struct KoreanScriptTextView: View {
 
     var body: some View {
         Text(text)
+            .foregroundStyle(.normalBlack900)
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
             .font(.calloutRegular16)
