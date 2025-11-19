@@ -64,11 +64,10 @@ struct ContentView: View {
                         
                         HistoricalFeedbackView(viewModel: viewModel)
                         
-                    case .allFeedback(let feedbacks, let scriptTitle, let feedbackNumber):
+                    case .allFeedback(let feedbacks, let scriptTitle):
                         let viewModel = AllFeedbackViewModel(
                             allFeedbacks: feedbacks,
                             scriptTitle: scriptTitle,
-                            feedbackNumber: feedbackNumber
                         )
                         
                         AllFeedbackView(viewModel: viewModel)

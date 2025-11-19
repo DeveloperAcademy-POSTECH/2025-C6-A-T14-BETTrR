@@ -20,8 +20,8 @@ struct ToolbarButtonModifier: ViewModifier {
 
 extension View {
     
-    /// 툴바 활성화
-    func toolbarEnabled() -> some View {
+    /// 툴바 기본
+    func toolbarDefault() -> some View {
         self.modifier(ToolbarButtonModifier(
             foregroundColor: .secondaryBlue700,
             fontWeight: .regular
@@ -43,22 +43,22 @@ extension View {
             fontWeight: .bold
         ))
     }
-    
-    /// 상태에 따라 활성화 또는 강조
+        
+    /// 상태에 따라 기본 또는 강조
     @ViewBuilder
     func toolbarButtonStyle(emphasized isActive: Bool) -> some View {
         if isActive {
             self.toolbarEmphasized()
         } else {
-            self.toolbarEnabled()
+            self.toolbarDefault()
         }
     }
     
-    /// 상태에 따라 활성화 또는 비활성화
+    /// 상태에 따라 기본 또는 비활성화
     @ViewBuilder
     func toolbarButtonStyle(enabled isActive: Bool) -> some View {
         if isActive {
-            self.toolbarEnabled()
+            self.toolbarDefault()
         } else {
             self.toolbarDisabled()
         }

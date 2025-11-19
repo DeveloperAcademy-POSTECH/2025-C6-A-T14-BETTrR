@@ -8,14 +8,14 @@ struct FeedbackDetail: Identifiable, Codable, FetchableRecord, MutablePersistabl
     var wordDiffType: String
     var wordDiffExpected: String?
     var wordDiffActual: String?
-    var originalText: String? // Keep originalText
+    var originalText: String?
     var sentenceIndex: Int
     var wordIndex: Int
 
     var wordDiff: WordDiff {
         switch wordDiffType {
         case "matched":
-            return .matched(word: originalText ?? "") // Keep matched case
+            return .matched(word: originalText ?? "")
         case "missing":
             return .missing(expected: wordDiffExpected ?? "")
         case "extra":
@@ -23,7 +23,7 @@ struct FeedbackDetail: Identifiable, Codable, FetchableRecord, MutablePersistabl
         case "replaced":
             return .replaced(expected: wordDiffExpected ?? "", actual: wordDiffActual ?? "")
         default:
-            return .matched(word: originalText ?? "") // Fallback
+            return .matched(word: originalText ?? "")
         }
     }
 

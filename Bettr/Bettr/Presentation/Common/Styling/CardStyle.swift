@@ -68,10 +68,10 @@ struct BorderedFilledCardStyle: ViewModifier {
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(.primaryBlue50)
-                    .overlay(
+                    .overlay {
                         RoundedRectangle(cornerRadius: cornerRadius)
                             .strokeBorder(.primaryBlue200)
-                    )
+                    }
             )
     }
 }
