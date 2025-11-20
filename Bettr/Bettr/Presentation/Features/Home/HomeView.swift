@@ -18,7 +18,7 @@ struct HomeView: View {
     private let pdfTextExtractor = PDFTextExtractor()
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 84) {
+        VStack(alignment: .leading, spacing: 8) {
             MainHeaderView()
                 .padding(.top, 48)
                 .padding(.horizontal, 84)

@@ -34,6 +34,7 @@ struct ScriptGridView: View {
                         .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
                     }
                 }
+                .padding(.top, 76)
             } else {
                 // Fallback on earlier versions
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 220))], spacing: 60) {
@@ -51,6 +52,7 @@ struct ScriptGridView: View {
                         .padding(EdgeInsets(top: 16, leading: 16, bottom: 24, trailing: 16))
                     }
                 }
+                .padding(.top, 76)
             }
         }
         .scrollIndicators(.hidden)
