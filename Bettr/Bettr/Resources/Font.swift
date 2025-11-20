@@ -18,6 +18,10 @@ extension Font {
         return .sfPro(weight: .medium, size: 64)
     }
     
+    static var labelMedium48: Font {
+        return .sfPro(weight: .medium, size: 48)
+    }
+    
     static var labelRegular48: Font {
         return .sfPro(weight: .regular, size: 48)
     }

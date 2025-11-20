@@ -61,6 +61,7 @@ struct FullResultSummaryGrid: View {
                             Text("회")
                                 .font(.calloutRegular20)
                         }
+                        .fixedSize(horizontal: true, vertical: false)
                     }
                     .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: 192)
@@ -85,6 +86,7 @@ struct FullResultSummaryGrid: View {
                             Text("개")
                                 .font(.calloutRegular16)
                         }
+                        .fixedSize(horizontal: true, vertical: false)
                     }
                     .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: 150)
@@ -97,6 +99,7 @@ struct FullResultSummaryGrid: View {
                             Text("개")
                                 .font(.calloutRegular16)
                         }
+                        .fixedSize(horizontal: true, vertical: false)
                     }
                     .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: 150)
@@ -109,6 +112,7 @@ struct FullResultSummaryGrid: View {
                             Text("개")
                                 .font(.calloutRegular16)
                         }
+                        .fixedSize(horizontal: true, vertical: false)
                     }
                     .cardBordered(padding: 24, cornerRadius: 10)
                     .frame(maxWidth: 150)
@@ -126,6 +130,7 @@ struct FullResultSummaryGrid: View {
                     Text("%")
                         .font(.bodyRegular24)
                 }
+                .fixedSize(horizontal: true, vertical: false)
             }
             .cardBordered(padding: 24, cornerRadius: 10)
             .frame(maxWidth: 242, maxHeight: .infinity)
@@ -176,7 +181,6 @@ struct CompactResultSummaryGrid: View {
                         }
                         .cardBordered(padding: 24, cornerRadius: 10)
                         
-                        
                         DiagonalLayoutCard(title: "피드백 회차") {
                             HStack(alignment: .firstTextBaseline, spacing: 4) {
                                 Text("\(model.feedbackNumber)")
@@ -185,6 +189,7 @@ struct CompactResultSummaryGrid: View {
                                 Text("회")
                                     .font(.calloutRegular20)
                             }
+                            .fixedSize(horizontal: true, vertical: false)
                         }
                         .cardBordered(padding: 24, cornerRadius: 10)
                     }
@@ -199,6 +204,7 @@ struct CompactResultSummaryGrid: View {
                                 Text("개")
                                     .font(.calloutRegular16)
                             }
+                            .fixedSize(horizontal: true, vertical: false)
                         }
                         .cardBordered(padding: 24, cornerRadius: 10)
                         
@@ -210,6 +216,7 @@ struct CompactResultSummaryGrid: View {
                                 Text("개")
                                     .font(.calloutRegular16)
                             }
+                            .fixedSize(horizontal: true, vertical: false)
                         }
                         .cardBordered(padding: 24, cornerRadius: 10)
                         
@@ -221,23 +228,27 @@ struct CompactResultSummaryGrid: View {
                                 Text("개")
                                     .font(.calloutRegular16)
                             }
+                            .fixedSize(horizontal: true, vertical: false)
                         }
                         .cardBordered(padding: 24, cornerRadius: 10)
                     }
                 }
+                .layoutPriority(1)
                 
                 // 오른쪽: 종합 평가 점수
                 DiagonalLayoutCard(title: "종합 평가 점수") {
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         Text("\(Int(model.accuracy * 100))")
-                            .font(.labelMedium64)
+                            .font(.labelMedium48)
                         
                         Text("%")
                             .font(.bodyRegular24)
                     }
+                    .fixedSize(horizontal: true, vertical: false)
                 }
                 .cardBordered(padding: 24, cornerRadius: 10)
-                .frame(maxWidth: 242)
+                .frame(maxWidth: 240)
+                .layoutPriority(0)
             }
             .frame(maxHeight: 242)
         }

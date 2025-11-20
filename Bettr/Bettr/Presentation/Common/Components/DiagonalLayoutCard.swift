@@ -19,10 +19,10 @@ struct DiagonalLayoutCard<Content: View>: View {
                 .foregroundStyle(.normalBlack900)
                 .fixedSize(horizontal: true, vertical: false)
             
-            Spacer()
+            Spacer(minLength: 0)
 
             HStack {
-                Spacer()
+                Spacer(minLength: 0)
                 content()
             }
         }

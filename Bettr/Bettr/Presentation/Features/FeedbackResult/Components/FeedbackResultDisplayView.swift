@@ -47,7 +47,7 @@ struct FeedbackResultDisplayView: View {
         feedbackNumber: 5,
         accuracy: 0.75,
         totalRecordingTime: 120.5,
-        missingCount: 2,
+        missingCount: 12,
         extraCount: 1,
         replacedCount: 1,
         filteredSentenceDiffs: [
