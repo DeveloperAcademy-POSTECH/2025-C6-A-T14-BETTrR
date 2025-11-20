@@ -9,36 +9,35 @@
 import SwiftUI
 import Charts
 
-//
-//struct FeedbackChartDataPoint: Identifiable {
-//    let id = UUID()
-//    let session: Int
-//    let score: Int
-//}
+struct FeedbackChartDataPoint: Identifiable {
+    let id = UUID()
+    let session: Int
+    let score: Int
+}
 
-//struct LegendContent: View {
-//    var body: some View {
-//        HStack(spacing: 12) {
-//            HStack(spacing: 6) {
-//                Circle()
-//                    .fill(.secondaryBlue700)
-//                    .frame(width: 8, height: 8)
-//                Text("점수")
-//                    .font(.footerRegular11)
-//                    .foregroundStyle(.normalGray600)
-//            }
-//
-//            HStack(spacing: 6) {
-//                Circle()
-//                    .fill(.alertRed01)
-//                    .frame(width: 8, height: 8)
-//                Text("평균")
-//                    .font(.footerRegular11)
-//                    .foregroundStyle(.normalGray600)
-//            }
-//        }
-//    }
-//}
+struct LegendContent: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(.secondaryBlue700)
+                    .frame(width: 8, height: 8)
+                Text("점수")
+                    .font(.footerRegular11)
+                    .foregroundStyle(.normalGray600)
+            }
+
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(.alertRed01)
+                    .frame(width: 8, height: 8)
+                Text("평균")
+                    .font(.footerRegular11)
+                    .foregroundStyle(.normalGray600)
+            }
+        }
+    }
+}
 
 struct AccuracyGraphSection: View {
     let allFeedbackSummaries: [FeedbackSummary]

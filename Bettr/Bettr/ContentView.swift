@@ -26,15 +26,7 @@ struct ContentView: View {
                         
                     case .scriptConfirm(let initialText, let initialTitle):
                         ScriptConfirmView(initialText: initialText, initialTitle: initialTitle)
-                        
-                    case .scriptDashboard(let scriptId):
-                        let viewModel = ScriptDashboardViewModel(
-                            scriptId: scriptId,
-                            scriptService: container.scriptManagementService
-                        )
-                        
-                        ScriptDashboardView(viewModel: viewModel)
-                        
+
                     case .memorization(let scriptId, let scriptTitle):
                         let mainViewModel = MemorizationViewModel(
                             scriptId: scriptId,
