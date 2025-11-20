@@ -47,7 +47,7 @@ struct ScriptDashboardBottomRightContents: View {
                     .fill(.defaultWhite50.opacity(0.3))
                 
                 Button(action: {
-                    router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle, currentFeedbackCount: currentFeedbackCount))
+                    router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle))
                 }) {
                     Text("암기하기")
                         .font(.labelBold16)

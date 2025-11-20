@@ -11,7 +11,6 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     let scriptId: Int64
     let scriptService: ScriptManagementServiceProtocol
     let audioService: AudioPlaybackServiceProtocol
-    let currentFeedbackCount: Int
     
     // MARK: Core Data State (핵심 데이터 상태)
     var scriptData: ScriptData?
@@ -34,13 +33,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     init(
         scriptId: Int64,
         scriptTitle: String,
-        currentFeedbackCount: Int,
         scriptService: ScriptManagementServiceProtocol,
         audioService: AudioPlaybackServiceProtocol,
     ) {
         self.scriptId = scriptId
         self.currentTitle = scriptTitle
-        self.currentFeedbackCount = currentFeedbackCount
         self.scriptService = scriptService
         self.audioService = audioService
     }

@@ -18,7 +18,8 @@ struct ScriptCard: View {
     var body: some View {
         Button(action: {
             if let scriptId = script.id {
-                router.push(Route.scriptDashboard(scriptId: scriptId))
+                let scriptTitle = script.title
+                router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle))
             }
         }) {
             VStack(alignment: .leading, spacing: 12) {

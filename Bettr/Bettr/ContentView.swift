@@ -35,11 +35,10 @@ struct ContentView: View {
                         
                         ScriptDashboardView(viewModel: viewModel)
                         
-                    case .memorization(let scriptId, let scriptTitle, let currentFeedbackCount):
+                    case .memorization(let scriptId, let scriptTitle):
                         let mainViewModel = MemorizationViewModel(
                             scriptId: scriptId,
                             scriptTitle: scriptTitle,
-                            currentFeedbackCount: currentFeedbackCount,
                             scriptService: container.scriptManagementService,
                             audioService: audioService,
                         )
