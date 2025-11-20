@@ -36,12 +36,10 @@ struct RecordingView: View {
     private func analyzeAndSave() {
             guard let diffs = speechRecognizer.analyzedDiffs,
                   let practiceDuration = speechRecognizer.analyzedPracticeDuration else {
-                print("DEBUG: 분석 완료되지 않음 (diffs 또는 duration nil)")
                 return // 분석이 완료되지 않음
             }
             
             if diffs.isEmpty {
-                print("DEBUG: 인식된 텍스트 없음. Alert 표시")
                 showEmptyTranscriptAlert = true
                 return
             }
@@ -55,9 +53,7 @@ struct RecordingView: View {
                     sentences: speechRecognizer.sentences,
                     practiceDuration: practiceDuration
                 )
-                
-                print("DEBUG: 통계 계산 완료. 정확도: \(summaryStats.accuracy)")
-                
+                                
                 do {
                     // 2. DB 저장 및 Summary 객체 반환
                     let summary = try await container.scriptManagementService.createFeedbackSummary(
@@ -71,17 +67,13 @@ struct RecordingView: View {
                             ($0.wordDiff, $0.originalText, $0.sentenceIndex, $0.wordIndex)
                         }
                     )
-                    
-                    print("DEBUG: Summary DB 저장 완료. ID: \(summary.id ?? 0)")
-                    
+                                        
                     guard let summaryId = summary.id else { throw AppError.unknown("저장된 Summary ID를 찾을 수 없습니다.") }
                                         
                     // 4. 결과 화면으로 라우팅 (Summary ID 전달)
-                    modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId)
+                    modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId, fromRecording: true)
                     )
-                    
-                    print("DEBUG: 라우팅 실행 완료. (이동 성공 여부는 라우터 구현에 따라 다름)")
-                    
+                                        
                 } catch {
                     print("❌ 피드백 저장/라우팅 실패: \(error)")
                 }

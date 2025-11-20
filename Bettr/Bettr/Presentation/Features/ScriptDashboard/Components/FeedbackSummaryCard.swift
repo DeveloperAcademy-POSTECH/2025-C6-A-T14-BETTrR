@@ -15,7 +15,7 @@ struct FeedbackSummaryCard: View {
     
     var body: some View {
         Button(action: {
-            modalRouter.push(ModalRoute.feedbackResult(summaryId: feedback.id!))
+            modalRouter.push(ModalRoute.feedbackResult(summaryId: feedback.id!, fromRecording: false))
         }) {
             HStack {
                 VStack(alignment: .leading, spacing: 12) {

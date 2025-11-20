@@ -26,8 +26,9 @@ struct FeedbackHistoryView: View {
             }
             .safeAreaPadding(.top, 24)
             .safeAreaPadding(.bottom, 48)
+            .environment(\.modalDismiss, modalDismiss)
             .navigationBarTitleDisplayMode(.inline)
-            .cancelToolbar()
+            .cancelToolbar(isXmark: true)
             .onAppear {
                 viewModel.onAppear()
             }
@@ -76,7 +77,7 @@ struct FeedbackHistoryView: View {
             )
             .environment(\.modalDismiss, modalDismiss)
             
-        case .feedbackResult(let summaryId):
+        case .feedbackResult(let summaryId, let fromRecording):
             let feedbackResultViewModel = FeedbackResultViewModel(
                 scriptId: viewModel.scriptId,
                 summaryId: summaryId,
@@ -84,7 +85,7 @@ struct FeedbackHistoryView: View {
             )
             
             FeedbackResultView(viewModel: feedbackResultViewModel)
-                .environment(\.modalDismiss, modalDismiss)
+                .environment(\.modalDismiss, fromRecording ? modalDismiss : nil)
         }
     }
 }

@@ -18,5 +18,5 @@ enum Route: Hashable {
 
 enum ModalRoute: Hashable {
     case recording(sentences: [String], scriptTitle: String, currentFeedbackCount: Int)
-    case feedbackResult(summaryId: Int64)
+    case feedbackResult(summaryId: Int64, fromRecording: Bool)
 }
