@@ -11,15 +11,16 @@ import Charts
 
 struct FrequentlyWrongWordsSection: View {
     let frequentlyWrongWords: [WrongWordCount]
+    let maxDisplayCount: Int
     
     var displayWords: [String] {
-        let maxCount = 5
-        
         // 데이터에서 단어 문자열만 추출
-        let actualWords = frequentlyWrongWords.map { $0.word }
+        let actualWords = frequentlyWrongWords
+                    .map { $0.word }
+                    .prefix(maxDisplayCount)
         
         // 부족한 만큼 "-" 문자열로 채움
-        let placeholdersNeeded = max(0, maxCount - actualWords.count)
+        let placeholdersNeeded = max(0, maxDisplayCount - actualWords.count)
         let placeholders = Array(repeating: "-", count: placeholdersNeeded)
         
         // 실제 단어와 플레이스홀더를 합쳐서 총 5개의 배열 생성

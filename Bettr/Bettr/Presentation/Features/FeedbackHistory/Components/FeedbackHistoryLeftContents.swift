@@ -27,7 +27,18 @@ struct FeedbackHistoryLeftContents: View {
         VStack(alignment: .center, spacing: 0) {
             VStack(alignment: .leading, spacing: 48) {
                 AccuracyGraphSection(allFeedbackSummaries: allFeedbackSummaries)
-                FrequentlyWrongWordsSection(frequentlyWrongWords: frequentlyWrongWords)
+                
+                ViewThatFits(in: .vertical) {
+                    FrequentlyWrongWordsSection(
+                        frequentlyWrongWords: frequentlyWrongWords,
+                        maxDisplayCount: 5
+                    )
+                    
+                    FrequentlyWrongWordsSection(
+                        frequentlyWrongWords: frequentlyWrongWords,
+                        maxDisplayCount: 3
+                    )
+                }
             }
             
             Spacer(minLength: 24)

@@ -50,7 +50,8 @@ struct FeedbackHistoryView: View {
             }
         } else if viewModel.feedbackHistoryData != nil { // 성공
             HStack(alignment: .top, spacing: 16) {
-                FeedbackHistoryLeftContents(viewModel: viewModel)
+               FeedbackHistoryLeftContents(viewModel: viewModel)
+                    .frame(maxWidth: 474)
                 FeedbackHistoryRightContents(viewModel: viewModel)
             }
             .safeAreaPadding(.horizontal, 84)
