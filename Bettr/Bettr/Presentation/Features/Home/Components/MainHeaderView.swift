@@ -12,7 +12,7 @@ struct MainHeaderView: View {
         VStack(alignment: .leading, spacing: 15) {
             HStack {
                 Image(.brandLogo)
-                    .padding(.leading, 48)
+                    .padding(.leading, 4)
                     
                 Spacer()
             }
@@ -20,7 +20,6 @@ struct MainHeaderView: View {
             Rectangle()
                 .frame(height: 1)
                 .foregroundStyle(.primaryBlue200)
-                .padding(.horizontal, 44)
         }
     }
 }

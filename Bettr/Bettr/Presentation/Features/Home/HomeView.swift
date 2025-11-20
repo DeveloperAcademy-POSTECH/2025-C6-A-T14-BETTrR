@@ -21,6 +21,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 84) {
             MainHeaderView()
                 .padding(.top, 48)
+                .padding(.horizontal, 84)
             
             HomeContentView(
                 onSelectPhoto: { showingPhotoPicker = true },
