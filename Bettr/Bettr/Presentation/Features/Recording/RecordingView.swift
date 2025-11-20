@@ -52,62 +52,63 @@ struct RecordingView: View {
     
     var body: some View {
         VStack(alignment: .center) {
+            Spacer()
             
-            Spacer(minLength: 0)
-            
-            // 타이머
-            Text(viewModel.elapsedTime.toMMSSms())
-                .font(.labelMedium64)
-                .foregroundStyle(.normalBlack900)
-            
-            Spacer(minLength: 60)
-            
-            LottieView(
-                name: "recordLottie",
-                animationSpeed: 2.0,
-                isAnimating: viewModel.isRecording
-            )
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 48)
-            
-            Spacer(minLength: 60)
-            
-            HStack(spacing: 30) {
-                let isRecording = viewModel.isRecording
-                let hasRecorded = viewModel.hasRecorded
+            VStack(spacing: 48) {
+                // 타이머
+                Text(viewModel.elapsedTime.toMMSSms())
+                    .font(.labelMedium64)
+                    .foregroundStyle(.normalBlack900)
+                    .padding(.top, 48)
                 
-                let isReadyToRecord = !isRecording && !hasRecorded
-                let didFinishRecording = hasRecorded && !isRecording
-                
-                Button(action: { viewModel.cancelRecording() }) {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .buttonStyle(SecondaryRecordingButtonStyle())
-                .disabled(!didFinishRecording)
-                
-                Spacer()
-                
-                Button(action: { viewModel.toggleRecording() }) {
-                    Image(systemName: isReadyToRecord ? "microphone" : "stop.fill")
-                }
-                .buttonStyle(RecordingButtonStyle(isRecording: isRecording))
-                .disabled(viewModel.authorizationStatus != .authorized ||
-                          viewModel.microphoneAuthorizationStatus != .granted ||
-                          didFinishRecording
+                // 로띠
+                LottieView(
+                    name: "recordLottie",
+                    animationSpeed: 2.0,
+                    isAnimating: viewModel.isRecording
                 )
-                
-                Spacer()
-                
-                Button(action: { processAnalysisAndSave() }) {
-                    Image(systemName: "arrow.right")
+                .frame(maxWidth: .infinity, maxHeight: 500)
+                .padding(.horizontal, 48)
+                        
+                // 버튼
+                HStack(spacing: 30) {
+                    let isRecording = viewModel.isRecording
+                    let hasRecorded = viewModel.hasRecorded
+                    
+                    let isReadyToRecord = !isRecording && !hasRecorded
+                    let didFinishRecording = hasRecorded && !isRecording
+                    
+                    Button(action: { viewModel.cancelRecording() }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(SecondaryRecordingButtonStyle())
+                    .disabled(!didFinishRecording)
+                    
+                    Spacer()
+                    
+                    Button(action: { viewModel.toggleRecording() }) {
+                        Image(systemName: isReadyToRecord ? "microphone" : "stop.fill")
+                    }
+                    .buttonStyle(RecordingButtonStyle(isRecording: isRecording))
+                    .disabled(viewModel.authorizationStatus != .authorized ||
+                              viewModel.microphoneAuthorizationStatus != .granted ||
+                              didFinishRecording
+                    )
+                    
+                    Spacer()
+                    
+                    Button(action: { processAnalysisAndSave() }) {
+                        Image(systemName: "arrow.right")
+                    }
+                    .buttonStyle(RecordingButtonStyle(isRecording: false))
+                    .disabled(!didFinishRecording)
                 }
-                .buttonStyle(RecordingButtonStyle(isRecording: false))
-                .disabled(!didFinishRecording)
+                .padding(.horizontal, 48)
             }
             
-            Spacer(minLength: 0)
+            Spacer()
         }
-        .safeAreaPadding(.horizontal, 180)
+        .safeAreaPadding(.horizontal, 84)
         .safeAreaPadding(.top, 24)
         .safeAreaPadding(.bottom, 48)
         .onChange(of: viewModel.recordingDidFinishEmpty) { _, isEmpty in

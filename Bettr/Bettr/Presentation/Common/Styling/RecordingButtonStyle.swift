@@ -9,7 +9,6 @@ import SwiftUI
 
 // 공통 스타일
 private struct RecordingButtonBaseModifier: ViewModifier {
-    
     func body(content: Content) -> some View {
         content
             .font(.labelRegular48)
