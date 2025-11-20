@@ -17,7 +17,8 @@ struct SentenceModeView: View {
                 EnglishScriptTextView(
                     text: sentence.englishText,
                     isHidden: viewModel.isSentenceHidden(sentence.orderIndex),
-                    onTap: { handleSentenceTap(sentence: sentence) }
+                    onTap: { handleSentenceTap(sentence: sentence) },
+                    sentenceIndex: sentence.orderIndex
                 )
                 
                 KoreanScriptTextView(

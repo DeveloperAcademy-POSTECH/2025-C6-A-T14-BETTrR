@@ -35,7 +35,8 @@ struct ChunkModeView: View {
                 EnglishScriptTextView(
                     text: chunk.englishText,
                     isHidden: viewModel.interactionState.hiddenEngChunks.contains(chunkID),
-                    onTap: { handleChunkTap(chunk: chunk, identifier: chunkID) }
+                    onTap: { handleChunkTap(chunk: chunk, identifier: chunkID) },
+                    sentenceIndex: sentence.orderIndex
                 )
                 
                 if chunk.orderIndex != lastChunkIndex {

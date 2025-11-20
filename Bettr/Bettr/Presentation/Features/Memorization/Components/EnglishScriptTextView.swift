@@ -11,6 +11,7 @@ struct EnglishScriptTextView: View {
     let text: String
     let isHidden: Bool
     let onTap: () -> Void
+    let sentenceIndex: Int?
     
     @Environment(AudioPlaybackService.self) private var audioService
     
@@ -26,7 +27,23 @@ struct EnglishScriptTextView: View {
             return attrString
         }
         
-        let defaultColor: Color = (audioService.isPlaying || audioService.isPaused) ? unspokenColor : spokenColor
+        let isSentenceCompleted: Bool
+                if let currentPlayingIndex = audioService.currentPlayingSentenceIndex, let myIndex = sentenceIndex {
+                    isSentenceCompleted = myIndex < currentPlayingIndex
+                } else {
+                    isSentenceCompleted = false
+                }
+        
+        let defaultColor: Color
+                if audioService.isPlaying || audioService.isPaused {
+                    if isSentenceCompleted {
+                        defaultColor = spokenColor
+                    } else {
+                        defaultColor = unspokenColor
+                    }
+                } else {
+                    defaultColor = spokenColor
+                }
         
         attrString.foregroundColor = defaultColor
         
@@ -34,9 +51,7 @@ struct EnglishScriptTextView: View {
         if audioService.currentSpokenTextID == text,
            let nsRange = audioService.currentSpokenRange,
            let swiftRange = Range(nsRange, in: text) { // NSRange -> Swift Range
-            
-            attrString.foregroundColor = unspokenColor
-            
+                        
             // Swift Range -> AttributedString.Index Range
             if let attrRange = Range(swiftRange, in: attrString) {
                 // "말한 부분" (시작~현재 위치)만 검은색(spoken)으로 덮어쓰기
