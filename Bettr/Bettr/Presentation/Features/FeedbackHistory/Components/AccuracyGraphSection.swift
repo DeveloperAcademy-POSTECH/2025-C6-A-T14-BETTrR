@@ -43,6 +43,9 @@ import Charts
 struct AccuracyGraphSection: View {
     let allFeedbackSummaries: [FeedbackSummary]
     
+    @State private var pageIndex: Int = 0
+    private let pageSize = 5
+    
     private var chartData: [FeedbackChartDataPoint] {
         return allFeedbackSummaries.reversed().enumerated().map { (index, feedback) in
             return FeedbackChartDataPoint(
@@ -52,23 +55,61 @@ struct AccuracyGraphSection: View {
         }
     }
     
+    // 페이지 데이터 계산
+    private var pagedChartData: [FeedbackChartDataPoint] {
+        guard !chartData.isEmpty else { return [] }
+        let chunks = chartData.chunkedFromEnd(into: pageSize)
+        if pageIndex < 0 || pageIndex >= chunks.count { return [] }
+        return chunks[pageIndex]
+    }
+    
     // 평균 점수 계산
     private var averageScore: Double {
         guard !chartData.isEmpty else { return 0 }
         return Double(chartData.map { $0.score }.reduce(0, +)) / Double(chartData.count)
     }
     
-    // 최대값 계산
-    private var maxScore: Int {
-        chartData.map { $0.score }.max() ?? 0
+    // X축 값
+    private var xDomain: ClosedRange<Int> {
+        guard let minX = pagedChartData.map({ $0.session }).min(),
+              let maxX = pagedChartData.map({ $0.session }).max() else { return 0...1 }
+        return (minX - 1)...(maxX + 1)
     }
     
-    // Y축 최대값을 동적으로 계산 (20% 여유 공간 추가)
+    // 최대값 계산
+    private var localMaxScore: Int {
+        pagedChartData.map { $0.score }.max() ?? 0
+    }
+    
+    // Y축 domain: 최대값/최소값에 여유 공간
     private var yAxisMax: Double {
-        if maxScore == 0 {
-            return 10.0
-        }
-        return Double(maxScore) * 1.7
+        let maxScore = pagedChartData.map { $0.score }.max() ?? 0
+        let minScore = pagedChartData.map { $0.score }.min() ?? 0
+        let padding = max(5, Double(maxScore - minScore) * 0.2) // 20% 여유
+        return Double(maxScore) + padding
+    }
+    
+    // 스와이프 제스처
+    private var swipeGesture: some Gesture {
+        DragGesture()
+            .onEnded { value in
+                let threshold: CGFloat = 30
+                
+                // 왼→오: 과거로 이동
+                if value.translation.width > threshold {
+                    let maxPage = (chartData.count - 1) / pageSize
+                    if pageIndex < maxPage {
+                        pageIndex += 1
+                    }
+                }
+                
+                // 오→왼: 최신으로 이동
+                if value.translation.width < -threshold {
+                    if pageIndex > 0 {
+                        pageIndex -= 1
+                    }
+                }
+            }
     }
     
     var body: some View {
@@ -79,7 +120,7 @@ struct AccuracyGraphSection: View {
                 .padding(8)
             
             Group {
-                Chart(chartData) { point in
+                Chart(pagedChartData) { point in
                     LineMark(
                         x: .value("회차", point.session),
                         y: .value("점수", point.score)
@@ -103,21 +144,19 @@ struct AccuracyGraphSection: View {
                     )
                     .foregroundStyle(.alertRed01)
                 }
+                .gesture(swipeGesture)
                 .chartLegend(.hidden)
-                .chartXScale(domain: 0...(chartData.count + 1))
+                .chartXScale(domain: xDomain)
                 .chartYScale(domain: 0...yAxisMax)
                 .chartXAxis {
-                    AxisMarks(values: Array(0...chartData.count)) { value in
+                    AxisMarks(values: pagedChartData.map { $0.session }) { value in
                         AxisGridLine()
-                        if let sessionNumber = value.as(Int.self) {
-                            if sessionNumber != 0 {
-                                AxisValueLabel("\(sessionNumber)")
-                            }
-                        }
+                        AxisValueLabel("\(value.as(Int.self) ?? 0)")
                     }
                 }
+                .animation(.spring(), value: pageIndex)
                 .chartYAxis {
-                    if maxScore == 0 {
+                    if localMaxScore == 0 {
                         AxisMarks(position: .leading, values: [0]) { _ in
                             AxisValueLabel()
                             AxisGridLine()
@@ -149,5 +188,19 @@ struct AccuracyGraphSection: View {
                 }
             }
         }
+    }
+}
+
+extension Array {
+    func chunked(into size: Int) -> [[Element]] { stride(from: 0, to: count, by: size).map { Array(self[$0..<Swift.min($0 + size, count)]) } }
+    
+    func chunkedFromEnd(into size: Int) -> [[Element]] {
+        guard !self.isEmpty else { return [] }
+        
+        // 뒤집어서 (최근부터) 자르고
+        let reversedChunks = self.reversed().chunked(into: size)
+        
+        // 다시 원래 순서로 돌려서 배열 반환
+        return reversedChunks.map { Array($0.reversed()) }
     }
 }
