@@ -73,7 +73,6 @@ struct FeedbackHistoryView: View {
                 scriptTitle: scriptTitle,
                 currentFeedbackCount: currentFeedbackCount
             )
-            .environment(\.modalDismiss, modalDismiss)
             
         case .feedbackResult(let summaryId, let fromRecording):
             let feedbackResultViewModel = FeedbackResultViewModel(
