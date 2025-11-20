@@ -27,18 +27,36 @@ struct FrequentlyWrongWordsSection: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("자주 틀린 단어")
                 .font(.subbodyBold24)
                 .foregroundStyle(.normalBlack900)
                 .padding(8)
             
-            VStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 16) {
                 ForEach(displayWords.enumerated(), id: \.offset) { (index, word) in
                     WrongWordRow(ranking: index + 1, word: word)
                 }
             }
-            .padding(.leading, 24)
+            .padding(.horizontal, 24)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+struct WrongWordRow: View {
+    let ranking: Int
+    let word: String
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Text("\(ranking)")
+                .foregroundStyle(.normalGray600)
+            
+            Text(word)
+                .foregroundStyle(.normalBlack900)
+        }
+        .font(.iconBold20)
     }
 }

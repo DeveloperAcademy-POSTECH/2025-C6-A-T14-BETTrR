@@ -24,9 +24,13 @@ struct FeedbackHistoryLeftContents: View {
     }
     
     var body: some View {
-        VStack(spacing: 60) {
-            AccuracyGraphSection(allFeedbackSummaries: allFeedbackSummaries)
-            FrequentlyWrongWordsSection(frequentlyWrongWords: frequentlyWrongWords)
+        VStack(alignment: .center, spacing: 0) {
+            VStack(alignment: .leading, spacing: 48) {
+                AccuracyGraphSection(allFeedbackSummaries: allFeedbackSummaries)
+                FrequentlyWrongWordsSection(frequentlyWrongWords: frequentlyWrongWords)
+            }
+            
+            Spacer(minLength: 24)
             
             Button(action: {
                 guard let data = viewModel.feedbackHistoryData,
@@ -45,5 +49,7 @@ struct FeedbackHistoryLeftContents: View {
             }
             .buttonStyle(.general)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .cardBordered(padding: 36)
     }
 }

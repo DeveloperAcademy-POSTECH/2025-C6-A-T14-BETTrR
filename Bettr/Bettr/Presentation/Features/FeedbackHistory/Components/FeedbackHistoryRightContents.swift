@@ -12,18 +12,72 @@ import Charts
 struct FeedbackHistoryRightContents: View {
     let viewModel: FeedbackHistoryViewModel
     
+    private var allFeedbackSummaries: [FeedbackSummary] {
+        viewModel.feedbackHistoryData?.allFeedbackSummaries ?? []
+    }
+    
+    private var feedbackCount: Int {
+        viewModel.feedbackHistoryData?.feedbackCount ?? 0
+    }
+    
     var body: some View {
-        ScrollView {
-            VStack(spacing: 24) {
-                Text("피드백 히스토리")
-                    .font(.subbodyBold24)
-                    .padding(8)
-                
-                FeedbackHistoryList(viewModel: viewModel)
-                    .padding(.leading, 16)
+        Group {
+            if allFeedbackSummaries.isEmpty {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 0) {
+                        Text("피드백 히스토리")
+                            .font(.subbodyBold24)
+                            .padding(8)
+                        
+                        Text("총 \(feedbackCount)회")
+                            .font(.calloutRegular16)
+                    }
+                    .foregroundStyle(.normalBlack900)
+                    
+                    EmptyFeedbackView()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack(spacing: 0) {
+                            Text("피드백 히스토리")
+                                .font(.subbodyBold24)
+                                .padding(8)
+                            
+                            Text("총 \(feedbackCount)회")
+                                .font(.calloutRegular16)
+                        }
+                        .foregroundStyle(.normalBlack900)
+                        
+                        FeedbackHistoryList(viewModel: viewModel)
+                            .padding(.horizontal, 16)
+                    }
+                }
+                .scrollIndicators(.hidden)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .cardBordered(padding: 36)
+    }
+}
+
+struct EmptyFeedbackView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Spacer()
+            
+            Text("피드백이 없어 히스토리를 확인할 수 없습니다")
+                .font(.calloutRegular16)
+                .foregroundStyle(.normalGray600)
+            
+            Text("녹음으로 피드백을 생성해보세요")
+                .font(.calloutRegular16)
+                .foregroundStyle(.normalGray600)
+            
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

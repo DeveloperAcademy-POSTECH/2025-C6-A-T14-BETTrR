@@ -72,7 +72,7 @@ struct AccuracyGraphSection: View {
     }
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("종합 점수 추이")
                 .font(.subbodyBold24)
                 .foregroundStyle(.normalBlack900)
@@ -132,7 +132,8 @@ struct AccuracyGraphSection: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: 272)
+            .frame(maxWidth: .infinity, maxHeight: 180)
+            .frame(minHeight: 120)
             .cardFilled()
             .overlay(alignment: .topTrailing) {
                 if !chartData.isEmpty {

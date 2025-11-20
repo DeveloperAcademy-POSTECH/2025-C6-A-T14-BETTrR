@@ -23,9 +23,11 @@ struct FeedbackHistoryView: View {
         NavigationStack(path: $modalRouter.path) {
             Group {
                 mainContent
+                    .border(Color.red)
             }
             .safeAreaPadding(.top, 24)
             .safeAreaPadding(.bottom, 48)
+            .border(Color.blue)
             .environment(\.modalDismiss, modalDismiss)
             .navigationBarTitleDisplayMode(.inline)
             .cancelToolbar(isXmark: true)
@@ -49,13 +51,11 @@ struct FeedbackHistoryView: View {
                 }
             }
         } else if viewModel.feedbackHistoryData != nil { // 성공
-            ScrollView {
-                HStack(spacing: 16) {
-                    FeedbackHistoryLeftContents(viewModel: viewModel)
-                    FeedbackHistoryRightContents(viewModel: viewModel)
-                }
-                .safeAreaPadding(.horizontal, 84)
+            HStack(alignment: .top, spacing: 16) {
+                FeedbackHistoryLeftContents(viewModel: viewModel)
+                FeedbackHistoryRightContents(viewModel: viewModel)
             }
+            .safeAreaPadding(.horizontal, 84)
         } else { // 예외 케이스: 로딩도 아니고, 에러도 아닌데, 데이터도 없는 경우
             ErrorView(error: .unknown("데이터를 불러오지 못했습니다.")) {
                 Task {
