@@ -244,23 +244,53 @@
             font-size: 0.85rem;
         }
 
-        @media (min-width: 768px) {
-            .footer-bottom {
-                flex-direction: row;
-                justify-content: space-between;
-            }
-        }
-        
         @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
+            h1 { font-size: 2.2rem; }
             section { padding: 60px 0; }
             .hero-section { padding-top: 60px; padding-bottom: 100px; }
-            .feature-row, .feature-row:nth-child(even) { flex-direction: column; gap: 30px; }
+            .feature-row, .feature-row:nth-child(even) { flex-direction: column; gap: 40px; }
             .sub-desc { font-size: 1.1rem; }
             .cta-section { padding: 80px 0; }
             .problem-grid { grid-template-columns: 1fr; }
-            .feature-visual { border-radius: 18px; border: none; box-shadow: none; min-height: 250px;} 
-            .feature-visual img { border-radius: 18px; } 
+            
+            /* 01. Chunking Visualizer 모바일 최적화 (사이즈 축소) */
+            .visual-chunking { gap: 15px; } /* 간격 좁힘 */
+            
+            .mock-doc { 
+                width: 110px; /* 너비 축소 */
+                height: 160px; /* 높이 축소 */
+                padding: 15px; 
+            }
+            .mock-line { height: 10px; } /* 라인 두께 축소 */
+            
+            .arrow-icon { font-size: 24px; } /* 화살표 크기 축소 */
+            
+            .mock-cards-stack { gap: 10px; }
+            .mock-card { 
+                width: 170px; /* 카드 너비 축소 */
+                min-height: 45px; 
+                padding: 8px 12px; 
+                gap: 5px;
+            }
+            .mock-chunk-block { height: 10px; } /* 블럭 높이 축소 */
+            .mock-chunk-separator { font-size: 1rem; }
+
+            /* 03. App Screen 이미지 모바일 최적화 */
+            .feature-visual { 
+                border-radius: 18px; 
+                border: none; 
+                box-shadow: none; 
+                min-height: auto; /* 강제 높이 제거 (이미지 비율대로) */
+                background: transparent; /* 배경 투명하게 (필요시) */
+            }
+            
+            .feature-visual img { 
+                border-radius: 18px; 
+                width: 100%; /* 너비 꽉 차게 */
+                height: auto; /* 높이는 비율에 맞춰서 자동 조절 */
+                object-fit: cover; /* 비율 유지하며 꽉 채우기 */
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* 모바일에서도 살짝 그림자 있으면 예쁨 */
+            } 
         }
     </style>
 </head>
@@ -456,10 +486,11 @@
     <footer>
         <div class="container">
             <div class="footer-bottom">
-                <span>&copy; 2025 D.U. All rights reserved.</span>
+                <span> copyright&copy;2025Team D.U. All rights reserved.
+                </span>
                 <div style="display: flex; gap: 15px;">
                     <a href="https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR" target="_blank" class="footer-link" style="color:#5c6c7f;">GitHub</a>
-                    <a href="contact.html" class="footer-link" style="color:#5c6c7f;">Contact</a>
+                    <a href="mailto:contact@bettrr.com" class="footer-link" style="color:#5c6c7f;">Contact</a>
                 </div>
             </div>
         </div>
