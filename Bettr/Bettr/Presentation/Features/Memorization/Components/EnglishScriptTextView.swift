@@ -53,7 +53,6 @@ struct EnglishScriptTextView: View {
                 .padding(.horizontal, 12)
                 .font(.bodyRegular24)
                 .opacity(isHidden ? 0 : 1)
-                .animation(.linear(duration: 0.1), value: attributedText)
         }
         .buttonStyle(ScriptButtonStyle())
         .hoverEffect(.lift)

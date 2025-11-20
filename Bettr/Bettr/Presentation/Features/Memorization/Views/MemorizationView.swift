@@ -68,7 +68,7 @@ struct MemorizationView: View {
                 await wordListViewModel.loadWords()
             }
         }
-        .animation(.spring(), value: viewModel.uiState.toasterMessage)
+        .animation(.easeOut(duration: 0.2), value: viewModel.uiState.toasterMessage)
     }
     
     /// 메인 콘텐츠 뷰

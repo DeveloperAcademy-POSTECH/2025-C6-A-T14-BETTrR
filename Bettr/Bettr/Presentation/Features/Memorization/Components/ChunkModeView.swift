@@ -73,8 +73,6 @@ struct ChunkModeView: View {
     
     /// 애니메이션 로직을 포함한 탭 핸들러
     private func handleChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
-        withAnimation(.easeInOut(duration: 0.02)) {
-            viewModel.handleChunkTap(chunk: chunk, identifier: identifier)
-        }
+        viewModel.handleChunkTap(chunk: chunk, identifier: identifier)
     }
 }

@@ -139,7 +139,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         if uiState.funcMode == .hide {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngChunks, for: identifier)
         } else {
-            audioService.play(text: chunk.englishText)
+            if audioService.currentSpokenTextID == chunk.englishText {
+                audioService.stop()
+            } else {
+                audioService.play(text: chunk.englishText)
+            }
         }
     }
     
@@ -147,7 +151,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         if uiState.funcMode == .hide {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngSentences, for: sentence.orderIndex)
         } else {
-            audioService.play(text: sentence.englishText)
+            if audioService.currentSpokenTextID == sentence.englishText {
+                audioService.stop()
+            } else {
+                audioService.play(text: sentence.englishText)
+            }
         }
     }
     
@@ -169,7 +177,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     func isSentenceHidden(_ index: Int) -> Bool {
         return interactionState.hiddenEngSentences.contains(index)
     }
-
+    
     // MARK: - Toaster Logic
     
     /// 토스터 메시지를 2초간 표시
