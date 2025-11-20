@@ -18,8 +18,10 @@ struct HomeView: View {
     private let pdfTextExtractor = PDFTextExtractor()
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 48) {
+        VStack(alignment: .leading, spacing: 84) {
             MainHeaderView()
+                .padding(.top, 48)
+                .padding(.horizontal, 84)
             
             HomeContentView(
                 onSelectPhoto: { showingPhotoPicker = true },
@@ -27,10 +29,7 @@ struct HomeView: View {
                 onSelectFile: { isShowingDocumentPicker = true },
                 requestDelete: requestDelete
             )
-            
-            Spacer()
         }
-        .padding(.top, 48)
         .task {
             do {
                 try await container.refreshScripts()
