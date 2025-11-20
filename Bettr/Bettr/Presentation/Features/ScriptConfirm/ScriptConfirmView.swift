@@ -104,6 +104,7 @@ struct ScriptConfirmView: View {
             // 분석 및 저장 버튼
             Button(action: {
                 Task {
+                    isTitleEditing = false
                     // 🔹 추가됨: 타임아웃 플래그 초기화
                     didTimeout = false
                     
