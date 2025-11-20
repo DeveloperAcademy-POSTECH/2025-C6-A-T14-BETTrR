@@ -62,11 +62,15 @@ struct RecordingView: View {
             
             Spacer(minLength: 60)
             
-            Image(.waveForm)
-                .resizable()
-                .scaledToFit()
+            LottieView(name: "recordLottie")
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 48)
+            
+//            Image(.waveForm)
+//                .resizable()
+//                .scaledToFit()
+//                .frame(maxWidth: .infinity)
+//                .padding(.horizontal, 48)
             
             Spacer(minLength: 60)
             
