@@ -10,38 +10,39 @@ import SwiftUI
 
 struct FeedbackResultView: View {
     
-    @State private var viewModel: FeedbackViewModel
+    @State private var viewModel: FeedbackResultViewModel
     
-    init(viewModel: FeedbackViewModel) {
+    init(viewModel: FeedbackResultViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
     
     var body: some View {
-        ZStack {
-            VStack {
-                FeedbackResultDisplayView(model: viewModel.resultModel)
-            }
-            .navigationBarBackButtonHidden()
-            .cancelToolbar()
-            .navigationBarTitleDisplayMode(.inline)
-            
-            // 로딩
-            if viewModel.isSaving {
+        VStack {
+            if viewModel.isLoading { // 로딩
                 ProgressView()
-            }
-            
-            // 에러
-            if let error = viewModel.saveError {
+            } else if let error = viewModel.currentError { // 에러
                 ErrorView(error: error) {
+                    Task { // 재시도 로직
+                        await viewModel.loadFeedbackData()
+                    }
+                }
+            } else if let resultModel = viewModel.resultModel { // 성공
+                FeedbackResultDisplayView(model: resultModel)
+            } else {
+                // 예외 케이스: 로딩도 아니고, 에러도 아닌데, 데이터도 없는 경우
+                ErrorView(error: .unknown("데이터를 불러오지 못했습니다.")) {
                     Task {
-                        await viewModel.saveFeedbackResult()
+                        await viewModel.loadFeedbackData()
                     }
                 }
             }
         }
-        .onAppear {
-            Task {
-                await viewModel.saveFeedbackResult()
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .cancelToolbar()
+        .task {
+            if viewModel.resultModel == nil {
+                await viewModel.loadFeedbackData()
             }
         }
     }

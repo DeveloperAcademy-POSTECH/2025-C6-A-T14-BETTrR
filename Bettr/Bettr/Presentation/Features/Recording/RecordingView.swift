@@ -13,7 +13,6 @@ struct RecordingView: View {
     @Environment(DatabaseContainer.self) private var container
     
     @State private var modalRouter = NavigationRouter()
-    
     @State private var speechRecognizer: SpeechRecognizer
     @State private var showEmptyTranscriptAlert = false
     
@@ -32,112 +31,134 @@ struct RecordingView: View {
         self.currentFeedbackCount = currentFeedbackCount
         _speechRecognizer = State(wrappedValue: SpeechRecognizer(sentences: sentences))
     }
+    // MARK: - 로직 통합: 분석 -> 저장 -> 이동
     
-    var body: some View {
-        NavigationStack(path: $modalRouter.path) {
-            VStack(alignment: .center) {
-                
-                Spacer(minLength: 0)
-                
-                // 타이머
-                Text(speechRecognizer.elapsedTime.toMMSSms())
-                    .font(.labelMedium64)
-                    .foregroundStyle(.normalBlack900)
-
-                Spacer(minLength: 60)
-                
-                Image(.waveForm)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 48)
-                
-                Spacer(minLength: 60)
-                                
-                HStack(spacing: 30) {
-                    let isRecording = speechRecognizer.isRecording
-                    let hasRecorded = speechRecognizer.hasRecorded
-                    
-                    let isReadyToRecord = !isRecording && !hasRecorded
-                    let didFinishRecording = hasRecorded && !isRecording
-                    
-                    Button(action: { speechRecognizer.cancelRecording() }) {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    .buttonStyle(SecondaryRecordingButtonStyle())
-                    .disabled(!didFinishRecording)
-                    
-                    Spacer()
-                    
-                    Button(action: { speechRecognizer.toggleRecording() }) {
-                        Image(systemName: isReadyToRecord ? "microphone" : "stop.fill")
-                    }
-                    .buttonStyle(RecordingButtonStyle(isRecording: isRecording))
-                    .disabled(speechRecognizer.authorizationStatus != .authorized ||
-                              speechRecognizer.microphoneAuthorizationStatus != .granted ||
-                              didFinishRecording
-                    )
-
-                    Spacer()
-                    
-                    Button(action: { speechRecognizer.triggerAnalysis() }) {
-                        Image(systemName: "arrow.right")
-                    }
-                    .buttonStyle(RecordingButtonStyle(isRecording: false))
-                    .disabled(!didFinishRecording)
-                }
-                
-                Spacer(minLength: 0)
+    private func analyzeAndSave() {
+            guard let diffs = speechRecognizer.analyzedDiffs,
+                  let practiceDuration = speechRecognizer.analyzedPracticeDuration else {
+                return // 분석이 완료되지 않음
             }
-            .safeAreaPadding(.horizontal, 180)
-            .safeAreaPadding(.top, 24)
-            .safeAreaPadding(.bottom, 48)
-            .onChange(of: speechRecognizer.analyzedDiffs) { _, newDiffs in
-                if let diffs = newDiffs, let practiceDuration = speechRecognizer.analyzedPracticeDuration {
-                    // 결과 화면으로 이동
-                    modalRouter.push(ModalRoute.feedbackResult(
-                        diffs: diffs,
-                        practiceDuration: practiceDuration,
-                        sentences: speechRecognizer.sentences,
-                        scriptTitle: self.scriptTitle,
-                        currentFeedbackCount: self.currentFeedbackCount
-                    ))
+            
+            if diffs.isEmpty {
+                showEmptyTranscriptAlert = true
+                return
+            }
+            
+            Task {
+                let processor = FeedbackResultProcessor()
+                
+                // ✅ 1. Processor를 사용하여 DB 저장에 필요한 모든 통계를 한 번에 계산
+                let summaryStats = processor.createFeedbackParamsAndSummaryStats(
+                    fromLiveAnalysis: diffs,
+                    sentences: speechRecognizer.sentences,
+                    practiceDuration: practiceDuration
+                )
+                
+                do {
+                    // 2. DB 저장 및 Summary 객체 반환
+                    let summary = try await container.scriptManagementService.createFeedbackSummary(
+                        scriptId: self.scriptId,
+                        accuracy: summaryStats.accuracy,
+                        missingWordCount: summaryStats.missingCount,
+                        addedWordCount: summaryStats.extraCount,
+                        replacedWordCount: summaryStats.replacedCount,
+                        practiceDuration: summaryStats.practiceDuration,
+                        feedbackDetailsData: summaryStats.dbDetails.map {
+                            ($0.wordDiff, $0.originalText, $0.sentenceIndex, $0.wordIndex)
+                        }
+                    )
                     
-                    // 이동 직후, 다음 세션을 위해 상태를 초기화합니다.
+                    guard let summaryId = summary.id else { throw AppError.unknown("저장된 Summary ID를 찾을 수 없습니다.") }
+                    
+                    // 3. 이동 전 상태 초기화
                     speechRecognizer.clearTranscript()
                     speechRecognizer.analyzedDiffs = nil
                     speechRecognizer.analyzedPracticeDuration = nil
-                }
-            }
-            .onChange(of: speechRecognizer.recordingDidFinishEmpty) { _, isEmpty in
-                if isEmpty {
-                    showEmptyTranscriptAlert = true
-                    speechRecognizer.recordingDidFinishEmpty = false
-                }
-            }
-            .alert("인식된 영문 텍스트가 없습니다.", isPresented: $showEmptyTranscriptAlert) {
-                Button("확인") { speechRecognizer.cancelRecording() }
-            } message: {
-                Text("피드백 생성을 위해 인식된 영문 텍스트가 있어야 합니다. 다시 녹음 해주세요.")
-            }
-            .cancelToolbar()
-            .navigationDestination(for: ModalRoute.self) { route in
-                switch route {
-                case .feedbackResult(let diffs, let practiceDuration, let sentences, let scriptTitle, let currentFeedbackCount):
-                    let viewModel = FeedbackViewModel(
-                        scriptId: self.scriptId,
-                        scriptTitle: scriptTitle,
-                        currentFeedbackCount: currentFeedbackCount,
-                        diffs: diffs,
-                        sentences: sentences,
-                        practiceDuration: practiceDuration,
-                        scriptManagementService: container.scriptManagementService
-                    )
                     
-                    FeedbackResultView(viewModel: viewModel)
-                        .environment(\.modalDismiss, modalDismiss)
+                    // 4. 결과 화면으로 라우팅 (Summary ID 전달)
+                    modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId))
+                    
+                } catch {
+                    print("피드백 저장 실패: \(error)")
+                    // 사용자에게 저장 실패를 알리는 로직 추가
                 }
             }
         }
+    
+    var body: some View {
+        VStack(alignment: .center) {
+            
+            Spacer(minLength: 0)
+            
+            // 타이머
+            Text(speechRecognizer.elapsedTime.toMMSSms())
+                .font(.labelMedium64)
+                .foregroundStyle(.normalBlack900)
+            
+            Spacer(minLength: 60)
+            
+            Image(.waveForm)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 48)
+            
+            Spacer(minLength: 60)
+            
+            HStack(spacing: 30) {
+                let isRecording = speechRecognizer.isRecording
+                let hasRecorded = speechRecognizer.hasRecorded
+                
+                let isReadyToRecord = !isRecording && !hasRecorded
+                let didFinishRecording = hasRecorded && !isRecording
+                
+                Button(action: { speechRecognizer.cancelRecording() }) {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .buttonStyle(SecondaryRecordingButtonStyle())
+                .disabled(!didFinishRecording)
+                
+                Spacer()
+                
+                Button(action: { speechRecognizer.toggleRecording() }) {
+                    Image(systemName: isReadyToRecord ? "microphone" : "stop.fill")
+                }
+                .buttonStyle(RecordingButtonStyle(isRecording: isRecording))
+                .disabled(speechRecognizer.authorizationStatus != .authorized ||
+                          speechRecognizer.microphoneAuthorizationStatus != .granted ||
+                          didFinishRecording
+                )
+                
+                Spacer()
+                
+                Button(action: { speechRecognizer.triggerAnalysis() }) {
+                    Image(systemName: "arrow.right")
+                }
+                .buttonStyle(RecordingButtonStyle(isRecording: false))
+                .disabled(!didFinishRecording)
+            }
+            
+            Spacer(minLength: 0)
+        }
+        .safeAreaPadding(.horizontal, 180)
+        .safeAreaPadding(.top, 24)
+        .safeAreaPadding(.bottom, 48)
+        .onChange(of: speechRecognizer.analyzedDiffs) { _, newDiffs in
+            if newDiffs != nil && speechRecognizer.analyzedPracticeDuration != nil {
+                analyzeAndSave()
+            }
+        }
+        .onChange(of: speechRecognizer.recordingDidFinishEmpty) { _, isEmpty in
+            if isEmpty {
+                showEmptyTranscriptAlert = true
+                speechRecognizer.recordingDidFinishEmpty = false
+            }
+        }
+        .alert("인식된 영문 텍스트가 없습니다.", isPresented: $showEmptyTranscriptAlert) {
+            Button("확인") { speechRecognizer.cancelRecording() }
+        } message: {
+            Text("피드백 생성을 위해 인식된 영문 텍스트가 있어야 합니다. 다시 녹음 해주세요.")
+        }
+        .cancelToolbar()
     }
 }

@@ -17,11 +17,6 @@ enum Route: Hashable {
 }
 
 enum ModalRoute: Hashable {
-    case feedbackResult(
-        diffs: [WordDiff],
-        practiceDuration: Double,
-        sentences: [String],
-        scriptTitle: String,
-        currentFeedbackCount: Int
-    )
+    case recording(sentences: [String], scriptTitle: String, currentFeedbackCount: Int)
+    case feedbackResult(summaryId: Int64)
 }

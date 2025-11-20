@@ -8,7 +8,7 @@
 import Foundation
 
 @Observable
-class FeedbackHistoryViewModel {
+class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
     
     // MARK: - Dependencies (의존성)
     let scriptId: Int64
@@ -89,11 +89,14 @@ class FeedbackHistoryViewModel {
 
                 let frequentlyWrongWords = processFrequentlyWrongWords(from: allFeedbackDetails)
                 
+                let feedbackCount = allFeedbackSummariesSorted.count
+                
                 self.feedbackHistoryData = FeedbackHistoryModel(
                     title: scriptTitle,
                     allFeedbackSummaries: allFeedbackSummariesSorted,
                     recentFeedbackSummaries: recentFeedbackSummaries,
-                    frequentlyWrongWords: frequentlyWrongWords
+                    frequentlyWrongWords: frequentlyWrongWords,
+                    feedbackCount: feedbackCount
                 )
                 
                 self.currentTitle = scriptTitle

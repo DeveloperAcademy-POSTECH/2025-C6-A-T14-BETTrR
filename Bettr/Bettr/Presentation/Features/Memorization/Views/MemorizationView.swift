@@ -12,6 +12,7 @@ struct MemorizationView: View {
     @State var wordListViewModel: WordListViewModel
     
     @Environment(AudioPlaybackService.self) private var audioService
+    @Environment(DatabaseContainer.self) private var container
     
     init(viewModel: MemorizationViewModel, wordListViewModel: WordListViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -51,11 +52,11 @@ struct MemorizationView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $viewModel.uiState.showFeedbackModal) {
-            RecordingView(
-                scriptId: viewModel.scriptId,
-                sentences: viewModel.referenceSentences,
-                scriptTitle: viewModel.currentTitle,
-                currentFeedbackCount: viewModel.currentFeedbackCount
+            FeedbackHistoryView(
+                viewModel: FeedbackHistoryViewModel(
+                    scriptId: viewModel.scriptId,
+                    scriptService: container.scriptManagementService
+                )
             )
         }
         .onAppear {

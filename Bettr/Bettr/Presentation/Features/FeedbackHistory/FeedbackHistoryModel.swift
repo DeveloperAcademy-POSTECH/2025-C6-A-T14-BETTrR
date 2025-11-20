@@ -15,6 +15,7 @@ struct FeedbackHistoryModel: Hashable {
     let allFeedbackSummaries: [FeedbackSummary]
     let recentFeedbackSummaries: [FeedbackSummary]
     let frequentlyWrongWords: [WrongWordCount]
+    let feedbackCount: Int
 }
 
 /// "자주 틀린 단어" 데이터를 담기 위한 모델
