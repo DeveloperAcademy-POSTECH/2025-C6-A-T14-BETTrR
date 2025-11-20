@@ -189,17 +189,3 @@ struct AccuracyGraphSection: View {
         }
     }
 }
-
-extension Array {
-    func chunked(into size: Int) -> [[Element]] { stride(from: 0, to: count, by: size).map { Array(self[$0..<Swift.min($0 + size, count)]) } }
-    
-    func chunkedFromEnd(into size: Int) -> [[Element]] {
-        guard !self.isEmpty else { return [] }
-        
-        // 뒤집어서 (최근부터) 자르고
-        let reversedChunks = self.reversed().chunked(into: size)
-        
-        // 다시 원래 순서로 돌려서 배열 반환
-        return reversedChunks.map { Array($0.reversed()) }
-    }
-}
