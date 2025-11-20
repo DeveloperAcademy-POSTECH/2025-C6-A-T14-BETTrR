@@ -23,11 +23,9 @@ struct FeedbackHistoryView: View {
         NavigationStack(path: $modalRouter.path) {
             Group {
                 mainContent
-                    .border(Color.red)
             }
             .safeAreaPadding(.top, 24)
             .safeAreaPadding(.bottom, 48)
-            .border(Color.blue)
             .environment(\.modalDismiss, modalDismiss)
             .navigationBarTitleDisplayMode(.inline)
             .cancelToolbar(isXmark: true)
