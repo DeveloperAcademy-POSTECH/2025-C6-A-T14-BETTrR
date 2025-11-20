@@ -26,6 +26,10 @@ struct EnglishScriptTextView: View {
             return attrString
         }
         
+        let defaultColor: Color = (audioService.isPlaying || audioService.isPaused) ? unspokenColor : spokenColor
+        
+        attrString.foregroundColor = defaultColor
+        
         // 현재 이 텍스트가 재생 중인 경우
         if audioService.currentSpokenTextID == text,
            let nsRange = audioService.currentSpokenRange,
@@ -39,8 +43,6 @@ struct EnglishScriptTextView: View {
                 attrString[attrString.startIndex..<attrRange.upperBound].foregroundColor = spokenColor
             }
             
-        } else { // 재생 중이 아닐 때 (기본 상태)
-            attrString.foregroundColor = spokenColor
         }
         
         return attrString
