@@ -52,24 +52,6 @@ struct ContentView: View {
                             viewModel: mainViewModel,
                             wordListViewModel: wordViewModel
                         )
-                        
-                    case .historicalFeedback(let summary, let scriptTitle, let feedbackNumber):
-                        let viewModel = HistoricalFeedbackViewModel(
-                            summary: summary,
-                            scriptTitle: scriptTitle,
-                            feedbackNumber: feedbackNumber,
-                            scriptManagementService: container.scriptManagementService
-                        )
-                        
-                        HistoricalFeedbackView(viewModel: viewModel)
-                        
-                    case .allFeedback(let feedbacks, let scriptTitle):
-                        let viewModel = AllFeedbackViewModel(
-                            allFeedbacks: feedbacks,
-                            scriptTitle: scriptTitle,
-                        )
-                        
-                        AllFeedbackView(viewModel: viewModel)
                     }
                 }
         }

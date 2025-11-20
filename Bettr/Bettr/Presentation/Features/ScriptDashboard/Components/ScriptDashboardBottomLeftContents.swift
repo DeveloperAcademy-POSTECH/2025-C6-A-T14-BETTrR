@@ -34,7 +34,6 @@ struct ScriptDashboardBottomLeftContents: View {
                 
                 if allFeedbacks.count > 5 {
                     Button(action: {
-                        router.push(Route.allFeedback(feedbacks: allFeedbacks, scriptTitle: scriptTitle))
                     }) {
                         HStack(spacing: 4) {
                             Text("더보기")
