@@ -12,7 +12,6 @@ struct MainHeaderView: View {
         VStack(alignment: .leading, spacing: 15) {
             HStack {
                 Image(.brandLogo)
-                    .padding(.top, 36)
                     .padding(.leading, 48)
                     
                 Spacer()
