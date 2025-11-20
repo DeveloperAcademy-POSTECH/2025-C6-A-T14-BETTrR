@@ -15,18 +15,18 @@ import Observation
 @MainActor
 @Observable
 class SpeechRecognizer {
- var transcript = ""
-     var isRecording = false
-     var hasRecorded: Bool = false
-     var recordingDidFinishEmpty: Bool = false
-     var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
-     var microphoneAuthorizationStatus: AVAudioApplication.recordPermission = .undetermined
-     var analyzedDiffs: [WordDiff]? = nil
-     var analyzedPracticeDuration: TimeInterval? = nil
+    var transcript = ""
+    var isRecording = false
+    var hasRecorded: Bool = false
+    var recordingDidFinishEmpty: Bool = false
+    var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
+    var microphoneAuthorizationStatus: AVAudioApplication.recordPermission = .undetermined
+    var analyzedDiffs: [WordDiff]? = nil
+    var analyzedPracticeDuration: TimeInterval? = nil
     
     
     // 실시간 경과 시간
-     var elapsedTime: TimeInterval = 0.0
+    var elapsedTime: TimeInterval = 0.0
     
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en"))
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?

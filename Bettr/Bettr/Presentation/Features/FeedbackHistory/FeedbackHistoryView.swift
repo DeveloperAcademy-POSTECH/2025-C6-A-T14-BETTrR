@@ -10,14 +10,16 @@ import Charts
 
 struct FeedbackHistoryView: View {
     
-    // 네비게이션
-    @Environment(\.dismiss) var modalDismiss
     @Environment(DatabaseContainer.self) private var container
-    @State private var modalRouter = NavigationRouter()
+    @Environment(NavigationRouter.self) private var modalRouter
+    @Environment(\.dismiss) var modalDismiss
     
     @State var viewModel: FeedbackHistoryViewModel
     
     var body: some View {
+        
+        @Bindable var modalRouter = modalRouter
+        
         NavigationStack(path: $modalRouter.path) {
             Group {
                 mainContent
@@ -61,7 +63,7 @@ struct FeedbackHistoryView: View {
             }
         }
     }
-
+    
     @ViewBuilder
     private func navigationDestinationView(_ route: ModalRoute) -> some View {
         switch route {
@@ -75,7 +77,6 @@ struct FeedbackHistoryView: View {
             .environment(\.modalDismiss, modalDismiss)
             
         case .feedbackResult(let summaryId):
-            
             let feedbackResultViewModel = FeedbackResultViewModel(
                 scriptId: viewModel.scriptId,
                 summaryId: summaryId,

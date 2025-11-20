@@ -21,7 +21,6 @@ struct CancelToolbar: ViewModifier {
                         Image(systemName: "xmark")
                             .fontWeight(.semibold)
                     }
-                    
                 }
             }
     }

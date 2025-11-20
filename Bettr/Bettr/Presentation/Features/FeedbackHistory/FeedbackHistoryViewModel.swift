@@ -72,13 +72,14 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
         
         for attempt in 0...maxRetries {
             do {
-                let fetchedScript = try await self.scriptService.fetchScript(id: scriptId)
-                
-                guard let script = fetchedScript else {
-                    throw AppError.dataNotFound("스크립트를 찾을 수 없습니다.")
-                }
+                let fetchedData = try await self.scriptService.fetchScriptWithSentences(id: scriptId)
+                let script = fetchedData.script
+                let sentenceObjects = fetchedData.sentences
                 
                 let scriptTitle = script.title
+                let scriptSentences: [String] = sentenceObjects
+                    .sorted { $0.orderIndex < $1.orderIndex }
+                    .map { $0.englishText }
                 
                 let fetchedFeedbackSummaries = try await self.scriptService.fetchFeedbackSummaries(forScriptId: scriptId)
                 let allFeedbackSummariesSorted = fetchedFeedbackSummaries.sorted { $0.createdAt > $1.createdAt }
@@ -86,7 +87,7 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
                 let recentFeedbackSummaries = Array(allFeedbackSummariesSorted.prefix(5))
                 
                 let allFeedbackDetails = try await self.fetchRecentDetails(from: allFeedbackSummariesSorted)
-
+                
                 let frequentlyWrongWords = processFrequentlyWrongWords(from: allFeedbackDetails)
                 
                 let feedbackCount = allFeedbackSummariesSorted.count
@@ -96,7 +97,8 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
                     allFeedbackSummaries: allFeedbackSummariesSorted,
                     recentFeedbackSummaries: recentFeedbackSummaries,
                     frequentlyWrongWords: frequentlyWrongWords,
-                    feedbackCount: feedbackCount
+                    feedbackCount: feedbackCount,
+                    scriptSentences: scriptSentences
                 )
                 
                 self.currentTitle = scriptTitle

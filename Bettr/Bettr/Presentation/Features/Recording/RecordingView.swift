@@ -11,8 +11,8 @@ import Speech
 struct RecordingView: View {
     @Environment(\.dismiss) var modalDismiss
     @Environment(DatabaseContainer.self) private var container
+    @Environment(NavigationRouter.self) private var modalRouter
     
-    @State private var modalRouter = NavigationRouter()
     @State private var speechRecognizer: SpeechRecognizer
     @State private var showEmptyTranscriptAlert = false
     
@@ -36,10 +36,12 @@ struct RecordingView: View {
     private func analyzeAndSave() {
             guard let diffs = speechRecognizer.analyzedDiffs,
                   let practiceDuration = speechRecognizer.analyzedPracticeDuration else {
+                print("DEBUG: 분석 완료되지 않음 (diffs 또는 duration nil)")
                 return // 분석이 완료되지 않음
             }
             
             if diffs.isEmpty {
+                print("DEBUG: 인식된 텍스트 없음. Alert 표시")
                 showEmptyTranscriptAlert = true
                 return
             }
@@ -53,6 +55,8 @@ struct RecordingView: View {
                     sentences: speechRecognizer.sentences,
                     practiceDuration: practiceDuration
                 )
+                
+                print("DEBUG: 통계 계산 완료. 정확도: \(summaryStats.accuracy)")
                 
                 do {
                     // 2. DB 저장 및 Summary 객체 반환
@@ -68,19 +72,18 @@ struct RecordingView: View {
                         }
                     )
                     
+                    print("DEBUG: Summary DB 저장 완료. ID: \(summary.id ?? 0)")
+                    
                     guard let summaryId = summary.id else { throw AppError.unknown("저장된 Summary ID를 찾을 수 없습니다.") }
-                    
-                    // 3. 이동 전 상태 초기화
-                    speechRecognizer.clearTranscript()
-                    speechRecognizer.analyzedDiffs = nil
-                    speechRecognizer.analyzedPracticeDuration = nil
-                    
+                                        
                     // 4. 결과 화면으로 라우팅 (Summary ID 전달)
-                    modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId))
+                    modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId)
+                    )
+                    
+                    print("DEBUG: 라우팅 실행 완료. (이동 성공 여부는 라우터 구현에 따라 다름)")
                     
                 } catch {
-                    print("피드백 저장 실패: \(error)")
-                    // 사용자에게 저장 실패를 알리는 로직 추가
+                    print("❌ 피드백 저장/라우팅 실패: \(error)")
                 }
             }
         }
@@ -140,6 +143,8 @@ struct RecordingView: View {
             
             Spacer(minLength: 0)
         }
+        .cancelToolbar()
+        .navigationBarBackButtonHidden()
         .safeAreaPadding(.horizontal, 180)
         .safeAreaPadding(.top, 24)
         .safeAreaPadding(.bottom, 48)
@@ -159,6 +164,5 @@ struct RecordingView: View {
         } message: {
             Text("피드백 생성을 위해 인식된 영문 텍스트가 있어야 합니다. 다시 녹음 해주세요.")
         }
-        .cancelToolbar()
     }
 }

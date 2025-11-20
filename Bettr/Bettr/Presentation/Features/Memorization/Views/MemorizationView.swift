@@ -10,6 +10,7 @@ struct MemorizationView: View {
     
     @State var viewModel: MemorizationViewModel
     @State var wordListViewModel: WordListViewModel
+    @State private var modalRouter = NavigationRouter()
     
     @Environment(AudioPlaybackService.self) private var audioService
     @Environment(DatabaseContainer.self) private var container
@@ -58,6 +59,7 @@ struct MemorizationView: View {
                     scriptService: container.scriptManagementService
                 )
             )
+            .environment(modalRouter)
         }
         .onAppear {
             viewModel.onAppear()

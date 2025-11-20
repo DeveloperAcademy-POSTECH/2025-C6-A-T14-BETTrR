@@ -10,6 +10,9 @@ import SwiftUI
 import Charts
 
 struct FeedbackHistoryLeftContents: View {
+    
+    @Environment(NavigationRouter.self) private var modalRouter
+    
     let viewModel: FeedbackHistoryViewModel
     
     private var allFeedbackSummaries: [FeedbackSummary] {
@@ -24,6 +27,23 @@ struct FeedbackHistoryLeftContents: View {
         VStack(spacing: 60) {
             AccuracyGraphSection(allFeedbackSummaries: allFeedbackSummaries)
             FrequentlyWrongWordsSection(frequentlyWrongWords: frequentlyWrongWords)
+            
+            Button(action: {
+                guard let data = viewModel.feedbackHistoryData,
+                      let sentences = data.scriptSentences else {
+                    print("스크립트 문장 데이터가 없습니다.")
+                    return
+                }
+                modalRouter.push(ModalRoute.recording(
+                    sentences: sentences,
+                    scriptTitle: viewModel.currentTitle,
+                    currentFeedbackCount: data.feedbackCount
+                ))
+            }) {
+                Text("테스트 하러 가기")
+                    .font(.labelBold16)
+            }
+            .buttonStyle(.general)
         }
     }
 }
