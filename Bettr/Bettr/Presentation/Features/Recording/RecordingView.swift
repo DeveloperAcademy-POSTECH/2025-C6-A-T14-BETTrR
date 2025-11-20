@@ -12,68 +12,38 @@ struct RecordingView: View {
     @Environment(DatabaseContainer.self) private var container
     @Environment(NavigationRouter.self) private var modalRouter
     
-    @State private var speechRecognizer: SpeechRecognizer
+    @State private var viewModel: RecordingViewModel
     @State private var showEmptyTranscriptAlert = false
     @State private var showUnsavedDataAlert = false
     
     private let scriptId: Int64
     private let scriptTitle: String
-    private let currentFeedbackCount: Int
     
     init(
         scriptId: Int64,
-        sentences: [String],
         scriptTitle: String,
-        currentFeedbackCount: Int
+        viewModel: RecordingViewModel
     ) {
         self.scriptId = scriptId
         self.scriptTitle = scriptTitle
-        self.currentFeedbackCount = currentFeedbackCount
-        _speechRecognizer = State(wrappedValue: SpeechRecognizer(sentences: sentences))
+        _viewModel = State(initialValue: viewModel)
     }
+    
     // MARK: - 로직 통합: 분석 -> 저장 -> 이동
     
-    private func analyzeAndSave() {
-        guard let diffs = speechRecognizer.analyzedDiffs,
-              let practiceDuration = speechRecognizer.analyzedPracticeDuration else {
-            return // 분석이 완료되지 않음
-        }
-        
-        if diffs.isEmpty {
-            showEmptyTranscriptAlert = true
-            return
-        }
-        
+    private func processAnalysisAndSave() {
         Task {
-            let processor = FeedbackResultProcessor()
-            
-            // ✅ 1. Processor를 사용하여 DB 저장에 필요한 모든 통계를 한 번에 계산
-            let summaryStats = processor.createFeedbackParamsAndSummaryStats(
-                fromLiveAnalysis: diffs,
-                sentences: speechRecognizer.sentences,
-                practiceDuration: practiceDuration
-            )
-            
             do {
-                // 2. DB 저장 및 Summary 객체 반환
-                let summary = try await container.scriptManagementService.createFeedbackSummary(
-                    scriptId: self.scriptId,
-                    accuracy: summaryStats.accuracy,
-                    missingWordCount: summaryStats.missingCount,
-                    addedWordCount: summaryStats.extraCount,
-                    replacedWordCount: summaryStats.replacedCount,
-                    practiceDuration: summaryStats.practiceDuration,
-                    feedbackDetailsData: summaryStats.dbDetails.map {
-                        ($0.wordDiff, $0.originalText, $0.sentenceIndex, $0.wordIndex)
-                    }
-                )
+                let summaryId = try await viewModel.saveFeedback(scriptId: scriptId)
                 
-                guard let summaryId = summary.id else { throw AppError.unknown("저장된 Summary ID를 찾을 수 없습니다.") }
+                modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId, fromRecording: true))
                 
-                // 4. 결과 화면으로 라우팅 (Summary ID 전달)
-                modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId, fromRecording: true)
-                )
-                
+            } catch let error as RecordingViewModel.RecordingError {
+                if case .emptyTranscript = error {
+                    showEmptyTranscriptAlert = true
+                } else {
+                    print("❌ 피드백 저장/라우팅 실패: \(error)")
+                }
             } catch {
                 print("❌ 피드백 저장/라우팅 실패: \(error)")
             }
@@ -86,7 +56,7 @@ struct RecordingView: View {
             Spacer(minLength: 0)
             
             // 타이머
-            Text(speechRecognizer.elapsedTime.toMMSSms())
+            Text(viewModel.elapsedTime.toMMSSms())
                 .font(.labelMedium64)
                 .foregroundStyle(.normalBlack900)
             
@@ -101,13 +71,13 @@ struct RecordingView: View {
             Spacer(minLength: 60)
             
             HStack(spacing: 30) {
-                let isRecording = speechRecognizer.isRecording
-                let hasRecorded = speechRecognizer.hasRecorded
+                let isRecording = viewModel.isRecording
+                let hasRecorded = viewModel.hasRecorded
                 
                 let isReadyToRecord = !isRecording && !hasRecorded
                 let didFinishRecording = hasRecorded && !isRecording
                 
-                Button(action: { speechRecognizer.cancelRecording() }) {
+                Button(action: { viewModel.cancelRecording() }) {
                     Image(systemName: "arrow.clockwise")
                 }
                 .buttonStyle(SecondaryRecordingButtonStyle())
@@ -115,18 +85,18 @@ struct RecordingView: View {
                 
                 Spacer()
                 
-                Button(action: { speechRecognizer.toggleRecording() }) {
+                Button(action: { viewModel.toggleRecording() }) {
                     Image(systemName: isReadyToRecord ? "microphone" : "stop.fill")
                 }
                 .buttonStyle(RecordingButtonStyle(isRecording: isRecording))
-                .disabled(speechRecognizer.authorizationStatus != .authorized ||
-                          speechRecognizer.microphoneAuthorizationStatus != .granted ||
+                .disabled(viewModel.authorizationStatus != .authorized ||
+                          viewModel.microphoneAuthorizationStatus != .granted ||
                           didFinishRecording
                 )
                 
                 Spacer()
                 
-                Button(action: { speechRecognizer.triggerAnalysis() }) {
+                Button(action: { processAnalysisAndSave() }) {
                     Image(systemName: "arrow.right")
                 }
                 .buttonStyle(RecordingButtonStyle(isRecording: false))
@@ -138,19 +108,14 @@ struct RecordingView: View {
         .safeAreaPadding(.horizontal, 180)
         .safeAreaPadding(.top, 24)
         .safeAreaPadding(.bottom, 48)
-        .onChange(of: speechRecognizer.analyzedDiffs) { _, newDiffs in
-            if newDiffs != nil && speechRecognizer.analyzedPracticeDuration != nil {
-                analyzeAndSave()
-            }
-        }
-        .onChange(of: speechRecognizer.recordingDidFinishEmpty) { _, isEmpty in
+        .onChange(of: viewModel.recordingDidFinishEmpty) { _, isEmpty in
             if isEmpty {
                 showEmptyTranscriptAlert = true
-                speechRecognizer.recordingDidFinishEmpty = false
+                viewModel.recordingDidFinishEmpty = false
             }
         }
         .alert("인식된 영문 텍스트가 없습니다.", isPresented: $showEmptyTranscriptAlert) {
-            Button("확인") { speechRecognizer.cancelRecording() }
+            Button("확인") { viewModel.cancelRecording() }
         } message: {
             Text("피드백 생성을 위해 인식된 영문 텍스트가 있어야 합니다. 다시 녹음 해주세요.")
         }
@@ -159,7 +124,7 @@ struct RecordingView: View {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
                     // 녹음 데이터가 있으면 Alert
-                    if speechRecognizer.hasRecorded {
+                    if viewModel.hasRecorded {
                         showUnsavedDataAlert = true
                     } else {
                         // 없으면 바로 뒤로

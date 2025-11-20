@@ -39,9 +39,9 @@ struct FeedbackHistoryLeftContents: View {
                     return
                 }
                 modalRouter.push(ModalRoute.recording(
-                    sentences: sentences,
+                    scriptId: viewModel.scriptId,
                     scriptTitle: viewModel.currentTitle,
-                    currentFeedbackCount: data.feedbackCount
+                    sentences: sentences,
                 ))
             }) {
                 Text("테스트 하러 가기")

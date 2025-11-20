@@ -66,12 +66,16 @@ struct FeedbackHistoryView: View {
     @ViewBuilder
     private func navigationDestinationView(_ route: ModalRoute) -> some View {
         switch route {
-        case .recording(let sentences, let scriptTitle, let currentFeedbackCount):
-            RecordingView(
-                scriptId: viewModel.scriptId,
+        case .recording(let scriptId, let scriptTitle, let sentences):
+            let recordingViewModel = RecordingViewModel(
                 sentences: sentences,
+                scriptManagementService: container.scriptManagementService
+            )
+            
+            RecordingView(
+                scriptId: scriptId,
                 scriptTitle: scriptTitle,
-                currentFeedbackCount: currentFeedbackCount
+                viewModel: recordingViewModel
             )
             
         case .feedbackResult(let summaryId, let fromRecording):
