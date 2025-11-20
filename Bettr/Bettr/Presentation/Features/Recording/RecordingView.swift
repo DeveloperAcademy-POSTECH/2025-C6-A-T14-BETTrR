@@ -62,15 +62,13 @@ struct RecordingView: View {
             
             Spacer(minLength: 60)
             
-            LottieView(name: "recordLottie")
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 48)
-            
-//            Image(.waveForm)
-//                .resizable()
-//                .scaledToFit()
-//                .frame(maxWidth: .infinity)
-//                .padding(.horizontal, 48)
+            LottieView(
+                name: "recordLottie",
+                animationSpeed: 2.0,
+                isAnimating: viewModel.isRecording
+            )
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 48)
             
             Spacer(minLength: 60)
             
@@ -127,11 +125,9 @@ struct RecordingView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    // 녹음 데이터가 있으면 Alert
                     if viewModel.hasRecorded {
                         showUnsavedDataAlert = true
                     } else {
-                        // 없으면 바로 뒤로
                         modalRouter.pop()
                     }
                 } label: {
