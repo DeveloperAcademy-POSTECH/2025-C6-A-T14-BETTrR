@@ -62,13 +62,13 @@ struct RecordingView: View {
                     .padding(.top, 48)
                 
                 // 로띠
-                LottieView(
-                    name: "recordLottie",
-                    animationSpeed: 2.0,
-                    isAnimating: viewModel.isRecording
-                )
-                .frame(maxWidth: .infinity, maxHeight: 500)
-                .padding(.horizontal, 48)
+//                LottieView(
+//                    name: "recordLottie",
+//                    animationSpeed: 2.0,
+//                    isAnimating: viewModel.isRecording
+//                )
+//                .frame(maxWidth: .infinity, maxHeight: 500)
+//                .padding(.horizontal, 48)
                         
                 // 버튼
                 HStack(spacing: 30) {

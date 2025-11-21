@@ -16,7 +16,10 @@ struct ScriptConfirmLoadingView: View {
             .padding(.top, 36)
             .padding(.bottom, 60)
             
-            LottieView(name: "geminiAnalLottie", loopMode: .loop)
+            LottieView(animation: .named("geminiAnalLottie"))
+                .looping()
+                .aspectRatio(contentMode: .fit)
+                .border(.red)
             
             Spacer()
         }
