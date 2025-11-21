@@ -1,4 +1,5 @@
 import SwiftUI
+import Lottie
 
 struct ScriptConfirmLoadingView: View {
     var body: some View {
@@ -15,58 +16,7 @@ struct ScriptConfirmLoadingView: View {
             .padding(.top, 36)
             .padding(.bottom, 60)
             
-            VStack(spacing: 16) {
-                // 첫 번째 줄 (3개)
-                HStack(spacing: 16) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 120)
-                    
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 120)
-                    
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 120)
-                }
-                
-                // 두 번째 줄 (2개)
-                HStack(spacing: 16) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 130)
-                        .frame(maxWidth: .infinity)
-                    
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 350, height: 130)
-                }
-                
-                // 세 번째 줄 (2개)
-                HStack(spacing: 16) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 120)
-                    
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 120)
-                }
-                
-                // 네 번째 줄 (2개)
-                HStack(spacing: 16) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 300, height: 120)
-                    
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 120)
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            //            .padding(.horizontal, 40)
+            LottieView(name: "geminiAnalLottie", loopMode: .loop)
             
             Spacer()
         }
