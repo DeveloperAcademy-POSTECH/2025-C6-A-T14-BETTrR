@@ -7,6 +7,12 @@
 
 import AVFoundation
 
+enum PlaybackMode {
+    case stopped
+    case single // 단일 문장/청크 탭 재생
+    case multi  // 전체 재생
+}
+
 @Observable
 final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
@@ -19,6 +25,12 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         synthesizer.isPaused
     }
     
+    var currentPlaybackMode: PlaybackMode = .stopped
+    
+    // 전체 재생 모드에서만 사용되는 현재 문장 인덱스
+    var currentMultiSentenceIndex: Int? = nil
+    
+    // 단일 재생/전체 재생의 현재 텍스트 ID
     var currentPlayingSentenceIndex: Int? = nil
     
     /// 현재 재생 중인 텍스트 (고유 식별자 역할)
@@ -66,27 +78,45 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
     /// 특정 텍스트 하나만 재생합니다. (청크 또는 문장 탭 시 사용)
     func play(text: String, language: String = "en-US") {
-        stop()
-        activatePlaybackSession()
+        synthesizer.stopSpeaking(at: .immediate)
+        utteranceQueue.removeAll()
         
-        self.currentPlayingSentenceIndex = nil
+        DispatchQueue.main.async {
+            self.currentPlaybackMode = .single
+            self.currentMultiSentenceIndex = nil
+            self.currentSpokenTextID = text
+            self.currentSpokenRange = nil
+        }
+        
+        activatePlaybackSession()
         
         let utterance = createUtterance(text: text, language: language)
         synthesizer.speak(utterance)
-        isPlaying = true
     }
     
     /// 스크립트 전체 문장을 순서대로 재생합니다. (전체 재생 버튼용)
     func playAll(sentences: [SentenceData], language: String = "en-US") {
-        stop()
+        if synthesizer.isSpeaking || synthesizer.isPaused {
+            synthesizer.stopSpeaking(at: .immediate)
+            deactivateSession()
+        }
+        
+        DispatchQueue.main.async {
+            self.utteranceQueue.removeAll()
+            self.currentPlaybackMode = .multi
+            self.currentSpokenTextID = nil
+            self.currentSpokenRange = nil
+            self.isPlaying = false
+        }
+        
         activatePlaybackSession()
         
-        // SentenceData 배열을 AVSpeechUtterance 큐에 인덱스와 함께 저장
-        self.utteranceQueue = sentences
+        let sortedSentences = sentences
             .sorted { $0.orderIndex < $1.orderIndex }
+        
+        self.utteranceQueue = sortedSentences
             .map { (index: $0.orderIndex, utterance: createUtterance(text: $0.englishText, language: language)) }
         
-        // 큐의 첫 번째 항목부터 재생 시작
         playNextInQueue()
     }
     
@@ -111,10 +141,6 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         if synthesizer.isSpeaking || synthesizer.isPaused {
             synthesizer.stopSpeaking(at: .immediate)
             utteranceQueue.removeAll()
-            isPlaying = false
-            currentPlayingSentenceIndex = nil
-            currentSpokenTextID = nil
-            currentSpokenRange = nil
             deactivateSession()
         }
     }
@@ -125,8 +151,9 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
         // 콜백이 서브 스레드에서 올 수 있으므로 메인 스레드로 전달
         DispatchQueue.main.async {
+            self.isPlaying = true
             self.currentSpokenTextID = utterance.speechString
-            self.currentSpokenRange = NSRange(location: 0, length: 0) // 0으로 초기화
+            self.currentSpokenRange = NSRange(location: 0, length: 0)
         }
     }
     
@@ -148,8 +175,9 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
                 }
             } else {
                 self.isPlaying = false
-                self.currentPlayingSentenceIndex = nil
+                self.currentMultiSentenceIndex = nil
                 self.deactivateSession()
+                self.currentPlaybackMode = .stopped
             }
             
             self.currentSpokenTextID = nil
@@ -165,11 +193,16 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     }
     
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        if utteranceQueue.isEmpty {
-            isPlaying = false
+        DispatchQueue.main.async {
+            if self.currentSpokenTextID == utterance.speechString {
+                self.currentSpokenTextID = nil
+                self.currentSpokenRange = nil
+            }
+            
+            self.isPlaying = false
+            self.currentPlaybackMode = .stopped
+            self.currentMultiSentenceIndex = nil
         }
-        self.currentSpokenTextID = nil
-        self.currentSpokenRange = nil
     }
     
     // --- Private Helpers ---
@@ -186,15 +219,19 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     // utteranceQueue를 순서대로 처리
     private func playNextInQueue() {
         guard !utteranceQueue.isEmpty else {
-            isPlaying = false
-            currentPlayingSentenceIndex = nil
+            self.currentPlaybackMode = .stopped
+            self.isPlaying = false
+            self.currentMultiSentenceIndex = nil
             deactivateSession()
             return
         }
         
         let (index, utterance) = utteranceQueue.removeFirst()
-        self.currentPlayingSentenceIndex = index
+        
+        self.currentMultiSentenceIndex = index
+        self.currentSpokenTextID = utterance.speechString
+        
         synthesizer.speak(utterance)
-        isPlaying = true
+        self.isPlaying = true
     }
 }
