@@ -109,7 +109,7 @@ struct MemorizationView: View {
                 .padding(.bottom, 48)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .onChange(of: audioService.currentPlayingSentenceIndex) { _, newIndex in
+            .onChange(of: audioService.currentMultiSentenceIndex) { _, newIndex in
                 if let newIndex {
                     withAnimation {
                         proxy.scrollTo(newIndex, anchor: .top)

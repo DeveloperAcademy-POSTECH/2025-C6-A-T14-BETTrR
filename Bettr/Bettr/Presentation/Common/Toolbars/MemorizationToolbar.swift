@@ -58,11 +58,13 @@ struct MemorizationToolbarContent: ToolbarContent {
                     .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .hide)
             }
             
-            Button(action: {
-                viewModel.setFunctionMode(.read)
-            }) {
-                Image(systemName: "speaker.wave.2")
-                    .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .read)
+            if !viewModel.isReadModeDisabled {
+                Button(action: {
+                    viewModel.setFunctionMode(.read)
+                }) {
+                    Image(systemName: "speaker.wave.2")
+                        .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .read)
+                }
             }
         }
         
@@ -127,8 +129,9 @@ struct MemorizationToolbarContent: ToolbarContent {
                 viewModel.togglePlayStop()
             }) {
                 Image(systemName: "play.fill")
-                    .foregroundStyle(.secondaryBlue700)
+                    .toolbarButtonStyle(enabled: !viewModel.isFullPlayDisabled)
             }
+            .disabled(viewModel.isFullPlayDisabled)
         }
     }
     

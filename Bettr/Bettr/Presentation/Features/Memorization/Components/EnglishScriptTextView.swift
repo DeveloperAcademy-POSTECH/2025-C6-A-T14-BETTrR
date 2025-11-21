@@ -27,7 +27,7 @@ struct EnglishScriptTextView: View {
             return attrString
         }
         
-        let isMultiSentenceMode = audioService.currentPlayingSentenceIndex != nil
+        let isMultiSentenceMode = audioService.currentPlaybackMode == .multi
         
         let defaultColor: Color
         
@@ -38,7 +38,7 @@ struct EnglishScriptTextView: View {
                 // A. 전체 재생 모드 (완료된 문장과 진행 중/대기 문장 분리)
                 
                 let isSentenceCompleted: Bool
-                if let currentPlayingIndex = audioService.currentPlayingSentenceIndex, let myIndex = sentenceIndex {
+                if let currentPlayingIndex = audioService.currentMultiSentenceIndex, let myIndex = sentenceIndex {
                     isSentenceCompleted = myIndex < currentPlayingIndex
                 } else {
                     isSentenceCompleted = false
