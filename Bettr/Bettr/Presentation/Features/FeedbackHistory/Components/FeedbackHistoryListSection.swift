@@ -1,5 +1,5 @@
 //
-//  FeedbackHistoryRightContents.swift
+//  FeedbackHistoryListSection.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/20/25.
@@ -9,7 +9,7 @@
 import SwiftUI
 import Charts
 
-struct FeedbackHistoryRightContents: View {
+struct FeedbackHistoryListSection: View {
     let viewModel: FeedbackHistoryViewModel
     
     private var allFeedbackSummaries: [FeedbackSummary] {
@@ -24,33 +24,14 @@ struct FeedbackHistoryRightContents: View {
         Group {
             if allFeedbackSummaries.isEmpty {
                 VStack(alignment: .leading, spacing: 16) {
-                    HStack(spacing: 0) {
-                        Text("피드백 히스토리")
-                            .font(.subbodyBold24)
-                            .padding(8)
-                        
-                        Text("총 \(feedbackCount)회")
-                            .font(.calloutRegular16)
-                    }
-                    .foregroundStyle(.normalBlack900)
-                    
+                    FeedbackHistoryListTitle(feedbackCount: feedbackCount)
                     EmptyFeedbackView()
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 16) {
-                        HStack(spacing: 0) {
-                            Text("피드백 히스토리")
-                                .font(.subbodyBold24)
-                                .padding(8)
-                            
-                            Text("총 \(feedbackCount)회")
-                                .font(.calloutRegular16)
-                        }
-                        .foregroundStyle(.normalBlack900)
-                        
+                        FeedbackHistoryListTitle(feedbackCount: feedbackCount)
                         FeedbackHistoryList(viewModel: viewModel)
                             .padding(.horizontal, 16)
                     }
@@ -79,5 +60,22 @@ struct EmptyFeedbackView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+struct FeedbackHistoryListTitle: View {
+    let feedbackCount: Int
+    
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 0) {
+            Text("피드백 히스토리")
+                .font(.subbodyBold24)
+                .padding(8)
+            
+            Text("총 \(feedbackCount)회")
+                .font(.calloutRegular16)
+                .padding(8)
+        }
+        .foregroundStyle(.normalBlack900)
     }
 }

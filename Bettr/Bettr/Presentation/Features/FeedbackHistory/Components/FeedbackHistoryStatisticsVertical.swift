@@ -1,5 +1,5 @@
 //
-//  FeedbackHistoryLeftContents.swift
+//  FeedbackHistoryStatisticsVertical.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/20/25.
@@ -9,7 +9,7 @@
 import SwiftUI
 import Charts
 
-struct FeedbackHistoryLeftContents: View {
+struct FeedbackHistoryStatisticsVertical: View {
     
     @Environment(NavigationRouter.self) private var modalRouter
     

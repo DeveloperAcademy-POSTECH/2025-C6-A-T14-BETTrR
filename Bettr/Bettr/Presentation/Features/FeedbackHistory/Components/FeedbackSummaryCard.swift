@@ -30,6 +30,7 @@ struct FeedbackSummaryCard: View {
                         Text("대체된 단어 \(feedback.replacedWordCount)")
                     }
                     .font(.labelRegular14)
+                    .fixedSize(horizontal: true, vertical: false)
                 }
                 
                 Spacer()
