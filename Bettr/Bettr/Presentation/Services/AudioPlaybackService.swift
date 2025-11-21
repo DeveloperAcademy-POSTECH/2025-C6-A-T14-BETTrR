@@ -7,6 +7,7 @@
 
 import AVFoundation
 
+@MainActor
 enum PlaybackMode {
     case stopped
     case single // 단일 문장/청크 탭 재생
@@ -79,7 +80,6 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     /// 특정 텍스트 하나만 재생합니다. (청크 또는 문장 탭 시 사용)
     func play(text: String, language: String = "en-US") {
         synthesizer.stopSpeaking(at: .immediate)
-        utteranceQueue.removeAll()
         
         DispatchQueue.main.async {
             self.currentPlaybackMode = .single
@@ -98,16 +98,12 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     func playAll(sentences: [SentenceData], language: String = "en-US") {
         if synthesizer.isSpeaking || synthesizer.isPaused {
             synthesizer.stopSpeaking(at: .immediate)
-            deactivateSession()
         }
         
-        DispatchQueue.main.async {
-            self.utteranceQueue.removeAll()
-            self.currentPlaybackMode = .multi
-            self.currentSpokenTextID = nil
-            self.currentSpokenRange = nil
-            self.isPlaying = false
-        }
+        self.utteranceQueue.removeAll()
+        self.currentPlaybackMode = .multi
+        self.currentSpokenTextID = nil
+        self.currentSpokenRange = nil
         
         activatePlaybackSession()
         
@@ -116,6 +112,9 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         
         self.utteranceQueue = sortedSentences
             .map { (index: $0.orderIndex, utterance: createUtterance(text: $0.englishText, language: language)) }
+        
+        print("--- PLAY ALL START ---")
+        print("Total Sentences in Queue: \(self.utteranceQueue.count)")
         
         playNextInQueue()
     }
@@ -141,7 +140,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         if synthesizer.isSpeaking || synthesizer.isPaused {
             synthesizer.stopSpeaking(at: .immediate)
             utteranceQueue.removeAll()
-            deactivateSession()
+            self.isPlaying = false
         }
     }
     
@@ -169,11 +168,17 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     /// 한 문장의 재생이 완료되었을 때 호출됩니다.
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         DispatchQueue.main.async {
+            print("--- DID FINISH ---")
+            print("Finished Utterance: \(utterance.speechString.prefix(20))...")
+            print("Queue Count Before Check: \(self.utteranceQueue.count)")
+            
             if !self.utteranceQueue.isEmpty {
+                print("Action: Scheduling next utterance.")
                 DispatchQueue.main.asyncAfter(deadline: .now() + self.interSentenceDelay) { [weak self] in
                     self?.playNextInQueue()
                 }
             } else {
+                print("Action: Queue is EMPTY. Stopping playback.")
                 self.isPlaying = false
                 self.currentMultiSentenceIndex = nil
                 self.deactivateSession()
@@ -199,9 +204,10 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
                 self.currentSpokenRange = nil
             }
             
-            self.isPlaying = false
             self.currentPlaybackMode = .stopped
             self.currentMultiSentenceIndex = nil
+            
+            self.deactivateSession()
         }
     }
     
@@ -218,7 +224,11 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
     // utteranceQueue를 순서대로 처리
     private func playNextInQueue() {
+        print("--- PLAY NEXT IN QUEUE ---")
+        print("Queue Count at Start: \(utteranceQueue.count)")
+        
         guard !utteranceQueue.isEmpty else {
+            print("Error: playNextInQueue called with empty queue. Stopping.")
             self.currentPlaybackMode = .stopped
             self.isPlaying = false
             self.currentMultiSentenceIndex = nil
@@ -227,6 +237,8 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         }
         
         let (index, utterance) = utteranceQueue.removeFirst()
+        print("Action: Starting index \(index) - Text: \(utterance.speechString.prefix(20))...")
+        print("Queue Count After Removal: \(utteranceQueue.count)") // 큐에서 제거된 후 크기 확인
         
         self.currentMultiSentenceIndex = index
         self.currentSpokenTextID = utterance.speechString

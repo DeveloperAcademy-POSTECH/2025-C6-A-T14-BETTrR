@@ -118,6 +118,10 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             uiState.isPause = false
         } else {
             audioService.stop()
+            
+            if audioService.isPlaying {
+                self.uiState.isPlaying = false
+            }
         }
     }
     
