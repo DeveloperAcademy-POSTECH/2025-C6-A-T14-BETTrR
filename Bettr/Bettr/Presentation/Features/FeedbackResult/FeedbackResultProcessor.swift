@@ -11,7 +11,7 @@ import Foundation
 struct FeedbackResultProcessor {
     
     private let analyzer = SpeechAnalyzer()
-
+    
     // MARK: - 1. 과거 피드백 (View Model 사용)
     
     /// DB에 저장된 요약(Summary) 및 상세(Details) 데이터를 바탕으로 과거의 결과 화면 모델을 재구성
@@ -27,7 +27,7 @@ struct FeedbackResultProcessor {
         
         let filteredSentenceDiffs = self.filterIncorrectSentences(sentenceDiffs: sentenceDiffs)
         
-        let resultModel = FeedbackResultModel(
+        return FeedbackResultModel(
             scriptTitle: scriptTitle,
             feedbackNumber: feedbackNumber,
             accuracy: summary.accuracy,
@@ -37,8 +37,6 @@ struct FeedbackResultProcessor {
             replacedCount: summary.replacedWordCount,
             filteredSentenceDiffs: filteredSentenceDiffs
         )
-        
-        return resultModel
     }
     
     
