@@ -30,11 +30,13 @@ struct FeedbackHistoryListSection: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 16) {
-                        FeedbackHistoryListTitle(feedbackCount: feedbackCount)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    FeedbackHistoryListTitle(feedbackCount: feedbackCount)
+                    ScrollView {
                         FeedbackHistoryList(viewModel: viewModel)
                             .padding(.horizontal, 16)
+                            .padding(.top, 12)
                     }
                 }
                 .scrollIndicators(.hidden)

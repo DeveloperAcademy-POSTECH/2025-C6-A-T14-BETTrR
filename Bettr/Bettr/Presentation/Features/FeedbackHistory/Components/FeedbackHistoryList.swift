@@ -20,7 +20,7 @@ struct FeedbackHistoryList: View {
     }
     
     var body: some View {
-        VStack(spacing: 36) {
+        LazyVStack(spacing: 36) {
             let totalFeedbackCount = allFeedbackSummaries.count
             
             ForEach(Array(allFeedbackSummaries.enumerated()), id: \.element.id) { (index, feedback) in
