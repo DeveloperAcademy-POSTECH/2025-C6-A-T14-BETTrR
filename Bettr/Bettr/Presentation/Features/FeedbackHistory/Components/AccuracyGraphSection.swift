@@ -9,42 +9,13 @@
 import SwiftUI
 import Charts
 
-struct FeedbackChartDataPoint: Identifiable {
-    let id = UUID()
-    let session: Int
-    let score: Int
-}
-
-struct LegendContent: View {
-    var body: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(.secondaryBlue700)
-                    .frame(width: 8, height: 8)
-                Text("점수")
-                    .font(.footerRegular11)
-                    .foregroundStyle(.normalGray600)
-            }
-
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(.alertRed01)
-                    .frame(width: 8, height: 8)
-                Text("평균")
-                    .font(.footerRegular11)
-                    .foregroundStyle(.normalGray600)
-            }
-        }
-    }
-}
-
 struct AccuracyGraphSection: View {
     let allFeedbackSummaries: [FeedbackSummary]
     
     @State private var pageIndex: Int = 0
     private let pageSize = 5
     
+    // FeedbackChartDataPoint로 변환
     private var chartData: [FeedbackChartDataPoint] {
         return allFeedbackSummaries.reversed().enumerated().map { (index, feedback) in
             return FeedbackChartDataPoint(
@@ -113,11 +84,14 @@ struct AccuracyGraphSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            
+            // 타이틀
             Text("종합 점수 추이")
                 .font(.subbodyBold24)
                 .foregroundStyle(.normalBlack900)
                 .padding(8)
             
+            // 그래프
             Group {
                 Chart(pagedChartData) { point in
                     LineMark(

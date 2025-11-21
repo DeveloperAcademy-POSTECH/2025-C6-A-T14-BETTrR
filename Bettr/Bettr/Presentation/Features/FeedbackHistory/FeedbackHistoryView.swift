@@ -22,7 +22,26 @@ struct FeedbackHistoryView: View {
         
         NavigationStack(path: $modalRouter.path) {
             Group {
-                mainContent
+                if viewModel.isLoading { // 로딩
+                    ProgressView()
+                } else if let error = viewModel.currentError { // 에러
+                    ErrorView(error: error) {
+                        Task { // 다시 시도
+                            viewModel.retryLoadData()
+                        }
+                    }
+                } else if viewModel.feedbackHistoryData != nil { // 성공
+                    ViewThatFits(in: .horizontal) {
+                        FullFeedbackHistoryView(viewModel: viewModel)
+                        CompactFeedbackHistoryView(viewModel: viewModel)
+                    }
+                } else { // 예외 케이스: 로딩도 아니고, 에러도 아닌데, 데이터도 없는 경우
+                    ErrorView(error: .unknown("데이터를 불러오지 못했습니다.")) {
+                        Task {
+                            viewModel.retryLoadData()
+                        }
+                    }
+                }
             }
             .safeAreaPadding(.top, 24)
             .safeAreaPadding(.bottom, 48)
@@ -34,32 +53,6 @@ struct FeedbackHistoryView: View {
             }
             .navigationDestination(for: ModalRoute.self) { route in
                 navigationDestinationView(route)
-            }
-        }
-    }
-    
-    @ViewBuilder
-    private var mainContent: some View {
-        if viewModel.isLoading { // 로딩
-            ProgressView()
-        } else if let error = viewModel.currentError { // 에러
-            ErrorView(error: error) {
-                Task { // 다시 시도
-                    viewModel.retryLoadData()
-                }
-            }
-        } else if viewModel.feedbackHistoryData != nil { // 성공
-            HStack(alignment: .top, spacing: 16) {
-               FeedbackHistoryLeftContents(viewModel: viewModel)
-                    .frame(maxWidth: 474)
-                FeedbackHistoryRightContents(viewModel: viewModel)
-            }
-            .safeAreaPadding(.horizontal, 84)
-        } else { // 예외 케이스: 로딩도 아니고, 에러도 아닌데, 데이터도 없는 경우
-            ErrorView(error: .unknown("데이터를 불러오지 못했습니다.")) {
-                Task {
-                    viewModel.retryLoadData()
-                }
             }
         }
     }
@@ -89,5 +82,31 @@ struct FeedbackHistoryView: View {
             FeedbackResultView(viewModel: feedbackResultViewModel)
                 .environment(\.modalDismiss, fromRecording ? modalDismiss : nil)
         }
+    }
+}
+
+
+struct FullFeedbackHistoryView: View {
+    let viewModel: FeedbackHistoryViewModel
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 16) {
+            FullFeedbackHistoryStatistics(viewModel: viewModel)
+                .frame(maxWidth: 474)
+            FeedbackHistoryListSection(viewModel: viewModel)
+        }
+        .safeAreaPadding(.horizontal, 84)
+    }
+}
+
+struct CompactFeedbackHistoryView: View {
+    let viewModel: FeedbackHistoryViewModel
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            CompactFeedbackStatistics(viewModel: viewModel)
+            FeedbackHistoryListSection(viewModel: viewModel)
+        }
+        .safeAreaPadding(.horizontal, 84)
     }
 }

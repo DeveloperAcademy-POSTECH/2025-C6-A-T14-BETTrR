@@ -30,6 +30,7 @@ struct FeedbackSummaryCard: View {
                         Text("대체된 단어 \(feedback.replacedWordCount)")
                     }
                     .font(.labelRegular14)
+                    .fixedSize(horizontal: true, vertical: false)
                 }
                 
                 Spacer()
@@ -42,29 +43,3 @@ struct FeedbackSummaryCard: View {
     }
 }
 
-struct FeedbackSummaryCardPlaceholderView: View {
-
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(" ")
-                    .font(.subtitleSemibold24)
-                
-                HStack(spacing: 6) {
-                    Text(" ")
-                    Text(" ")
-                    Text(" ")
-                    Text(" ")
-                    Text(" ")
-                }
-                .font(.labelRegular14)
-            }
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-            .font(.calloutRegular16)
-        }
-        .opacity(0)
-    }
-}
