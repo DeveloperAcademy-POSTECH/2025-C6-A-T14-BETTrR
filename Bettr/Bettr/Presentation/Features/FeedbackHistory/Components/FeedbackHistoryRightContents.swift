@@ -40,7 +40,7 @@ struct FeedbackHistoryRightContents: View {
             }
             else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    LazyVStack(alignment: .leading, spacing: 16) {
                         HStack(spacing: 0) {
                             Text("피드백 히스토리")
                                 .font(.subbodyBold24)
@@ -72,7 +72,7 @@ struct EmptyFeedbackView: View {
                 .font(.calloutRegular16)
                 .foregroundStyle(.normalGray600)
             
-            Text("녹음으로 피드백을 생성해보세요")
+            Text("테스트를 통해 피드백을 생성해보세요")
                 .font(.calloutRegular16)
                 .foregroundStyle(.normalGray600)
             

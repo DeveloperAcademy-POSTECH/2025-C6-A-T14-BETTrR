@@ -136,7 +136,7 @@ struct MemorizationToolbarContent: ToolbarContent {
         Button(action: {
             viewModel.uiState.showFeedbackModal.toggle()
         }) {
-            Image(systemName: "waveform")
+            Image(systemName: "chart.line.text.clipboard")
                 .toolbarButtonStyle(enabled: !viewModel.isRecordingDisabled)
         }
         .disabled(viewModel.isRecordingDisabled)
