@@ -72,7 +72,6 @@ struct ChunkModeView: View {
         }
     }
     
-    /// 애니메이션 로직을 포함한 탭 핸들러
     private func handleChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
         viewModel.handleChunkTap(chunk: chunk, identifier: identifier)
     }
