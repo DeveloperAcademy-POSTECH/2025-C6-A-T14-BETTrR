@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Speech
+import Lottie
 
 struct RecordingView: View {
     @Environment(DatabaseContainer.self) private var container
@@ -69,6 +70,15 @@ struct RecordingView: View {
 //                )
 //                .frame(maxWidth: .infinity, maxHeight: 500)
 //                .padding(.horizontal, 48)
+                
+                LottieView(animation: .named("recordLottie"))
+                    .playbackMode(viewModel.isRecording ?
+                        .playing(.fromProgress(0, toProgress: 1, loopMode: .loop)) :
+                        .paused(at: .progress(0))
+                    )
+                    .animationSpeed(2.0)
+                    .frame(maxWidth: .infinity, maxHeight: 500)
+                    .padding(.horizontal, 48)
                         
                 // 버튼
                 HStack(spacing: 30) {
