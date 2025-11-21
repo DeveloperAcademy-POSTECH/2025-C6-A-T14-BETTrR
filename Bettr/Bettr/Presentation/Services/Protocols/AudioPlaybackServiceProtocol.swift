@@ -12,6 +12,8 @@ protocol AudioPlaybackServiceProtocol {
     var isPlaying: Bool { get }
     var isPaused: Bool { get }
     
+    var currentSpokenTextID: String? { get }
+    
     func play(text: String, language: String)
     
     func playAll(sentences: [SentenceData], language: String)

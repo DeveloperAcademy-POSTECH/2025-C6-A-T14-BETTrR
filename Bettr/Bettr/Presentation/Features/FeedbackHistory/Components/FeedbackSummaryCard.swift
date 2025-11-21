@@ -8,15 +8,14 @@
 import SwiftUI
 
 struct FeedbackSummaryCard: View {
-    @Environment(NavigationRouter.self) var router
-    
+    @Environment(NavigationRouter.self) var modalRouter
     let feedback: FeedbackSummary
     let scriptTitle: String
     let feedbackNumber: Int
     
     var body: some View {
         Button(action: {
-            router.push(Route.historicalFeedback(summary: feedback, scriptTitle: scriptTitle, feedbackNumber: feedbackNumber))
+            modalRouter.push(ModalRoute.feedbackResult(summaryId: feedback.id!, fromRecording: false))
         }) {
             HStack {
                 VStack(alignment: .leading, spacing: 12) {

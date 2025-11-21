@@ -35,7 +35,8 @@ struct ChunkModeView: View {
                 EnglishScriptTextView(
                     text: chunk.englishText,
                     isHidden: viewModel.interactionState.hiddenEngChunks.contains(chunkID),
-                    onTap: { handleChunkTap(chunk: chunk, identifier: chunkID) }
+                    onTap: { handleChunkTap(chunk: chunk, identifier: chunkID) },
+                    sentenceIndex: sentence.orderIndex
                 )
                 
                 if chunk.orderIndex != lastChunkIndex {
@@ -71,10 +72,7 @@ struct ChunkModeView: View {
         }
     }
     
-    /// 애니메이션 로직을 포함한 탭 핸들러
     private func handleChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
-        withAnimation(.easeInOut(duration: 0.02)) {
-            viewModel.handleChunkTap(chunk: chunk, identifier: identifier)
-        }
+        viewModel.handleChunkTap(chunk: chunk, identifier: identifier)
     }
 }

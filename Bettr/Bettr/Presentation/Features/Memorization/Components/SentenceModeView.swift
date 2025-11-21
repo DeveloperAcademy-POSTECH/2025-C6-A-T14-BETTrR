@@ -17,7 +17,8 @@ struct SentenceModeView: View {
                 EnglishScriptTextView(
                     text: sentence.englishText,
                     isHidden: viewModel.isSentenceHidden(sentence.orderIndex),
-                    onTap: { handleSentenceTap(sentence: sentence) }
+                    onTap: { handleSentenceTap(sentence: sentence) },
+                    sentenceIndex: sentence.orderIndex
                 )
                 
                 KoreanScriptTextView(
@@ -30,10 +31,7 @@ struct SentenceModeView: View {
         }
     }
     
-    /// 애니메이션 로직을 포함한 탭 핸들러
     private func handleSentenceTap(sentence: SentenceData) {
-        withAnimation(.easeInOut(duration: 0.02)) {
-            viewModel.handleSentenceTap(sentence: sentence)
-        }
+        viewModel.handleSentenceTap(sentence: sentence)
     }
 }

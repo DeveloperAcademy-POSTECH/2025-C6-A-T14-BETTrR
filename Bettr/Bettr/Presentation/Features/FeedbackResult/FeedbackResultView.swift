@@ -1,16 +1,18 @@
 //
-//  HistoricalFeedbackView.swift
+//  FeedbackResultView.swift
 //  Bettr
 //
-//  Created by 길정수 on 11/5/25.
+//  Created by 길정수 on 10/30/25.
 //
 
+import Foundation
 import SwiftUI
 
-struct HistoricalFeedbackView: View {
-    @State private var viewModel: HistoricalFeedbackViewModel
+struct FeedbackResultView: View {
     
-    init(viewModel: HistoricalFeedbackViewModel) {
+    @State private var viewModel: FeedbackResultViewModel
+    
+    init(viewModel: FeedbackResultViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
     
@@ -18,7 +20,7 @@ struct HistoricalFeedbackView: View {
         VStack {
             if viewModel.isLoading { // 로딩
                 ProgressView()
-            } else if let error = viewModel.loadError { // 에러
+            } else if let error = viewModel.currentError { // 에러
                 ErrorView(error: error) {
                     Task { // 재시도 로직
                         await viewModel.loadFeedbackData()
@@ -36,6 +38,8 @@ struct HistoricalFeedbackView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .cancelToolbar()
         .task {
             if viewModel.resultModel == nil {
                 await viewModel.loadFeedbackData()

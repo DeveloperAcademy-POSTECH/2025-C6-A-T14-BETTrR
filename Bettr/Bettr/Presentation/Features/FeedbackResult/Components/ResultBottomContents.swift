@@ -50,7 +50,7 @@ struct MistakesListView: View {
         .cardBordered(padding: 36)
         .overlay {
             Rectangle()
-                .foregroundStyle(.primaryBlue300)
+                .foregroundStyle(.primaryBlue200)
                 .frame(width: 1)
                 .padding(.vertical, 36)
         }

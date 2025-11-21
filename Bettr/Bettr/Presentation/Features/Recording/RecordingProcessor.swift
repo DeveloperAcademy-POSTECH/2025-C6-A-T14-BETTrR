@@ -1,95 +1,66 @@
 //
-//  FeedbackResultProcessor.swift
+//  RecordingProcessor.swift
 //  Bettr
 //
-//  Created by 길정수 on 11/14/25.
+//  Created by 길정수 on 11/21/25.
 //
 
 import Foundation
 
-struct FeedbackResultProcessor {
+// MARK: - DB 저장을 위한 데이터 구조
+
+struct FeedbackDetailParams {
+    let wordDiff: WordDiff
+    let originalText: String?
+    let sentenceIndex: Int
+    let wordIndex: Int
+}
+
+struct SummarySaveParams {
+    let dbDetails: [FeedbackDetailParams]
+    let accuracy: Double
+    let missingCount: Int
+    let extraCount: Int
+    let replacedCount: Int
+    let practiceDuration: Double
+}
+
+/// 녹음 분석 결과를 DB 저장에 필요한 파라미터 및 통계로 변환하는 프로세서
+struct RecordingProcessor {
     
-    private let analyzer = SpeechAnalyzer()
+    private let analyzer: SpeechAnalyzer // 의존성 주입
     
-    // MARK: - 1. 실시간 분석 (FeedbackViewModel용)
+    init(analyzer: SpeechAnalyzer) {
+        self.analyzer = analyzer
+    }
     
-    /// 실시간 음성 분석이 완료된 후, 결과 화면에 필요한 모델과 DB에 저장할 파라미터를 생성
-    func generateResult(
-        fromLiveAnalysis scriptTitle: String,
-        currentFeedbackCount: Int,
-        diffs: [WordDiff],
+    
+    // MARK: - 1. 실시간 분석 결과 -> 저장 파라미터 및 요약 통계 생성
+    
+    /// 실시간 음성 분석 결과를 바탕으로 DB 저장에 필요한 파라미터와 요약 통계를 생성합니다.
+    func createSummaryStats(
+        fromLiveAnalysis diffs: [WordDiff],
         sentences: [String],
         practiceDuration: Double
-    ) -> (resultModel: FeedbackResultModel, detailParams: [FeedbackDetailParams]) {
+    ) -> SummarySaveParams {
         
         let sentenceDiffs = self.groupDiffsBySentence(diffs: diffs, sentences: sentences)
         
+        // 통계 계산
         let (missing, extra, replaced) = self.countErrors(from: diffs)
         let accuracy = self.calculateAccuracy(sentences: sentences, sentenceDiffs: sentenceDiffs)
         
-        let filteredSentenceDiffs = self.filterIncorrectSentences(sentenceDiffs: sentenceDiffs)
+        // DB 상세 파라미터 생성
+        let dbDetails = self.createDetailParams(sentenceDiffs: sentenceDiffs)
         
-        let resultModel = FeedbackResultModel(
-            scriptTitle: scriptTitle,
-            feedbackNumber: currentFeedbackCount + 1,
+        return SummarySaveParams(
+            dbDetails: dbDetails,
             accuracy: accuracy,
-            totalRecordingTime: practiceDuration,
             missingCount: missing,
             extraCount: extra,
             replacedCount: replaced,
-            filteredSentenceDiffs: filteredSentenceDiffs
+            practiceDuration: practiceDuration
         )
-        
-        let dbParams = self.createDetailParams(sentenceDiffs: sentenceDiffs)
-        
-        return (resultModel, dbParams)
-    }
-    
-    // MARK: - 2. 과거 피드백 (HistoricalFeedbackViewModel용)
-    
-    /// DB에 저장된 요약(Summary) 및 상세(Details) 데이터를 바탕으로 과거의 결과 화면 모델을 재구성
-    func reconstructResult(
-        fromHistory summary: FeedbackSummary,
-        scriptTitle: String,
-        feedbackNumber: Int,
-        details: [FeedbackDetail],
-        sentences: [Sentence]
-    ) -> FeedbackResultModel {
-        
-        let sentenceDiffs = self.reconstructSentenceDiffs(details: details, sentences: sentences)
-        
-        let filteredSentenceDiffs = self.filterIncorrectSentences(sentenceDiffs: sentenceDiffs)
-        
-        let resultModel = FeedbackResultModel(
-            scriptTitle: scriptTitle,
-            feedbackNumber: feedbackNumber,
-            accuracy: summary.accuracy,
-            totalRecordingTime: summary.practiceDuration,
-            missingCount: summary.missingWordCount,
-            extraCount: summary.addedWordCount,
-            replacedCount: summary.replacedWordCount,
-            filteredSentenceDiffs: filteredSentenceDiffs
-        )
-        
-        return resultModel
-    }
-    
-    
-    // MARK: - 3. Private 헬퍼
-    
-    private func filterIncorrectSentences(sentenceDiffs: [(original: String, diffs: [WordDiff])]) -> [FeedbackResultModel.FilteredSentenceDiff] {
-        return sentenceDiffs.enumerated()
-            .filter { (index, data) in
-                data.diffs.contains { diff in
-                    switch diff {
-                    case .matched: return false
-                    default: return true
-                    }
-                }
-            }
-            .map { (offset, element) in
-                return (index: offset, data: element)
-            }
     }
     
     /// 단어별 'WordDiff' 배열을 문장별로 다시 그룹화
@@ -175,20 +146,5 @@ struct FeedbackResultProcessor {
             }
         }
         return detailsData
-    }
-    
-    private func reconstructSentenceDiffs(details: [FeedbackDetail], sentences: [Sentence]) -> [(original: String, diffs: [WordDiff])] {
-
-        let sortedDetails = details.sorted {
-            ($0.sentenceIndex, $0.wordIndex) < ($1.sentenceIndex, $1.wordIndex)
-        }
-
-        let grouped = Dictionary(grouping: sortedDetails, by: { $0.sentenceIndex })
-
-        return sentences.indices.map { idx in
-            let original = sentences[idx].englishText
-            let diffs = grouped[idx]?.map { $0.wordDiff } ?? []
-            return (original: original, diffs: diffs)
-        }
     }
 }

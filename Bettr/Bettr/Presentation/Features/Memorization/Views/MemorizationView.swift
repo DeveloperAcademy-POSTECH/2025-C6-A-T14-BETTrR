@@ -10,8 +10,10 @@ struct MemorizationView: View {
     
     @State var viewModel: MemorizationViewModel
     @State var wordListViewModel: WordListViewModel
+    @State private var modalRouter = NavigationRouter()
     
     @Environment(AudioPlaybackService.self) private var audioService
+    @Environment(DatabaseContainer.self) private var container
     
     init(viewModel: MemorizationViewModel, wordListViewModel: WordListViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -51,12 +53,13 @@ struct MemorizationView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $viewModel.uiState.showFeedbackModal) {
-            RecordingView(
-                scriptId: viewModel.scriptId,
-                sentences: viewModel.referenceSentences,
-                scriptTitle: viewModel.currentTitle,
-                currentFeedbackCount: viewModel.currentFeedbackCount
+            FeedbackHistoryView(
+                viewModel: FeedbackHistoryViewModel(
+                    scriptId: viewModel.scriptId,
+                    scriptService: container.scriptManagementService
+                )
             )
+            .environment(modalRouter)
         }
         .onAppear {
             viewModel.onAppear()
@@ -65,7 +68,7 @@ struct MemorizationView: View {
                 await wordListViewModel.loadWords()
             }
         }
-        .animation(.spring(), value: viewModel.uiState.toasterMessage)
+        .animation(.easeOut(duration: 0.2), value: viewModel.uiState.toasterMessage)
     }
     
     /// 메인 콘텐츠 뷰

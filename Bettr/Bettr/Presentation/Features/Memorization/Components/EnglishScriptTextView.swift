@@ -11,6 +11,7 @@ struct EnglishScriptTextView: View {
     let text: String
     let isHidden: Bool
     let onTap: () -> Void
+    let sentenceIndex: Int?
     
     @Environment(AudioPlaybackService.self) private var audioService
     
@@ -26,21 +27,54 @@ struct EnglishScriptTextView: View {
             return attrString
         }
         
-        // 현재 이 텍스트가 재생 중인 경우
-        if audioService.currentSpokenTextID == text,
-           let nsRange = audioService.currentSpokenRange,
-           let swiftRange = Range(nsRange, in: text) { // NSRange -> Swift Range
+        let isMultiSentenceMode = audioService.currentPlayingSentenceIndex != nil
+        
+        let defaultColor: Color
+        
+        if audioService.isPlaying || audioService.isPaused {
+            // 재생 또는 일시정지 활성화 상태
             
-            attrString.foregroundColor = unspokenColor
-            
-            // Swift Range -> AttributedString.Index Range
-            if let attrRange = Range(swiftRange, in: attrString) {
-                // "말한 부분" (시작~현재 위치)만 검은색(spoken)으로 덮어쓰기
-                attrString[attrString.startIndex..<attrRange.upperBound].foregroundColor = spokenColor
+            if isMultiSentenceMode {
+                // A. 전체 재생 모드 (완료된 문장과 진행 중/대기 문장 분리)
+                
+                let isSentenceCompleted: Bool
+                if let currentPlayingIndex = audioService.currentPlayingSentenceIndex, let myIndex = sentenceIndex {
+                    isSentenceCompleted = myIndex < currentPlayingIndex
+                } else {
+                    isSentenceCompleted = false
+                }
+                
+                defaultColor = isSentenceCompleted ? spokenColor : unspokenColor
+                
+            } else {
+                // B. 단일 재생 모드 (청크/문장 탭 재생)
+                
+                // 현재 발화 중인 텍스트만 회색으로 설정 (하이라이트 배경)
+                if audioService.currentSpokenTextID == text {
+                    defaultColor = unspokenColor
+                } else {
+                    // 발화 중이 아닌 다른 모든 문장/청크는 검은색 유지
+                    defaultColor = spokenColor
+                }
             }
             
-        } else { // 재생 중이 아닐 때 (기본 상태)
-            attrString.foregroundColor = spokenColor
+        } else {
+            // C. 정지 상태 (전체 검은색)
+            defaultColor = spokenColor
+        }
+        
+        // 2. 기본 색상 설정
+        attrString.foregroundColor = defaultColor
+        
+        // 3. 발화 중인 단어 하이라이트 (검은색으로 덮어쓰기)
+        if audioService.currentSpokenTextID == text,
+           let nsRange = audioService.currentSpokenRange,
+           let swiftRange = Range(nsRange, in: text) {
+            
+            if let attrRange = Range(swiftRange, in: attrString) {
+                // 발화된 부분만 검은색(spoken)으로 덮어쓰기
+                attrString[attrString.startIndex..<attrRange.upperBound].foregroundColor = spokenColor
+            }
         }
         
         return attrString
@@ -53,7 +87,6 @@ struct EnglishScriptTextView: View {
                 .padding(.horizontal, 12)
                 .font(.bodyRegular24)
                 .opacity(isHidden ? 0 : 1)
-                .animation(.linear(duration: 0.1), value: attributedText)
         }
         .buttonStyle(ScriptButtonStyle())
         .hoverEffect(.lift)

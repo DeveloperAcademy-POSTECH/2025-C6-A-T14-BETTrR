@@ -10,26 +10,38 @@ import SwiftUI
 struct CancelToolbar: ViewModifier {
     @Environment(\.modalDismiss) var modalDismiss
     @Environment(\.dismiss) var defaultDismiss
+    @Environment(NavigationRouter.self) var router
+    
+    let isXmark: Bool
+    
+    init(isXmark: Bool = false) {
+        self.isXmark = isXmark
+    }
     
     func body(content: Content) -> some View {
         content
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
-                        (modalDismiss ?? defaultDismiss)()
+                        if let dismissAction = modalDismiss {
+                            router.reset()
+                            dismissAction()
+                        } else {
+                            defaultDismiss()
+                        }
                     }) {
-                        Image(systemName: "xmark")
+                        let showXmark = modalDismiss != nil || isXmark
+                        Image(systemName: showXmark ? "xmark" : "chevron.left")
                             .fontWeight(.semibold)
                     }
-                    
                 }
             }
     }
 }
 
 extension View {
-    func cancelToolbar() -> some View {
-        self.modifier(CancelToolbar())
+    func cancelToolbar(isXmark: Bool = false) -> some View {
+        self.modifier(CancelToolbar(isXmark: isXmark))
     }
 }
 

@@ -88,7 +88,7 @@ extension View {
     
     /// 4면의 패딩값을 모두 지정할 수 있는 배경색이 있는 카드 스타일
     /// - 기본값: top = 0,  bottom = 31, leading = 22, trailing = 0
-    func cardFilled(top: CGFloat = 0, bottom: CGFloat = 31, leading: CGFloat = 22, trailing: CGFloat = 0, cornerRadius: CGFloat = 20) -> some View {
+    func cardFilled(top: CGFloat = 0, bottom: CGFloat = 31, leading: CGFloat = 22, trailing: CGFloat = 0, cornerRadius: CGFloat = 10) -> some View {
         self.modifier(FilledCardStyle(
             top: top, bottom: bottom, leading: leading, trailing: trailing,
             cornerRadius: cornerRadius

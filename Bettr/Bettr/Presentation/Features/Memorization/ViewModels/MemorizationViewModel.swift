@@ -11,7 +11,6 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     let scriptId: Int64
     let scriptService: ScriptManagementServiceProtocol
     let audioService: AudioPlaybackServiceProtocol
-    let currentFeedbackCount: Int
     
     // MARK: Core Data State (핵심 데이터 상태)
     var scriptData: ScriptData?
@@ -34,13 +33,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     init(
         scriptId: Int64,
         scriptTitle: String,
-        currentFeedbackCount: Int,
         scriptService: ScriptManagementServiceProtocol,
         audioService: AudioPlaybackServiceProtocol,
     ) {
         self.scriptId = scriptId
         self.currentTitle = scriptTitle
-        self.currentFeedbackCount = currentFeedbackCount
         self.scriptService = scriptService
         self.audioService = audioService
     }
@@ -142,7 +139,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         if uiState.funcMode == .hide {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngChunks, for: identifier)
         } else {
-            audioService.play(text: chunk.englishText)
+            if audioService.currentSpokenTextID == chunk.englishText {
+                audioService.stop()
+            } else {
+                audioService.play(text: chunk.englishText)
+            }
         }
     }
     
@@ -150,7 +151,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         if uiState.funcMode == .hide {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngSentences, for: sentence.orderIndex)
         } else {
-            audioService.play(text: sentence.englishText)
+            if audioService.currentSpokenTextID == sentence.englishText {
+                audioService.stop()
+            } else {
+                audioService.play(text: sentence.englishText)
+            }
         }
     }
     
@@ -172,7 +177,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     func isSentenceHidden(_ index: Int) -> Bool {
         return interactionState.hiddenEngSentences.contains(index)
     }
-
+    
     // MARK: - Toaster Logic
     
     /// 토스터 메시지를 2초간 표시
