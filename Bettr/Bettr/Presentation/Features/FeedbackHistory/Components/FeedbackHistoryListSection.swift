@@ -77,5 +77,6 @@ struct FeedbackHistoryListTitle: View {
                 .padding(8)
         }
         .foregroundStyle(.normalBlack900)
+        .fixedSize(horizontal: true, vertical: false)
     }
 }
