@@ -31,11 +31,10 @@ struct FeedbackHistoryView: View {
                         }
                     }
                 } else if viewModel.feedbackHistoryData != nil { // 성공
-                    ViewThatFits {
+                    ViewThatFits(in: .horizontal) {
                         FullFeedbackHistoryView(viewModel: viewModel)
                         CompactFeedbackHistoryView(viewModel: viewModel)
                     }
-                    .safeAreaPadding(.horizontal, 84)
                 } else { // 예외 케이스: 로딩도 아니고, 에러도 아닌데, 데이터도 없는 경우
                     ErrorView(error: .unknown("데이터를 불러오지 못했습니다.")) {
                         Task {
@@ -96,6 +95,7 @@ struct FullFeedbackHistoryView: View {
                 .frame(maxWidth: 474)
             FeedbackHistoryListSection(viewModel: viewModel)
         }
+        .safeAreaPadding(.horizontal, 84)
     }
 }
 
@@ -107,5 +107,6 @@ struct CompactFeedbackHistoryView: View {
             CompactFeedbackStatistics(viewModel: viewModel)
             FeedbackHistoryListSection(viewModel: viewModel)
         }
+        .safeAreaPadding(.horizontal, 84)
     }
 }

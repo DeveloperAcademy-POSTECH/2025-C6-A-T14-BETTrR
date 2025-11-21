@@ -27,6 +27,7 @@ struct FeedbackHistoryListSection: View {
                     FeedbackHistoryListTitle(feedbackCount: feedbackCount)
                     EmptyFeedbackView()
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             else {
                 ScrollView {
@@ -39,6 +40,7 @@ struct FeedbackHistoryListSection: View {
                 .scrollIndicators(.hidden)
             }
         }
+        .frame(minWidth: 330)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .cardBordered(padding: 36)
     }
