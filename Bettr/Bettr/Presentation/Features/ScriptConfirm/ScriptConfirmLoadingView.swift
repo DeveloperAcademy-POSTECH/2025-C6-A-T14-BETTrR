@@ -4,6 +4,7 @@ import Lottie
 struct ScriptConfirmLoadingView: View {
     var body: some View {
         VStack(spacing: 0) {
+            Spacer()
             VStack(spacing: 8) {
                 Text("스크립트를 확인하고 있어요")
                     .font(.system(size: 28, weight: .semibold))
@@ -19,7 +20,6 @@ struct ScriptConfirmLoadingView: View {
             LottieView(animation: .named("geminiAnalLottie"))
                 .looping()
                 .aspectRatio(contentMode: .fit)
-                .border(.red)
             
             Spacer()
         }
