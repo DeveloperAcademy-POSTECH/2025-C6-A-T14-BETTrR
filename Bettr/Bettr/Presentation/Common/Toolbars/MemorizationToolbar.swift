@@ -37,7 +37,7 @@ struct MemorizationToolbar: ToolbarContent {
     
     @ToolbarContentBuilder
     private var topToolbarItems: some ToolbarContent {
-        // 청크 모드
+        // 스크립트 모드 (문장/분할)
         ToolbarItem {
             Button(action: {
                 viewModel.toggleChunkMode()
