@@ -31,7 +31,7 @@ struct EnglishScriptTextView: View {
         
         let defaultColor: Color
         
-        if audioService.isAudioPlaybackActive || audioService.isPaused {
+        if audioService.isPlaybackActive || audioService.isPaused {
             // 재생 또는 일시정지 활성화 상태
             
             if isMultiSentenceMode {

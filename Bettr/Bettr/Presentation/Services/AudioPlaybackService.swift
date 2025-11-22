@@ -17,7 +17,7 @@ enum PlaybackMode {
 @Observable
 final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
-    var isAudioPlaybackActive: Bool = false
+    var isPlaybackActive: Bool = false
     
     var isPaused: Bool {
         synthesizer.isPaused
@@ -137,7 +137,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         if synthesizer.isSpeaking || synthesizer.isPaused {
             synthesizer.stopSpeaking(at: .immediate)
             utteranceQueue.removeAll()
-            self.isAudioPlaybackActive = false
+            self.isPlaybackActive = false
         }
     }
     
@@ -147,7 +147,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
         // 콜백이 서브 스레드에서 올 수 있으므로 메인 스레드로 전달
         DispatchQueue.main.async {
-            self.isAudioPlaybackActive = true
+            self.isPlaybackActive = true
             self.currentSpokenTextID = utterance.speechString
             self.currentSpokenRange = NSRange(location: 0, length: 0)
         }
@@ -176,7 +176,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
                 }
             } else {
                 print("Action: Queue is EMPTY. Stopping playback.")
-                self.isAudioPlaybackActive = false
+                self.isPlaybackActive = false
                 self.currentMultiSentenceIndex = nil
                 self.deactivateSession()
                 self.currentPlaybackMode = .stopped
@@ -191,7 +191,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     }
     
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didContinue utterance: AVSpeechUtterance) {
-        isAudioPlaybackActive = true
+        isPlaybackActive = true
     }
     
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
@@ -227,7 +227,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         guard !utteranceQueue.isEmpty else {
             print("Error: playNextInQueue called with empty queue. Stopping.")
             self.currentPlaybackMode = .stopped
-            self.isAudioPlaybackActive = false
+            self.isPlaybackActive = false
             self.currentMultiSentenceIndex = nil
             deactivateSession()
             return
@@ -241,6 +241,6 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         self.currentSpokenTextID = utterance.speechString
         
         synthesizer.speak(utterance)
-        self.isAudioPlaybackActive = true
+        self.isPlaybackActive = true
     }
 }

@@ -9,7 +9,7 @@ import Foundation
 
 protocol AudioPlaybackServiceProtocol {
     
-    var isAudioPlaybackActive: Bool { get }
+    var isPlaybackActive: Bool { get }
     var isPaused: Bool { get }
     
     var currentPlaybackMode: PlaybackMode { get }
