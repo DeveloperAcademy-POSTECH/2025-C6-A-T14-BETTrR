@@ -39,9 +39,9 @@ struct MemorizationView: View {
             viewModel.endTitleEditing()
         }
         .animation(.easeInOut, value: viewModel.uiState.showWordList)
-        .onChange(of: audioService.isPlaying) { _, serviceIsPlaying in
+        .onChange(of: audioService.isPlaybackActive) { _, serviceIsActive in
             viewModel.handleAudioServiceStateChange(
-                isPlaying: serviceIsPlaying,
+                isPlaybackActive: serviceIsActive,
                 isPaused: audioService.isPaused
             )
         }
@@ -49,7 +49,7 @@ struct MemorizationView: View {
             viewModel.onDisappear()
         }
         .toolbar {
-            MemorizationToolbarContent(viewModel: viewModel, showEditIcon: true)
+            MemorizationToolbar(viewModel: viewModel, showEditIcon: true)
         }
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $viewModel.uiState.showFeedbackModal) {

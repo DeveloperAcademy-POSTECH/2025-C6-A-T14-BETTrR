@@ -12,7 +12,7 @@ enum FunctionMode {
     case read   // 재생
 }
 
-struct MemorizationToolbarContent: ToolbarContent {
+struct MemorizationToolbar: ToolbarContent {
     
     @Bindable var viewModel: MemorizationViewModel
     let showEditIcon: Bool
@@ -37,13 +37,21 @@ struct MemorizationToolbarContent: ToolbarContent {
     
     @ToolbarContentBuilder
     private var topToolbarItems: some ToolbarContent {
-        // 청크 모드
+        // 스크립트 모드 (문장/분할)
         ToolbarItem {
             Button(action: {
-                viewModel.toggleChunkMode()
+                if viewModel.isSinglePlaybackActive {
+                    viewModel.showToaster(message: "부분 재생 중에는 모드를 변경할 수 없습니다")
+                } else {
+                    viewModel.toggleChunkMode()
+                }
             }) {
                 Image(systemName: viewModel.uiState.isChunkMode ? "text.word.spacing": "text.justify")
-                    .toolbarButtonStyle(emphasized: viewModel.uiState.isChunkMode)
+                    .toolbarButtonStyle(
+                        viewModel.isSinglePlaybackActive
+                        ? .disabled
+                        : (viewModel.uiState.isChunkMode ? .emphasized : .normal)
+                    )
             }
         }
         
@@ -55,16 +63,18 @@ struct MemorizationToolbarContent: ToolbarContent {
                 viewModel.setFunctionMode(.hide)
             }) {
                 Image(systemName: "eye.slash")
-                    .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .hide)
+                    .toolbarButtonStyle(viewModel.uiState.funcMode == .hide ? .normal : .disabled)
             }
             
-            if !viewModel.isReadModeDisabled {
-                Button(action: {
+            Button(action: {
+                if viewModel.isFullPlaybackActive {
+                    viewModel.showToaster(message: "전체 재생 중에는 부분 재생을 사용할 수 없습니다")
+                } else {
                     viewModel.setFunctionMode(.read)
-                }) {
-                    Image(systemName: "speaker.wave.2")
-                        .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .read)
                 }
+            }) {
+                Image(systemName: "speaker.wave.2")
+                    .toolbarButtonStyle(viewModel.uiState.funcMode == .read ? .normal : .disabled)
             }
         }
         
@@ -76,7 +86,7 @@ struct MemorizationToolbarContent: ToolbarContent {
                 viewModel.toggleKoreanVisibility()
             }) {
                 Text("한")
-                    .toolbarButtonStyle(emphasized: viewModel.uiState.isKoreanVisible)
+                    .toolbarButtonStyle(viewModel.uiState.isKoreanVisible ? .emphasized : .normal)
             }
         }
         
@@ -88,7 +98,7 @@ struct MemorizationToolbarContent: ToolbarContent {
                 viewModel.uiState.showWordList.toggle()
             }) {
                 Image(systemName: "character.book.closed")
-                    .toolbarButtonStyle(emphasized: viewModel.uiState.showWordList)
+                    .toolbarButtonStyle(viewModel.uiState.showWordList ? .emphasized : .normal)
             }
         }
     }
@@ -108,7 +118,7 @@ struct MemorizationToolbarContent: ToolbarContent {
     
     @ViewBuilder
     private var playbackControls: some View {
-        if viewModel.uiState.isPlaying {
+        if viewModel.uiState.isPlaybackActive {
             ControlGroup {
                 Button(action: {
                     viewModel.togglePauseResume()
@@ -126,12 +136,15 @@ struct MemorizationToolbarContent: ToolbarContent {
             }
         } else {
             Button(action: {
-                viewModel.togglePlayStop()
+                if viewModel.isSinglePlaybackActive {
+                    viewModel.showToaster(message: "부분 재생 중에는 전체 재생을 사용할 수 없습니다")
+                } else {
+                    viewModel.togglePlayStop()
+                }
             }) {
                 Image(systemName: "play.fill")
-                    .toolbarButtonStyle(enabled: !viewModel.isFullPlayDisabled)
+                    .toolbarButtonStyle(viewModel.isSinglePlaybackActive ? .disabled : .normal)
             }
-            .disabled(viewModel.isFullPlayDisabled)
         }
     }
     
@@ -140,8 +153,6 @@ struct MemorizationToolbarContent: ToolbarContent {
             viewModel.uiState.showFeedbackModal.toggle()
         }) {
             Image(systemName: "chart.line.text.clipboard")
-                .toolbarButtonStyle(enabled: !viewModel.isRecordingDisabled)
         }
-        .disabled(viewModel.isRecordingDisabled)
     }
 }

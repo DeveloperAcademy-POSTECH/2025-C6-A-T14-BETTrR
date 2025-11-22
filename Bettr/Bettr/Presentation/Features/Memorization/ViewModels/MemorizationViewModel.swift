@@ -20,19 +20,13 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     // MARK: Grouped States (그룹화된 상태)
     var uiState = MemorizationUIState()
     var interactionState = MemorizationInteractionState()
-    
-    // MARK: Computed Properties (계산 프로퍼티)
-    var isRecordingDisabled: Bool { scriptData == nil }
-    var referenceSentences: [String] { scriptData?.sentences.map { $0.englishText } ?? [] }
-    
+        
     // MARK: Mutex Playback Control
-    var isReadModeDisabled: Bool {
-        // 현재 전체 재생 모드인 경우, Read 모드 버튼을 숨깁니다.
+    var isFullPlaybackActive: Bool {
         return audioService.currentPlaybackMode == .multi
     }
 
-    var isFullPlayDisabled: Bool {
-        // 현재 단일 재생 모드라면 전체 재생 버튼(툴바의 토글 버튼)을 막습니다.
+    var isSinglePlaybackActive: Bool {
         return audioService.currentPlaybackMode == .single
     }
     
@@ -118,11 +112,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     // MARK: Playback Controls
     
     func togglePlayStop() {
-        uiState.isPlaying.toggle()
+        uiState.isPlaybackActive.toggle()
         
-        if uiState.isPlaying {
+        if uiState.isPlaybackActive {
             guard let scriptData = scriptData else {
-                uiState.isPlaying = false
+                uiState.isPlaybackActive = false
                 return
             }
             
@@ -133,14 +127,14 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         } else {
             audioService.stop()
             
-            if audioService.isPlaying {
-                self.uiState.isPlaying = false
+            if audioService.isPlaybackActive {
+                self.uiState.isPlaybackActive = false
             }
         }
     }
     
     func togglePauseResume() {
-        guard uiState.isPlaying else { return }
+        guard uiState.isPlaybackActive else { return }
         
         uiState.isPause.toggle()
         
@@ -179,9 +173,9 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     // MARK: Service Callbacks
     
-    func handleAudioServiceStateChange(isPlaying serviceIsPlaying: Bool, isPaused serviceIsPaused: Bool) {
-        if !serviceIsPlaying && !serviceIsPaused {
-            self.uiState.isPlaying = false
+    func handleAudioServiceStateChange(isPlaybackActive serviceIsActive: Bool, isPaused serviceIsPaused: Bool) {
+        if !serviceIsActive && !serviceIsPaused {
+            self.uiState.isPlaybackActive = false
             self.uiState.isPause = false
         }
     }

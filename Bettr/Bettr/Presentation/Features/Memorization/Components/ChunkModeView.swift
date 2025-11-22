@@ -24,11 +24,31 @@ struct ChunkModeView: View {
         }
     }
     
+    /// 영어 청크 라인을 그리는 뷰를 반환
     private func englishChunkLine(for sentence: SentenceData) -> some View {
         let lastChunkIndex = sentence.chunks.last?.orderIndex
         
+        var currentOffset = 0
+        
+        // 각 청크가 문장 내 몇 번쨰 글자부터 시작하는 계산 (offset) -> 튜플 반환
+        let chunksWithOffset = sentence.chunks.map { chunk -> (ChunkData, Int) in
+            let offset = currentOffset
+            
+            currentOffset += chunk.englishText.count
+            
+            // 띄어쓰기 보정
+            if sentence.englishText.count > currentOffset {
+                let index = sentence.englishText.index(sentence.englishText.startIndex, offsetBy: currentOffset)
+                if sentence.englishText[index] == " " {
+                    currentOffset += 1
+                }
+            }
+            
+            return (chunk, offset)
+        }
+        
         return CustomFlowLayout(horizontalSpacing: 12, verticalSpacing: 8) {
-            ForEach(sentence.chunks, id: \.orderIndex) { chunk in
+            ForEach(chunksWithOffset, id: \.0.orderIndex) { (chunk, offset) in
                 
                 let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)
                 
@@ -36,9 +56,11 @@ struct ChunkModeView: View {
                     text: chunk.englishText,
                     isHidden: viewModel.interactionState.hiddenEngChunks.contains(chunkID),
                     onTap: { handleChunkTap(chunk: chunk, identifier: chunkID) },
-                    sentenceIndex: sentence.orderIndex
+                    sentenceIndex: sentence.orderIndex,
+                    chunkOffset: offset
                 )
                 
+                // 청크 사이 슬래시
                 if chunk.orderIndex != lastChunkIndex {
                     Image(.slashLarge)
                         .resizable()
@@ -49,7 +71,7 @@ struct ChunkModeView: View {
         }
     }
     
-    /// 한국어 청크 라인을 그리는 뷰
+    /// 한국어 청크 라인을 그리는 뷰를 반환
     private func koreanChunkLine(for sentence: SentenceData) -> some View {
         let lastChunkIndex = sentence.chunks.last?.orderIndex
         
