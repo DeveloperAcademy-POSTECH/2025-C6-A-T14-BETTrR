@@ -40,10 +40,18 @@ struct MemorizationToolbar: ToolbarContent {
         // 스크립트 모드 (문장/분할)
         ToolbarItem {
             Button(action: {
-                viewModel.toggleChunkMode()
+                if viewModel.isSinglePlaybackActive {
+                    viewModel.showToaster(message: "부분 재생 중에는 모드를 변경할 수 없습니다")
+                } else {
+                    viewModel.toggleChunkMode()
+                }
             }) {
                 Image(systemName: viewModel.uiState.isChunkMode ? "text.word.spacing": "text.justify")
-                    .toolbarButtonStyle(viewModel.uiState.isChunkMode ? .emphasized : .normal)
+                    .toolbarButtonStyle(
+                        viewModel.isSinglePlaybackActive
+                        ? .disabled
+                        : (viewModel.uiState.isChunkMode ? .emphasized : .normal)
+                    )
             }
         }
         
@@ -60,7 +68,7 @@ struct MemorizationToolbar: ToolbarContent {
             
             Button(action: {
                 if viewModel.isFullPlaybackActive {
-                        viewModel.showToaster(message: "전체 재생 중에는 탭하여 재생하기를 사용할 수 없습니다")
+                    viewModel.showToaster(message: "전체 재생 중에는 부분 재생을 사용할 수 없습니다")
                 } else {
                     viewModel.setFunctionMode(.read)
                 }
@@ -128,12 +136,15 @@ struct MemorizationToolbar: ToolbarContent {
             }
         } else {
             Button(action: {
-                viewModel.togglePlayStop()
+                if viewModel.isSinglePlaybackActive {
+                    viewModel.showToaster(message: "부분 재생 중에는 전체 재생을 사용할 수 없습니다")
+                } else {
+                    viewModel.togglePlayStop()
+                }
             }) {
                 Image(systemName: "play.fill")
                     .toolbarButtonStyle(viewModel.isSinglePlaybackActive ? .disabled : .normal)
             }
-            .disabled(viewModel.isSinglePlaybackActive)
         }
     }
     

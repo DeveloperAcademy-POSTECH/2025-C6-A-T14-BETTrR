@@ -60,7 +60,7 @@ struct EnglishScriptTextView: View {
                 return unspokenColor // 아직 안 온 문장: 회색
             }
         } else {
-            // B. 문장/청크 재생
+            // B. 부분 재생
             // 재생 중인 문장(청크)는 회색, 아니면 검은색
             return (audioService.currentSpokenTextID == text) ? unspokenColor : spokenColor
         }
@@ -93,7 +93,7 @@ struct EnglishScriptTextView: View {
                 }
             }
         } else {
-            // B. 문장/청크 재생
+            // B. 부분 재생
             if audioService.currentSpokenTextID == text,
                let nsRange = audioService.currentSpokenRange,
                let swiftRange = Range(nsRange, in: text),

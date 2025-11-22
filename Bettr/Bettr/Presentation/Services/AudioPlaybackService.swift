@@ -10,7 +10,7 @@ import AVFoundation
 @MainActor
 enum PlaybackMode {
     case stopped
-    case single // 단일 문장/청크 탭 재생
+    case single // 부분 재생 (문장/청크 하나 재생)
     case multi  // 전체 재생
 }
 
