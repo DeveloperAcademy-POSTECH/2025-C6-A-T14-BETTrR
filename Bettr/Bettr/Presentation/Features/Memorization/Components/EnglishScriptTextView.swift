@@ -13,6 +13,9 @@ struct EnglishScriptTextView: View {
     let onTap: () -> Void
     let sentenceIndex: Int?
     
+    // 문장 내에서 이 청크가 시작되는 위치 (전체 재생 시 계산용)
+    var chunkOffset: Int? = nil
+    
     @Environment(AudioPlaybackService.self) private var audioService
     
     private let unspokenColor = Color.normalGray600
@@ -21,63 +24,86 @@ struct EnglishScriptTextView: View {
     private var attributedText: AttributedString {
         var attrString = AttributedString(text)
         
-        // 가리기 상태
+        // 가리기: 투명 처리 후 즉시 반환
         if isHidden {
             attrString.foregroundColor = .clear
             return attrString
         }
         
-        let isMultiSentenceMode = audioService.currentPlaybackMode == .multi
+        // 기본 색상: 회색 or 검은색 (상황에 따라 결정)
+        let baseColor = baseForegroundColor
+        attrString.foregroundColor = baseColor
         
-        let defaultColor: Color
-        
+        // 재생 중일 때만 하이라이팅
         if audioService.isPlaybackActive || audioService.isPaused {
-            // 재생 또는 일시정지 활성화 상태
-            
-            if isMultiSentenceMode {
-                // A. 전체 재생 모드 (완료된 문장과 진행 중/대기 문장 분리)
-                
-                let isSentenceCompleted: Bool
-                if let currentPlayingIndex = audioService.currentMultiSentenceIndex, let myIndex = sentenceIndex {
-                    isSentenceCompleted = myIndex < currentPlayingIndex
-                } else {
-                    isSentenceCompleted = false
-                }
-                
-                defaultColor = isSentenceCompleted ? spokenColor : unspokenColor
-                
-            } else {
-                // B. 단일 재생 모드 (청크/문장 탭 재생)
-                
-                // 현재 발화 중인 텍스트만 회색으로 설정 (하이라이트 배경)
-                if audioService.currentSpokenTextID == text {
-                    defaultColor = unspokenColor
-                } else {
-                    // 발화 중이 아닌 다른 모든 문장/청크는 검은색 유지
-                    defaultColor = spokenColor
-                }
-            }
-            
-        } else {
-            // C. 정지 상태 (전체 검은색)
-            defaultColor = spokenColor
-        }
-        
-        // 2. 기본 색상 설정
-        attrString.foregroundColor = defaultColor
-        
-        // 3. 발화 중인 단어 하이라이트 (검은색으로 덮어쓰기)
-        if audioService.currentSpokenTextID == text,
-           let nsRange = audioService.currentSpokenRange,
-           let swiftRange = Range(nsRange, in: text) {
-            
-            if let attrRange = Range(swiftRange, in: attrString) {
-                // 발화된 부분만 검은색(spoken)으로 덮어쓰기
-                attrString[attrString.startIndex..<attrRange.upperBound].foregroundColor = spokenColor
-            }
+            return applyHighlighting(to: attrString)
         }
         
         return attrString
+    }
+    
+    // 기본 색상 (하이라이팅 전, 문장 단위로 기본 색상을 지정)
+    private var baseForegroundColor: Color {
+        // 재생 중이 아닐 때: 검은색
+        guard audioService.isPlaybackActive || audioService.isPaused else { return spokenColor }
+        
+        if audioService.currentPlaybackMode == .multi {
+            // A. 전체 재생
+            guard let currentPlayingIndex = audioService.currentMultiSentenceIndex,
+                  let myIndex = sentenceIndex else { return unspokenColor }
+            
+            if myIndex < currentPlayingIndex {
+                return spokenColor   // 이미 지나간 문장: 검은색
+            } else if myIndex == currentPlayingIndex {
+                return unspokenColor // 지금 재생 중인 문장: 회색
+            } else {
+                return unspokenColor // 아직 안 온 문장: 회색
+            }
+        } else {
+            // B. 문장/청크 재생
+            // 재생 중인 문장(청크)는 회색, 아니면 검은색
+            return (audioService.currentSpokenTextID == text) ? unspokenColor : spokenColor
+        }
+    }
+    
+    // 하이라이팅 (실제 읽고 있는 부분만 검은색)
+    private func applyHighlighting(to source: AttributedString) -> AttributedString {
+        var attr = source
+        
+        if audioService.currentPlaybackMode == .multi {
+            // A. 전체 재생
+            if let currentPlayingIndex = audioService.currentMultiSentenceIndex,
+               let myIndex = sentenceIndex,
+               myIndex == currentPlayingIndex, // 내 문장이 재생 중일 때만
+               let globalRange = audioService.currentSpokenRange {
+                
+                let spokenEndIndex = globalRange.location + globalRange.length
+                let myStartOffset = chunkOffset ?? 0
+                
+                // 내 청크 범위 안으로 재생 지점이 들어왔는지 확인
+                if spokenEndIndex > myStartOffset {
+                    let highlightLength = min(spokenEndIndex - myStartOffset, text.count)
+                    
+                    if highlightLength > 0,
+                       let stringIndex = text.index(text.startIndex, offsetBy: highlightLength, limitedBy: text.endIndex),
+                       let attrIndex = AttributedString.Index(stringIndex, within: attr) {
+                        
+                        attr[attr.startIndex..<attrIndex].foregroundColor = spokenColor
+                    }
+                }
+            }
+        } else {
+            // B. 문장/청크 재생
+            if audioService.currentSpokenTextID == text,
+               let nsRange = audioService.currentSpokenRange,
+               let swiftRange = Range(nsRange, in: text),
+               let attrRange = Range(swiftRange, in: attr) {
+                
+                attr[attr.startIndex..<attrRange.upperBound].foregroundColor = spokenColor
+            }
+        }
+        
+        return attr
     }
     
     var body: some View {
