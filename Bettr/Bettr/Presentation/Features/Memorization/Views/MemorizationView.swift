@@ -49,7 +49,7 @@ struct MemorizationView: View {
             viewModel.onDisappear()
         }
         .toolbar {
-            MemorizationToolbarContent(viewModel: viewModel, showEditIcon: true)
+            MemorizationToolbar(viewModel: viewModel, showEditIcon: true)
         }
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $viewModel.uiState.showFeedbackModal) {

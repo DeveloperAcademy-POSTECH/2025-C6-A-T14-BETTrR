@@ -12,7 +12,7 @@ enum FunctionMode {
     case read   // 재생
 }
 
-struct MemorizationToolbarContent: ToolbarContent {
+struct MemorizationToolbar: ToolbarContent {
     
     @Bindable var viewModel: MemorizationViewModel
     let showEditIcon: Bool
