@@ -118,11 +118,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     // MARK: Playback Controls
     
     func togglePlayStop() {
-        uiState.isPlaying.toggle()
+        uiState.isAudioPlaybackActive.toggle()
         
-        if uiState.isPlaying {
+        if uiState.isAudioPlaybackActive {
             guard let scriptData = scriptData else {
-                uiState.isPlaying = false
+                uiState.isAudioPlaybackActive = false
                 return
             }
             
@@ -133,14 +133,14 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         } else {
             audioService.stop()
             
-            if audioService.isPlaying {
-                self.uiState.isPlaying = false
+            if audioService.isAudioPlaybackActive {
+                self.uiState.isAudioPlaybackActive = false
             }
         }
     }
     
     func togglePauseResume() {
-        guard uiState.isPlaying else { return }
+        guard uiState.isAudioPlaybackActive else { return }
         
         uiState.isPause.toggle()
         
@@ -179,9 +179,9 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     // MARK: Service Callbacks
     
-    func handleAudioServiceStateChange(isPlaying serviceIsPlaying: Bool, isPaused serviceIsPaused: Bool) {
-        if !serviceIsPlaying && !serviceIsPaused {
-            self.uiState.isPlaying = false
+    func handleAudioServiceStateChange(isAudioPlaybackActive serviceIsActive: Bool, isPaused serviceIsPaused: Bool) {
+        if !serviceIsActive && !serviceIsPaused {
+            self.uiState.isAudioPlaybackActive = false
             self.uiState.isPause = false
         }
     }

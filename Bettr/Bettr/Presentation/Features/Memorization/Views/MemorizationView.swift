@@ -39,9 +39,9 @@ struct MemorizationView: View {
             viewModel.endTitleEditing()
         }
         .animation(.easeInOut, value: viewModel.uiState.showWordList)
-        .onChange(of: audioService.isPlaying) { _, serviceIsPlaying in
+        .onChange(of: audioService.isAudioPlaybackActive) { _, serviceIsActive in
             viewModel.handleAudioServiceStateChange(
-                isPlaying: serviceIsPlaying,
+                isAudioPlaybackActive: serviceIsActive,
                 isPaused: audioService.isPaused
             )
         }

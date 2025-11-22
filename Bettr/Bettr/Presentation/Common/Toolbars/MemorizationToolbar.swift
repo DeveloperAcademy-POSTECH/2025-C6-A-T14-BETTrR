@@ -110,7 +110,7 @@ struct MemorizationToolbar: ToolbarContent {
     
     @ViewBuilder
     private var playbackControls: some View {
-        if viewModel.uiState.isPlaying {
+        if viewModel.uiState.isAudioPlaybackActive {
             ControlGroup {
                 Button(action: {
                     viewModel.togglePauseResume()

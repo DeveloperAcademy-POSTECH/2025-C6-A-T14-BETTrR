@@ -21,7 +21,7 @@ class MemorizationUIState {
     var showFeedbackModal: Bool = false
     
     // 재생 및 하이라이트 상태
-    var isPlaying: Bool = false
+    var isAudioPlaybackActive: Bool = false
     var isPause: Bool = false
     
     // 토스터 상태
