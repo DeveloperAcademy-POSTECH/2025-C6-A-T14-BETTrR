@@ -58,13 +58,15 @@ struct MemorizationToolbar: ToolbarContent {
                     .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .hide)
             }
             
-            if !viewModel.isReadModeDisabled {
-                Button(action: {
+            Button(action: {
+                if viewModel.isReadModeDisabled {
+                        viewModel.showToaster(message: "전체 재생 중에는 탭하여 재생하기를 사용할 수 없습니다")
+                } else {
                     viewModel.setFunctionMode(.read)
-                }) {
-                    Image(systemName: "speaker.wave.2")
-                        .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .read)
                 }
+            }) {
+                Image(systemName: "speaker.wave.2")
+                    .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .read)
             }
         }
         
