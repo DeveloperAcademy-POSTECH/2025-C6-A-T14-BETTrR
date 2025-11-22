@@ -26,13 +26,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     var referenceSentences: [String] { scriptData?.sentences.map { $0.englishText } ?? [] }
     
     // MARK: Mutex Playback Control
-    var isReadModeDisabled: Bool {
-        // 현재 전체 재생 모드인 경우, Read 모드 버튼을 숨깁니다.
+    var isFullPlaybackActive: Bool {
         return audioService.currentPlaybackMode == .multi
     }
 
-    var isFullPlayDisabled: Bool {
-        // 현재 단일 재생 모드라면 전체 재생 버튼(툴바의 토글 버튼)을 막습니다.
+    var isSinglePlaybackActive: Bool {
         return audioService.currentPlaybackMode == .single
     }
     

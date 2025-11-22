@@ -59,7 +59,7 @@ struct MemorizationToolbar: ToolbarContent {
             }
             
             Button(action: {
-                if viewModel.isReadModeDisabled {
+                if viewModel.isFullPlaybackActive {
                         viewModel.showToaster(message: "전체 재생 중에는 탭하여 재생하기를 사용할 수 없습니다")
                 } else {
                     viewModel.setFunctionMode(.read)
@@ -131,9 +131,9 @@ struct MemorizationToolbar: ToolbarContent {
                 viewModel.togglePlayStop()
             }) {
                 Image(systemName: "play.fill")
-                    .toolbarButtonStyle(enabled: !viewModel.isFullPlayDisabled)
+                    .toolbarButtonStyle(enabled: !viewModel.isSinglePlaybackActive)
             }
-            .disabled(viewModel.isFullPlayDisabled)
+            .disabled(viewModel.isSinglePlaybackActive)
         }
     }
     
