@@ -20,11 +20,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     // MARK: Grouped States (그룹화된 상태)
     var uiState = MemorizationUIState()
     var interactionState = MemorizationInteractionState()
-    
-    // MARK: Computed Properties (계산 프로퍼티)
-    var isRecordingDisabled: Bool { scriptData == nil }
-    var referenceSentences: [String] { scriptData?.sentences.map { $0.englishText } ?? [] }
-    
+        
     // MARK: Mutex Playback Control
     var isFullPlaybackActive: Bool {
         return audioService.currentPlaybackMode == .multi

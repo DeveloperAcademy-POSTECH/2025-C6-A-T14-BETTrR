@@ -43,7 +43,7 @@ struct MemorizationToolbar: ToolbarContent {
                 viewModel.toggleChunkMode()
             }) {
                 Image(systemName: viewModel.uiState.isChunkMode ? "text.word.spacing": "text.justify")
-                    .toolbarButtonStyle(emphasized: viewModel.uiState.isChunkMode)
+                    .toolbarButtonStyle(viewModel.uiState.isChunkMode ? .emphasized : .normal)
             }
         }
         
@@ -55,7 +55,7 @@ struct MemorizationToolbar: ToolbarContent {
                 viewModel.setFunctionMode(.hide)
             }) {
                 Image(systemName: "eye.slash")
-                    .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .hide)
+                    .toolbarButtonStyle(viewModel.uiState.funcMode == .hide ? .normal : .disabled)
             }
             
             Button(action: {
@@ -66,7 +66,7 @@ struct MemorizationToolbar: ToolbarContent {
                 }
             }) {
                 Image(systemName: "speaker.wave.2")
-                    .toolbarButtonStyle(enabled: viewModel.uiState.funcMode == .read)
+                    .toolbarButtonStyle(viewModel.uiState.funcMode == .read ? .normal : .disabled)
             }
         }
         
@@ -78,7 +78,7 @@ struct MemorizationToolbar: ToolbarContent {
                 viewModel.toggleKoreanVisibility()
             }) {
                 Text("한")
-                    .toolbarButtonStyle(emphasized: viewModel.uiState.isKoreanVisible)
+                    .toolbarButtonStyle(viewModel.uiState.isKoreanVisible ? .emphasized : .normal)
             }
         }
         
@@ -90,7 +90,7 @@ struct MemorizationToolbar: ToolbarContent {
                 viewModel.uiState.showWordList.toggle()
             }) {
                 Image(systemName: "character.book.closed")
-                    .toolbarButtonStyle(emphasized: viewModel.uiState.showWordList)
+                    .toolbarButtonStyle(viewModel.uiState.showWordList ? .emphasized : .normal)
             }
         }
     }
@@ -131,7 +131,7 @@ struct MemorizationToolbar: ToolbarContent {
                 viewModel.togglePlayStop()
             }) {
                 Image(systemName: "play.fill")
-                    .toolbarButtonStyle(enabled: !viewModel.isSinglePlaybackActive)
+                    .toolbarButtonStyle(viewModel.isSinglePlaybackActive ? .disabled : .normal)
             }
             .disabled(viewModel.isSinglePlaybackActive)
         }
@@ -142,8 +142,6 @@ struct MemorizationToolbar: ToolbarContent {
             viewModel.uiState.showFeedbackModal.toggle()
         }) {
             Image(systemName: "chart.line.text.clipboard")
-                .toolbarButtonStyle(enabled: !viewModel.isRecordingDisabled)
         }
-        .disabled(viewModel.isRecordingDisabled)
     }
 }
