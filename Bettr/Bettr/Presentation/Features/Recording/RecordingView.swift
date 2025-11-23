@@ -68,11 +68,6 @@ struct RecordingView: View {
         .safeAreaPadding(.horizontal, 84)
         .safeAreaPadding(.top, 24)
         .safeAreaPadding(.bottom, 48)
-        .alert("인식된 영문 텍스트가 없습니다.", isPresented: $viewModel.showEmptyTranscriptAlert) {
-            Button("확인") { viewModel.cancelRecording() }
-        } message: {
-            Text("피드백 생성을 위해 인식된 영문 텍스트가 있어야 합니다. 다시 녹음 해주세요.")
-        }
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -86,6 +81,11 @@ struct RecordingView: View {
                     Image(systemName: "chevron.backward")
                 }
             }
+        }
+        .alert("인식된 영문 텍스트가 없습니다.", isPresented: $viewModel.showEmptyTranscriptAlert) {
+            Button("확인") { viewModel.cancelRecording() }
+        } message: {
+            Text("피드백 생성을 위해 인식된 영문 텍스트가 있어야 합니다. 다시 녹음 해주세요.")
         }
         .alert("분석하지 않고 나가시겠어요?", isPresented: $showUnsavedDataAlert) {
             Button("취소", role: .cancel) { }
