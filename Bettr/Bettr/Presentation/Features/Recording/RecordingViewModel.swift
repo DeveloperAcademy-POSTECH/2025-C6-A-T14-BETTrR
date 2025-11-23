@@ -5,61 +5,65 @@
 //  Created by 길정수 on 10/30/25.
 //
 
-import SwiftUI
+import Foundation
 import Speech
 import AVFoundation
-import Observation
 
 @MainActor
 @Observable
 class RecordingViewModel {
     
-    // MARK: - State Properties
+    // MARK: - Properties: Recording State
     var transcript = ""
     var isRecording = false
     var hasRecorded: Bool = false
-    var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
-    var microphoneAuthorizationStatus: AVAudioApplication.recordPermission = .undetermined
     var elapsedTime: TimeInterval = 0.0
     
-    var showEmptyTranscriptAlert = false
-    
+    // MARK: - Properties: UI State
     var isLoading = false
     var appError: AppError?
+    var showEmptyTranscriptAlert = false
     
-    // MARK: - Dependencies & Private
+    // MARK: - Properties: Permissions
+    var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
+    var microphoneAuthorizationStatus: AVAudioApplication.recordPermission = .undetermined
+    
+    // MARK: - Properties: Dependencies & Core
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en"))
+    private let audioEngine = AVAudioEngine()
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
-    private let audioEngine = AVAudioEngine()
     
     private var timer: Timer?
     private var recordingStartTime: Date?
     
-    // 분석/저장 관련 Dependencies
-    private let analyzer = SpeechAnalyzer() // WordDiff 계산 담당
+    // MARK: - Properties: Analysis & Services
+    private let analyzer = SpeechAnalyzer()
     private let processor: RecordingProcessor
     private let scriptManagementService: ScriptManagementServiceProtocol
     
-    /// 전체 스크립트 문장들
+    /// 전체 스크립트 문장 리스트
     var sentences: [String] = []
-    /// 합쳐진 전체 스크립트
+    
+    /// 전체 스크립트 (분석용 결합 문자열)
     var fullScript: String {
         sentences.joined(separator: " ")
     }
     
+    /// 마지막으로 완료된 음성 인식 결과 (분석용)
     private var lastTranscription: SFTranscription?
+    
+    /// 마지막 녹음의 총 지속 시간
     private var lastRecordedDuration: TimeInterval = 0.0
     
+    // MARK: - Computed Properties (Helpers)
     
-    // MARK: - Helper Computed Properties (뷰 로직 간소화용)
-    
-    /// 녹음 대기 상태 (녹음 중도 아니고, 완료된 녹음도 없음)
+    /// 녹음 대기 상태인지 확인 (녹음 중도 아니고, 완료된 녹음도 없음)
     var isReadyToRecord: Bool {
         !isRecording && !hasRecorded
     }
     
-    /// 녹음이 완료되어 결과물이 있는 상태
+    /// 녹음이 완료되어 결과물이 있는 상태인지 확인
     var didFinishRecording: Bool {
         hasRecorded && !isRecording
     }
@@ -69,7 +73,8 @@ class RecordingViewModel {
         authorizationStatus == .authorized && microphoneAuthorizationStatus == .granted
     }
     
-    // MARK: - Errors
+    // MARK: - Custom Errors
+    
     enum RecordingError: Error {
         case notAnalyzed
         case emptyTranscript
@@ -86,22 +91,49 @@ class RecordingViewModel {
     
     // MARK: - Initializer
     
+    /// 뷰모델을 초기화하고 권한 상태를 확인
+    /// - Parameters:
+    ///   - sentences: 연습할 스크립트의 문장 배열
+    ///   - scriptManagementService: 데이터 저장 및 관리를 위한 서비스
     init(sentences: [String], scriptManagementService: ScriptManagementServiceProtocol) {
         self.sentences = sentences
         self.scriptManagementService = scriptManagementService
-        // RecordingProcessor를 사용하여 DB 저장에 필요한 통계 처리 분리
         self.processor = RecordingProcessor(analyzer: analyzer)
         self.microphoneAuthorizationStatus = AVAudioApplication.shared.recordPermission
         self.checkAuthorization()
     }
     
-    // MARK: - Public Logic
+    // MARK: - Public Methods: User Actions
     
-    /// 분석 및 저장을 수행하고, 성공 시 Summary ID를 반환합니다.
-    /// 에러 발생 시 내부 상태(showEmptyTranscriptAlert)를 업데이트하거나 로그를 남깁니다.
+    /// 녹음 상태를 토글 (시작 <-> 중지)
+    func toggleRecording() {
+        if audioEngine.isRunning {
+            stopRecording()
+        } else {
+            startRecording()
+        }
+    }
+    
+    /// 녹음을 취소하고 모든 상태를 초기화
+    func cancelRecording() {
+        resetRecordingState()
+        
+        // UI 상태 초기화
+        isRecording = false
+        transcript = ""
+        hasRecorded = false
+        elapsedTime = 0.0
+        lastTranscription = nil
+        lastRecordedDuration = 0.0
+    }
+    
+    // 녹음 결과를 분석하고 DB 저장을 시도
+    /// 로딩 상태(`isLoading`)와 에러 상태(`appError`)를 관리
+    ///
+    /// - Parameter scriptId: 연결할 스크립트 ID
+    /// - Returns: 저장 성공 시 생성된 Summary ID, 실패 시 nil
     func processAndSaveFeedback(scriptId: Int64) async -> Int64? {
         isLoading = true
-        
         defer { isLoading = false }
         
         do {
@@ -124,67 +156,31 @@ class RecordingViewModel {
         }
     }
     
-    // MARK: 녹음 상태 변경 (시작/중지)
-    func toggleRecording() {
-        if audioEngine.isRunning {
-            stopRecording()
-            return
-        }
-        
-        startRecording()
-    }
+    // MARK: - Private Methods: Logic
     
-    // MARK: 녹음 취소 (분석 실행 X)
-    func cancelRecording() {
-        // 타이머 중지
-        timer?.invalidate()
-        timer = nil
-        
-        audioEngine.stop()
-        recognitionTask?.cancel()
-        recognitionTask = nil
-        recognitionRequest = nil
-        audioEngine.inputNode.removeTap(onBus: 0)
-        
-        // 오디오 세션 비활성화
-        let audioSession = AVAudioSession.sharedInstance()
-        try? audioSession.setActive(false, options: .notifyOthersOnDeactivation)
-        
-        // 상태 리셋
-        isRecording = false
-        transcript = ""
-        self.hasRecorded = false
-        elapsedTime = 0.0
-        
-        lastTranscription = nil
-        lastRecordedDuration = 0.0
-    }
-    
-    // MARK: 로직 통합: 분석 -> 저장 -> summaryId 반환 (RecordingView의 analyzeAndSave 로직 이관)
+    /// 실제 분석 및 DB 저장을 수행하는 내부 로직
+    ///
+    /// - Parameter scriptId: 스크립트 ID
+    /// - Returns: 저장된 Summary ID
+    /// - Throws: 분석 데이터 부족, 빈 녹음, 저장 실패 등의 에러
     func saveFeedback(scriptId: Int64) async throws -> Int64 {
-        
-        // 1. 분석 수행에 필요한 데이터 확인 및 WordDiffs 계산
         guard let transcription = lastTranscription else {
             throw RecordingError.notAnalyzed
         }
         
         let diffs = analyzer.analyze(reference: fullScript, transcription: transcription)
-        let practiceDuration = self.lastRecordedDuration
         
-        // 2. 빈 녹음 확인
         if diffs.isEmpty {
             throw RecordingError.emptyTranscript
         }
         
-        // 3. Processor를 사용하여 DB 저장에 필요한 통계 및 상세 파라미터 생성
         let summaryStats = processor.createSummaryStats(
             fromLiveAnalysis: diffs,
             sentences: sentences,
-            practiceDuration: practiceDuration
+            practiceDuration: self.lastRecordedDuration
         )
         
         do {
-            // 4. DB 저장 및 Summary 객체 반환
             let summary = try await scriptManagementService.createFeedbackSummary(
                 scriptId: scriptId,
                 accuracy: summaryStats.accuracy,
@@ -198,7 +194,6 @@ class RecordingViewModel {
             )
             
             guard let summaryId = summary.id else { throw RecordingError.saveFailed(AppError.unknown("저장된 Summary ID를 찾을 수 없습니다.")) }
-            
             return summaryId
             
         } catch {
@@ -206,30 +201,26 @@ class RecordingViewModel {
         }
     }
     
-    // MARK: - Private Helpers (권한 및 녹음 상세 구현)
+    // MARK: - Private Methods: Recording Control
     
-    // MARK: 권한 확인
+    /// 음성 인식 및 마이크 접근 권한을 요청
     private func checkAuthorization() {
-        // 1. 음성 인식 권한 요청
         SFSpeechRecognizer.requestAuthorization { [weak self] status in
             Task { @MainActor in
                 self?.authorizationStatus = status
             }
         }
         
-        // 2. 마이크 권한 명시적 요청
         AVAudioApplication.requestRecordPermission { [weak self] granted in
-            let status: AVAudioApplication.recordPermission = granted ? .granted : .denied
             Task { @MainActor [weak self] in
-                self?.microphoneAuthorizationStatus = status
+                self?.microphoneAuthorizationStatus = granted ? .granted : .denied
             }
         }
     }
     
-    // MARK: 녹음 시작
+    /// 오디오 엔진과 음성 인식 세션을 설정하고 녹음을 시작
     private func startRecording() {
-        recognitionTask?.cancel()
-        recognitionTask = nil
+        resetRecordingState()
         
         let audioSession = AVAudioSession.sharedInstance()
         do {
@@ -249,16 +240,14 @@ class RecordingViewModel {
         recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { [weak self] result, error in
             guard let self = self else { return }
             
-            // 1. 실시간 트랜스크립트 업데이트
             if let result = result {
-                Task { @MainActor in // Task를 사용하여 메인 스레드 업데이트
+                Task { @MainActor in
                     self.transcript = result.bestTranscription.formattedString
+                    self.lastTranscription = result.bestTranscription
                 }
             }
             
-            // 2. 녹음 종료/오류 처리
             if error != nil || (result?.isFinal ?? false) {
-                // 녹음 종료 시 처리
                 self.handleRecognitionCompletion(result: result)
             }
         }
@@ -273,9 +262,9 @@ class RecordingViewModel {
             self.transcript = ""
             try audioEngine.start()
             
-            // 녹음 시작 시간 기록 및 타이머 시작
             self.recordingStartTime = Date()
             self.elapsedTime = 0.0
+            
             self.timer?.invalidate()
             self.timer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
@@ -291,43 +280,53 @@ class RecordingViewModel {
         }
     }
     
-    // MARK: 녹음 중지
+    /// 녹음을 정상적으로 중지
     private func stopRecording() {
-        // 타이머 중지
         timer?.invalidate()
         timer = nil
         
-        audioEngine.stop()
-        recognitionRequest?.endAudio()
-        audioEngine.inputNode.removeTap(onBus: 0)
+        if audioEngine.isRunning {
+            audioEngine.stop()
+            audioEngine.inputNode.removeTap(onBus: 0)
+        }
         
-        // 오디오 세션 비활성화
-        let audioSession = AVAudioSession.sharedInstance()
-        try? audioSession.setActive(false, options: .notifyOthersOnDeactivation)
+        recognitionRequest?.endAudio()
     }
     
-    // MARK: Recognition Task 완료 시 핸들러
+    /// 타이머, 오디오 엔진, 인식 작업 등 녹음 관련 리소스를 정리
+    private func resetRecordingState() {
+        timer?.invalidate()
+        timer = nil
+        
+        if audioEngine.isRunning {
+            audioEngine.stop()
+            audioEngine.inputNode.removeTap(onBus: 0)
+        }
+        
+        recognitionRequest?.endAudio()
+        recognitionRequest = nil
+        
+        recognitionTask?.cancel()
+        recognitionTask = nil
+    }
+    
+    /// 음성 인식이 종료(완료 또는 에러)되었을 때 결과를 처리
+    /// - Parameter result: 음성 인식 최종 결과
     private func handleRecognitionCompletion(result: SFSpeechRecognitionResult?) {
-        self.timer?.invalidate()
-        self.timer = nil
+        resetRecordingState()
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         
-        self.audioEngine.stop()
-        self.audioEngine.inputNode.removeTap(onBus: 0)
-        self.recognitionRequest = nil
-        self.recognitionTask = nil
-        
-        let audioSession = AVAudioSession.sharedInstance()
-        try? audioSession.setActive(false, options: .notifyOthersOnDeactivation)
-        
-        let totalTime = self.recordingStartTime.map { Date().timeIntervalSince($0) } ?? 0.0
         let finalTranscript = result?.bestTranscription.formattedString ?? ""
+        let totalTime = self.recordingStartTime.map { Date().timeIntervalSince($0) } ?? 0.0
         
         Task { @MainActor in
             self.isRecording = false
             self.hasRecorded = true
             self.transcript = finalTranscript
             
-            self.lastTranscription = result?.bestTranscription
+            if let best = result?.bestTranscription {
+                self.lastTranscription = best
+            }
             self.lastRecordedDuration = totalTime
         }
     }
