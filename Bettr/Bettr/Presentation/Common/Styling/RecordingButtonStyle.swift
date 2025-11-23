@@ -19,7 +19,7 @@ private struct RecordingButtonBaseModifier: ViewModifier {
 }
 
 // 메인 버튼 (빨강, 파랑, 비활성화)
-struct RecordingButtonStyle: ButtonStyle {
+struct RecordToggleButtonStyle: ButtonStyle {
     var isRecording: Bool
     
     @Environment(\.isEnabled) private var isEnabled
@@ -46,7 +46,7 @@ struct RecordingButtonStyle: ButtonStyle {
 }
 
 // 보조 버튼
-struct SecondaryRecordingButtonStyle: ButtonStyle {
+struct RecordCancelButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     
     func makeBody(configuration: Configuration) -> some View {

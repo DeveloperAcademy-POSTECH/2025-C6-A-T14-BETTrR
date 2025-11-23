@@ -66,46 +66,19 @@ struct RecordingView: View {
                 LottieView(animation: .named("recordLottie"))
                     .playbackMode(viewModel.isRecording ?
                         .playing(.fromProgress(0, toProgress: 1, loopMode: .loop)) :
-                        .paused(at: .progress(0))
+                            .paused(at: .progress(0))
                     )
                     .animationSpeed(2.0)
                     .frame(maxWidth: .infinity, maxHeight: 500)
                     .padding(.horizontal, 48)
-                        
+                
                 // 버튼
-                HStack(spacing: 30) {
-                    let isRecording = viewModel.isRecording
-                    let hasRecorded = viewModel.hasRecorded
-                    
-                    let isReadyToRecord = !isRecording && !hasRecorded
-                    let didFinishRecording = hasRecorded && !isRecording
-                    
-                    Button(action: { viewModel.cancelRecording() }) {
-                        Image(systemName: "arrow.clockwise")
+                RecordingControlBar(
+                    viewModel: viewModel,
+                    onSaveAction: {
+                        processAnalysisAndSave()
                     }
-                    .buttonStyle(SecondaryRecordingButtonStyle())
-                    .disabled(!didFinishRecording)
-                    
-                    Spacer()
-                    
-                    Button(action: { viewModel.toggleRecording() }) {
-                        Image(systemName: isReadyToRecord ? "microphone" : "stop.fill")
-                    }
-                    .buttonStyle(RecordingButtonStyle(isRecording: isRecording))
-                    .disabled(viewModel.authorizationStatus != .authorized ||
-                              viewModel.microphoneAuthorizationStatus != .granted ||
-                              didFinishRecording
-                    )
-                    
-                    Spacer()
-                    
-                    Button(action: { processAnalysisAndSave() }) {
-                        Image(systemName: "arrow.right")
-                    }
-                    .buttonStyle(RecordingButtonStyle(isRecording: false))
-                    .disabled(!didFinishRecording)
-                }
-                .padding(.horizontal, 48)
+                )
             }
             
             Spacer()

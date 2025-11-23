@@ -47,6 +47,24 @@ class RecordingViewModel {
     private var lastTranscription: SFTranscription?
     private var lastRecordedDuration: TimeInterval = 0.0
     
+    
+    // MARK: - Helper Computed Properties (뷰 로직 간소화용)
+        
+        /// 녹음 대기 상태 (녹음 중도 아니고, 완료된 녹음도 없음)
+        var isReadyToRecord: Bool {
+            !isRecording && !hasRecorded
+        }
+        
+        /// 녹음이 완료되어 결과물이 있는 상태
+        var didFinishRecording: Bool {
+            hasRecorded && !isRecording
+        }
+        
+        /// 권한이 모두 허용되어 녹음 가능한 상태인지 확인
+        var canRecord: Bool {
+            authorizationStatus == .authorized && microphoneAuthorizationStatus == .granted
+        }
+    
     // MARK: - Errors
     enum RecordingError: Error {
         case notAnalyzed
