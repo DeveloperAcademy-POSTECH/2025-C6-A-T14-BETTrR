@@ -9,8 +9,7 @@ import Foundation
 
 /// 녹음 분석 결과를 DB 저장에 필요한 파라미터 및 통계로 변환하는 프로세서
 struct RecordingProcessor {
-    
-    private let analyzer: SpeechAnalyzer // 의존성 주입
+    private let analyzer: SpeechAnalyzer
     
     init(analyzer: SpeechAnalyzer) {
         self.analyzer = analyzer
