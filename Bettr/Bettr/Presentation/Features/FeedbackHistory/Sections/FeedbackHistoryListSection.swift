@@ -12,7 +12,7 @@ import Charts
 struct FeedbackHistoryListSection: View {
     let viewModel: FeedbackHistoryViewModel
     
-    private var allFeedbackSummaries: [FeedbackSummary] {
+    private var summaries: [FeedbackSummary] {
         viewModel.feedbackHistoryData?.allFeedbackSummaries ?? []
     }
     
@@ -24,9 +24,9 @@ struct FeedbackHistoryListSection: View {
         TitledSection(
             title: "피드백 히스토리",
             subtitle: "총 \(feedbackCount)회",
-            spacing: allFeedbackSummaries.isEmpty ? 16 : 4
+            spacing: summaries.isEmpty ? 16 : 4
         ) {
-            if allFeedbackSummaries.isEmpty {
+            if summaries.isEmpty {
                 EmptyFeedbackView()
             } else {
                 FeedbackHistoryList(viewModel: viewModel)

@@ -26,11 +26,11 @@ struct FullFeedbackHistoryStatistics: View {
     var body: some View {
         VStack(alignment: .center, spacing: 0) {
             VStack(alignment: .leading, spacing: 48) {
-                ScoreTrendChart(allFeedbackSummaries: allFeedbackSummaries)
+                ScoreTrendSection(summaries: allFeedbackSummaries)
                 
                 ViewThatFits(in: .vertical) {
-                    FrequentlyWrongWordList(
-                        frequentlyWrongWords: frequentlyWrongWords,
+                    FrequentlyWrongWordsSection(
+                        wrongWords: frequentlyWrongWords,
                         maxDisplayCount: 5
                     )
                     
@@ -80,10 +80,10 @@ struct CompactFeedbackStatistics: View {
     
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
-            ScoreTrendChart(allFeedbackSummaries: allFeedbackSummaries)
+            ScoreTrendSection(summaries: allFeedbackSummaries)
             
-            FrequentlyWrongWordList(
-                frequentlyWrongWords: frequentlyWrongWords,
+            FrequentlyWrongWordsSection(
+                wrongWords: frequentlyWrongWords,
                 maxDisplayCount: 3
             )
                             
