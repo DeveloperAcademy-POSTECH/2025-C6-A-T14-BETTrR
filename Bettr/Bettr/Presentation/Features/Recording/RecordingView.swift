@@ -14,7 +14,6 @@ struct RecordingView: View {
     @Environment(NavigationRouter.self) private var modalRouter
     
     @State private var viewModel: RecordingViewModel
-    @State private var showEmptyTranscriptAlert = false
     @State private var showUnsavedDataAlert = false
     
     private let scriptId: Int64
@@ -28,27 +27,6 @@ struct RecordingView: View {
         self.scriptId = scriptId
         self.scriptTitle = scriptTitle
         _viewModel = State(initialValue: viewModel)
-    }
-    
-    // MARK: - 로직 통합: 분석 -> 저장 -> 이동
-    
-    private func processAnalysisAndSave() {
-        Task {
-            do {
-                let summaryId = try await viewModel.saveFeedback(scriptId: scriptId)
-                
-                modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId, fromRecording: true))
-                
-            } catch let error as RecordingViewModel.RecordingError {
-                if case .emptyTranscript = error {
-                    showEmptyTranscriptAlert = true
-                } else {
-                    print("❌ 피드백 저장/라우팅 실패: \(error)")
-                }
-            } catch {
-                print("❌ 피드백 저장/라우팅 실패: \(error)")
-            }
-        }
     }
     
     var body: some View {
@@ -76,7 +54,11 @@ struct RecordingView: View {
                 RecordingControlBar(
                     viewModel: viewModel,
                     onSaveAction: {
-                        processAnalysisAndSave()
+                        Task {
+                            if let summaryId = await viewModel.processAndSaveFeedback(scriptId: scriptId) {
+                                modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId, fromRecording: true))
+                            }
+                        }
                     }
                 )
             }
@@ -86,13 +68,7 @@ struct RecordingView: View {
         .safeAreaPadding(.horizontal, 84)
         .safeAreaPadding(.top, 24)
         .safeAreaPadding(.bottom, 48)
-        .onChange(of: viewModel.recordingDidFinishEmpty) { _, isEmpty in
-            if isEmpty {
-                showEmptyTranscriptAlert = true
-                viewModel.recordingDidFinishEmpty = false
-            }
-        }
-        .alert("인식된 영문 텍스트가 없습니다.", isPresented: $showEmptyTranscriptAlert) {
+        .alert("인식된 영문 텍스트가 없습니다.", isPresented: $viewModel.showEmptyTranscriptAlert) {
             Button("확인") { viewModel.cancelRecording() }
         } message: {
             Text("피드백 생성을 위해 인식된 영문 텍스트가 있어야 합니다. 다시 녹음 해주세요.")

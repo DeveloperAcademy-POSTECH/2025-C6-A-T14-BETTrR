@@ -18,10 +18,11 @@ class RecordingViewModel {
     var transcript = ""
     var isRecording = false
     var hasRecorded: Bool = false
-    var recordingDidFinishEmpty: Bool = false
     var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
     var microphoneAuthorizationStatus: AVAudioApplication.recordPermission = .undetermined
     var elapsedTime: TimeInterval = 0.0
+    
+    var showEmptyTranscriptAlert = false
     
     // MARK: - Dependencies & Private
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en"))
@@ -49,21 +50,21 @@ class RecordingViewModel {
     
     
     // MARK: - Helper Computed Properties (뷰 로직 간소화용)
-        
-        /// 녹음 대기 상태 (녹음 중도 아니고, 완료된 녹음도 없음)
-        var isReadyToRecord: Bool {
-            !isRecording && !hasRecorded
-        }
-        
-        /// 녹음이 완료되어 결과물이 있는 상태
-        var didFinishRecording: Bool {
-            hasRecorded && !isRecording
-        }
-        
-        /// 권한이 모두 허용되어 녹음 가능한 상태인지 확인
-        var canRecord: Bool {
-            authorizationStatus == .authorized && microphoneAuthorizationStatus == .granted
-        }
+    
+    /// 녹음 대기 상태 (녹음 중도 아니고, 완료된 녹음도 없음)
+    var isReadyToRecord: Bool {
+        !isRecording && !hasRecorded
+    }
+    
+    /// 녹음이 완료되어 결과물이 있는 상태
+    var didFinishRecording: Bool {
+        hasRecorded && !isRecording
+    }
+    
+    /// 권한이 모두 허용되어 녹음 가능한 상태인지 확인
+    var canRecord: Bool {
+        authorizationStatus == .authorized && microphoneAuthorizationStatus == .granted
+    }
     
     // MARK: - Errors
     enum RecordingError: Error {
@@ -92,6 +93,28 @@ class RecordingViewModel {
     }
     
     // MARK: - Public Logic
+    
+    /// 분석 및 저장을 수행하고, 성공 시 Summary ID를 반환합니다.
+    /// 에러 발생 시 내부 상태(showEmptyTranscriptAlert)를 업데이트하거나 로그를 남깁니다.
+    func processAndSaveFeedback(scriptId: Int64) async -> Int64? {
+        do {
+            // 기존의 throwing 함수 호출
+            return try await saveFeedback(scriptId: scriptId)
+            
+        } catch let error as RecordingError {
+            // 에러 종류에 따라 상태 업데이트
+            if case .emptyTranscript = error {
+                self.showEmptyTranscriptAlert = true
+            } else {
+                print("❌ 피드백 저장 실패 (RecordingError): \(error.localizedDescription)")
+            }
+            return nil
+            
+        } catch {
+            print("❌ 피드백 저장 실패 (Unknown): \(error)")
+            return nil
+        }
+    }
     
     // MARK: 녹음 상태 변경 (시작/중지)
     func toggleRecording() {
@@ -127,7 +150,6 @@ class RecordingViewModel {
         
         lastTranscription = nil
         lastRecordedDuration = 0.0
-        recordingDidFinishEmpty = false
     }
     
     // MARK: 로직 통합: 분석 -> 저장 -> summaryId 반환 (RecordingView의 analyzeAndSave 로직 이관)
@@ -299,10 +321,6 @@ class RecordingViewModel {
             
             self.lastTranscription = result?.bestTranscription
             self.lastRecordedDuration = totalTime
-            
-            if finalTranscript.isEmpty {
-                self.recordingDidFinishEmpty = true
-            }
         }
     }
 }
