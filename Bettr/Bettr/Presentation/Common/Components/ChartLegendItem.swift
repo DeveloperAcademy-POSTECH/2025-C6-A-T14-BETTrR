@@ -1,13 +1,14 @@
 //
-//  LegendContent.swift
+//  ChartLegendItem.swift
 //  Bettr
 //
-//  Created by 길정수 on 11/21/25.
+//  Created by 길정수 on 11/23/25.
 //
 
 import SwiftUI
 
-struct LegendItem: View {
+/// 차트에 표시되는 범례 아이템 (색상 원 + 텍스트)
+struct ChartLegendItem: View {
     let color: Color
     let text: String
     
@@ -19,15 +20,6 @@ struct LegendItem: View {
             Text(text)
                 .font(.footerRegular11)
                 .foregroundStyle(.normalGray600)
-        }
-    }
-}
-
-struct LegendContent: View {
-    var body: some View {
-        HStack(spacing: 12) {
-            LegendItem(color: .secondaryBlue700, text: "점수")
-            LegendItem(color: .alertRed01, text: "평균")
         }
     }
 }

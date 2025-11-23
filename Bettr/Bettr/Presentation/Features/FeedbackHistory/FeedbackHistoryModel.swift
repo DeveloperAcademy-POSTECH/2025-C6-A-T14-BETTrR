@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// 대시보드 뷰에서 필요한 스크립트 데이터만 담는 모델
+/// 히스토리 뷰에서 필요한 데이터를 담는 모델
 struct FeedbackHistoryModel: Hashable {
     var title: String
     

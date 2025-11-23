@@ -1,13 +1,13 @@
 //
-//  FeedbackChartDataPoint.swift
+//  ScoreTrendDataPoint.swift
 //  Bettr
 //
-//  Created by 길정수 on 11/21/25.
+//  Created by 길정수 on 11/23/25.
 //
 
-import Foundation
+import SwiftUI
 
-struct FeedbackChartDataPoint: Identifiable {
+struct ScoreTrendDataPoint: Identifiable {
     let id: Int
     let session: Int
     let score: Int
