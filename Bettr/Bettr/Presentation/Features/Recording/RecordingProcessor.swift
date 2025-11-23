@@ -27,14 +27,14 @@ struct RecordingProcessor {
         fromLiveAnalysis diffs: [WordDiff],
         sentences: [String],
         practiceDuration: Double
-    ) -> SummarySaveParams {
+    ) -> RecordingAnalysisResult {
         
         let sentenceDiffs = self.groupDiffsBySentence(diffs: diffs, sentences: sentences)
         let (missing, extra, replaced) = self.countErrors(from: diffs)
         let accuracy = self.calculateAccuracy(sentences: sentences, sentenceDiffs: sentenceDiffs)
         let dbDetails = self.createDetailParams(sentenceDiffs: sentenceDiffs)
         
-        return SummarySaveParams(
+        return RecordingAnalysisResult(
             dbDetails: dbDetails,
             accuracy: accuracy,
             missingCount: missing,
@@ -117,13 +117,13 @@ struct RecordingProcessor {
     }
     
     /// 문장별로 그룹화된 분석 결과를 DB 저장을 위한 `FeedbackDetailParams` 배열로 변환
-    private func createDetailParams(sentenceDiffs: [(original: String, diffs: [WordDiff])]) -> [FeedbackDetailParams] {
-        var detailsData: [FeedbackDetailParams] = []
+    private func createDetailParams(sentenceDiffs: [(original: String, diffs: [WordDiff])]) -> [RecordingWordDetail] {
+        var detailsData: [RecordingWordDetail] = []
         for (sIdx, sentenceData) in sentenceDiffs.enumerated() {
             for (wIdx, diff) in sentenceData.diffs.enumerated() {
                 let originalWord = diff.originalText
                 
-                detailsData.append(FeedbackDetailParams(
+                detailsData.append(RecordingWordDetail(
                     wordDiff: diff,
                     originalText: originalWord,
                     sentenceIndex: sIdx,
