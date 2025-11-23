@@ -88,7 +88,6 @@ struct RecordingProcessor {
     /// 전체 분석 결과에서 에러 유형별(누락, 추가, 대체) 개수를 집계
     private func countErrors(from diffs: [WordDiff]) -> (missing: Int, extra: Int, replaced: Int) {
         diffs.reduce(into: (missing: 0, extra: 0, replaced: 0)) { result, diff in
-            
             switch diff {
             case .missing:
                 result.missing += 1
@@ -113,6 +112,7 @@ struct RecordingProcessor {
                 return false
             }.count
         }
+        
         return totalOriginalWords == 0 ? 0 : Double(matchedCount) / Double(totalOriginalWords)
     }
     
@@ -121,7 +121,6 @@ struct RecordingProcessor {
         var detailsData: [FeedbackDetailParams] = []
         for (sIdx, sentenceData) in sentenceDiffs.enumerated() {
             for (wIdx, diff) in sentenceData.diffs.enumerated() {
-                
                 let originalWord = diff.originalText
                 
                 detailsData.append(FeedbackDetailParams(
