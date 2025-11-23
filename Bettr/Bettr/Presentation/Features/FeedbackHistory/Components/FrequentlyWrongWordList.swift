@@ -1,5 +1,5 @@
 //
-//  FrequentlyWrongWordsSection.swift
+//  FrequentlyWrongWordList.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/20/25.
@@ -7,7 +7,6 @@
 
 
 import SwiftUI
-import Charts
 
 struct FrequentlyWrongWordList: View {
     let frequentlyWrongWords: [WrongWordCount]
