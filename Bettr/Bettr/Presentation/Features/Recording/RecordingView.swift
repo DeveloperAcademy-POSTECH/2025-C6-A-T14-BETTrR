@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import Speech
 import Lottie
 
 struct RecordingView: View {
