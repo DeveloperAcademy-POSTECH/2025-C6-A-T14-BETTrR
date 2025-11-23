@@ -1,5 +1,5 @@
 //
-//  FeedbackHistoryListSection.swift
+//  FeedbackHistoryListCard.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/20/25.
@@ -7,9 +7,8 @@
 
 
 import SwiftUI
-import Charts
 
-struct FeedbackHistoryListSection: View {
+struct FeedbackHistoryCard: View {
     let viewModel: FeedbackHistoryViewModel
     
     private var summaries: [FeedbackSummary] {

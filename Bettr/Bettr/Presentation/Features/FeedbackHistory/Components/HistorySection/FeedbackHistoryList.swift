@@ -28,7 +28,7 @@ struct FeedbackHistoryList: View {
                     
                     let specificFeedbackNumber = totalFeedbackCount - index
                     
-                    FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: specificFeedbackNumber)
+                    FeedbackHistoryRow(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: specificFeedbackNumber)
                 }
             }
             .padding(.top, 12)

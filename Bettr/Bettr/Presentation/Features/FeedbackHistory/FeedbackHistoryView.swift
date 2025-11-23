@@ -35,13 +35,13 @@ struct FeedbackHistoryView: View {
                         HStack(alignment: .top, spacing: 16) {
                             FeedbackStatisticsCard(viewModel: viewModel, layoutMode: .full)
                                 .frame(maxWidth: 474)
-                            FeedbackHistoryListSection(viewModel: viewModel)
+                            FeedbackHistoryCard(viewModel: viewModel)
                         }
                         .safeAreaPadding(.horizontal, 84)
                         
                         VStack(spacing: 16) {
                             FeedbackStatisticsCard(viewModel: viewModel, layoutMode: .compact)
-                            FeedbackHistoryListSection(viewModel: viewModel)
+                            FeedbackHistoryCard(viewModel: viewModel)
                         }
                         .safeAreaPadding(.horizontal, 84)
                     }

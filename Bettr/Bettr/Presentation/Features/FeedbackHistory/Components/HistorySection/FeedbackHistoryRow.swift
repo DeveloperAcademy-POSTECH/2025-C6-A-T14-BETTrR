@@ -1,5 +1,5 @@
 //
-//  FeedbackSummaryCard.swift
+//  FeedbackHistoryRow.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/6/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct FeedbackSummaryCard: View {
+struct FeedbackHistoryRow: View {
     @Environment(NavigationRouter.self) var modalRouter
     let feedback: FeedbackSummary
     let scriptTitle: String
