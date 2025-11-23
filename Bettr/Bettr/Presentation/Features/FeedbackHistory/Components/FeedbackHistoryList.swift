@@ -20,15 +20,20 @@ struct FeedbackHistoryList: View {
     }
     
     var body: some View {
-        LazyVStack(spacing: 36) {
-            let totalFeedbackCount = allFeedbackSummaries.count
-            
-            ForEach(Array(allFeedbackSummaries.enumerated()), id: \.element.id) { (index, feedback) in
+        ScrollView {
+            LazyVStack(spacing: 36) {
+                let totalFeedbackCount = allFeedbackSummaries.count
                 
-                let specificFeedbackNumber = totalFeedbackCount - index
-                
-                FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: specificFeedbackNumber)
+                ForEach(Array(allFeedbackSummaries.enumerated()), id: \.element.id) { (index, feedback) in
+                    
+                    let specificFeedbackNumber = totalFeedbackCount - index
+                    
+                    FeedbackSummaryCard(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: specificFeedbackNumber)
+                }
             }
+            .padding(.top, 12)
+            .padding(.horizontal, 16)
         }
+        .scrollIndicators(.hidden)
     }
 }

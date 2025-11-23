@@ -33,13 +33,8 @@ struct FeedbackHistoryListSection: View {
                 
                 VStack(alignment: .leading, spacing: 4) {
                     FeedbackHistoryListTitle(feedbackCount: feedbackCount)
-                    ScrollView {
-                        FeedbackHistoryList(viewModel: viewModel)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 12)
-                    }
+                    FeedbackHistoryList(viewModel: viewModel)
                 }
-                .scrollIndicators(.hidden)
             }
         }
         .frame(minWidth: 330)
