@@ -21,20 +21,15 @@ struct FeedbackHistoryListSection: View {
     }
     
     var body: some View {
-        Group {
+        TitledSection(
+            title: "피드백 히스토리",
+            subtitle: "총 \(feedbackCount)회",
+            spacing: allFeedbackSummaries.isEmpty ? 16 : 4
+        ) {
             if allFeedbackSummaries.isEmpty {
-                VStack(alignment: .leading, spacing: 16) {
-                    FeedbackHistoryListTitle(feedbackCount: feedbackCount)
-                    EmptyFeedbackView()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            else {
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    FeedbackHistoryListTitle(feedbackCount: feedbackCount)
-                    FeedbackHistoryList(viewModel: viewModel)
-                }
+                EmptyFeedbackView()
+            } else {
+                FeedbackHistoryList(viewModel: viewModel)
             }
         }
         .frame(minWidth: 330)
@@ -59,23 +54,5 @@ struct EmptyFeedbackView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
-
-struct FeedbackHistoryListTitle: View {
-    let feedbackCount: Int
-    
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 0) {
-            Text("피드백 히스토리")
-                .font(.subbodyBold24)
-                .padding(8)
-            
-            Text("총 \(feedbackCount)회")
-                .font(.calloutRegular16)
-                .padding(8)
-        }
-        .foregroundStyle(.normalBlack900)
-        .fixedSize(horizontal: true, vertical: false)
     }
 }

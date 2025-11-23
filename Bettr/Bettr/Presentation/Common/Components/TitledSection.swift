@@ -28,18 +28,17 @@ struct TitledSection<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: spacing) {
             // 타이틀
-            HStack(alignment: .bottom, spacing: 0) {
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(title)
                     .font(.subbodyBold24)
                     .padding(8)
-                    .border(.red)
+                
                 
                 // subtitle이 있을 때만 렌더링
                 if let subtitle = subtitle {
                     Text(subtitle)
                         .font(.calloutRegular16)
                         .padding(8)
-                        .border(.blue)
                 }
             }
             .foregroundStyle(.normalBlack900)
