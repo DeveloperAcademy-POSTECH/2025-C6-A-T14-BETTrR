@@ -30,7 +30,7 @@ struct FrequentlyWrongWordList: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             ForEach(displayWords.enumerated(), id: \.offset) { (index, word) in
-                WrongWordRow(ranking: index + 1, word: word)
+                Row(ranking: index + 1, word: word)
             }
         }
         .padding(.horizontal, 24)
@@ -38,18 +38,20 @@ struct FrequentlyWrongWordList: View {
     }
 }
 
-private struct WrongWordRow: View {
-    let ranking: Int
-    let word: String
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            Text("\(ranking)")
-                .foregroundStyle(.normalGray600)
-            
-            Text(word)
-                .foregroundStyle(.normalBlack900)
+extension FrequentlyWrongWordList {
+    struct Row: View {
+        let ranking: Int
+        let word: String
+        
+        var body: some View {
+            HStack(spacing: 16) {
+                Text("\(ranking)")
+                    .foregroundStyle(.normalGray600)
+                
+                Text(word)
+                    .foregroundStyle(.normalBlack900)
+            }
+            .font(.iconBold20)
         }
-        .font(.iconBold20)
     }
 }

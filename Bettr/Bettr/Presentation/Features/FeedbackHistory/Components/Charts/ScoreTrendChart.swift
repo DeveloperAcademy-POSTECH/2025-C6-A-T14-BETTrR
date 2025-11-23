@@ -81,7 +81,7 @@ struct ScoreTrendChart: View {
         )
         .overlay(alignment: .topTrailing) {
             if !viewModel.chartData.isEmpty {
-                ScoreTrendLegend()
+                Legend()
                     .padding(16)
             }
         }
@@ -98,11 +98,13 @@ struct ScoreTrendChart: View {
     }
 }
 
-private struct ScoreTrendLegend: View {
-    var body: some View {
-        HStack(spacing: 12) {
-            ChartLegendItem(color: .secondaryBlue700, text: "점수")
-            ChartLegendItem(color: .alertRed01, text: "평균")
+extension ScoreTrendChart {
+    struct Legend: View {
+        var body: some View {
+            HStack(spacing: 12) {
+                ChartLegendItem(color: .secondaryBlue700, text: "점수")
+                ChartLegendItem(color: .alertRed01, text: "평균")
+            }
         }
     }
 }
