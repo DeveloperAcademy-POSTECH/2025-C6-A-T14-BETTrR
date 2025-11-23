@@ -7,7 +7,6 @@
 
 
 import SwiftUI
-import Charts
 
 struct FullFeedbackHistoryStatistics: View {
     
@@ -34,8 +33,8 @@ struct FullFeedbackHistoryStatistics: View {
                         maxDisplayCount: 5
                     )
                     
-                    FrequentlyWrongWordList(
-                        frequentlyWrongWords: frequentlyWrongWords,
+                    FrequentlyWrongWordsSection(
+                        wrongWords: frequentlyWrongWords,
                         maxDisplayCount: 3
                     )
                 }
@@ -71,7 +70,7 @@ struct CompactFeedbackStatistics: View {
                 wrongWords: frequentlyWrongWords,
                 maxDisplayCount: 3
             )
-                            
+                                        
             StartTestButton(viewModel: viewModel)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
