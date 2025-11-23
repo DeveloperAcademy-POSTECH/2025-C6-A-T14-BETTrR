@@ -32,8 +32,18 @@ struct FeedbackHistoryView: View {
                     }
                 } else if viewModel.feedbackHistoryData != nil { // 성공
                     ViewThatFits(in: .horizontal) {
-                        FullFeedbackHistoryView(viewModel: viewModel)
-                        CompactFeedbackHistoryView(viewModel: viewModel)
+                        HStack(alignment: .top, spacing: 16) {
+                            FeedbackStatisticsCard(viewModel: viewModel, layoutMode: .full)
+                                .frame(maxWidth: 474)
+                            FeedbackHistoryListSection(viewModel: viewModel)
+                        }
+                        .safeAreaPadding(.horizontal, 84)
+                        
+                        VStack(spacing: 16) {
+                            FeedbackStatisticsCard(viewModel: viewModel, layoutMode: .compact)
+                            FeedbackHistoryListSection(viewModel: viewModel)
+                        }
+                        .safeAreaPadding(.horizontal, 84)
                     }
                 } else { // 예외 케이스: 로딩도 아니고, 에러도 아닌데, 데이터도 없는 경우
                     ErrorView(error: .unknown("데이터를 불러오지 못했습니다.")) {
@@ -82,31 +92,5 @@ struct FeedbackHistoryView: View {
             FeedbackResultView(viewModel: feedbackResultViewModel)
                 .environment(\.modalDismiss, fromRecording ? modalDismiss : nil)
         }
-    }
-}
-
-
-struct FullFeedbackHistoryView: View {
-    let viewModel: FeedbackHistoryViewModel
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            FullFeedbackHistoryStatistics(viewModel: viewModel)
-                .frame(maxWidth: 474)
-            FeedbackHistoryListSection(viewModel: viewModel)
-        }
-        .safeAreaPadding(.horizontal, 84)
-    }
-}
-
-struct CompactFeedbackHistoryView: View {
-    let viewModel: FeedbackHistoryViewModel
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            CompactFeedbackStatistics(viewModel: viewModel)
-            FeedbackHistoryListSection(viewModel: viewModel)
-        }
-        .safeAreaPadding(.horizontal, 84)
     }
 }
