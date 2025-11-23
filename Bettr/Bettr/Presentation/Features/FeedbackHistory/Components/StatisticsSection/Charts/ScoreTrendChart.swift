@@ -9,7 +9,6 @@ import SwiftUI
 import Charts
 
 struct ScoreTrendChart: View {
-    
     let summaries: [FeedbackSummary]
     
     @State private var viewModel: ScoreTrendViewModel
@@ -68,8 +67,8 @@ struct ScoreTrendChart: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: 180)
-        .frame(minHeight: 120)
+        .frame(minHeight: 120, maxHeight: 180)
+        .frame(maxWidth: .infinity)
         .cardFilled()
         .gesture(
             DragGesture()
@@ -81,8 +80,7 @@ struct ScoreTrendChart: View {
         )
         .overlay(alignment: .topTrailing) {
             if !viewModel.chartData.isEmpty {
-                Legend()
-                    .padding(16)
+                Legend().padding(16)
             }
         }
         .overlay(alignment: .center) {
@@ -92,13 +90,13 @@ struct ScoreTrendChart: View {
                     .foregroundStyle(.normalGray600)
             }
         }
-        .onChange(of: summaries) { oldValue, newValue in
+        .onChange(of: summaries) { _, newValue in
             viewModel.updateData(newValue)
         }
     }
 }
 
-extension ScoreTrendChart {
+private extension ScoreTrendChart {
     struct Legend: View {
         var body: some View {
             HStack(spacing: 12) {

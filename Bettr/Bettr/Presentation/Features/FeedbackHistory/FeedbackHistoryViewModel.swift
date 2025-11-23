@@ -10,11 +10,11 @@ import Foundation
 @Observable
 class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
     
-    // MARK: - Dependencies (의존성)
+    // MARK: - Dependencies
     let scriptId: Int64
     let scriptService: ScriptManagementServiceProtocol
     
-    // MARK: Core Data State (핵심 데이터 상태)
+    // MARK: - Properties
     var feedbackHistoryData: FeedbackHistoryModel?
     var currentTitle: String = "Loading..." {
         didSet {
@@ -34,18 +34,18 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
         self.scriptService = scriptService
     }
     
-    // MARK: - Protocol Conformance
+    // MARK: - TitleEditableViewModelProtocol
     
     func updateLocalModelTitle(_ newTitle: String) {
         self.feedbackHistoryData?.title = newTitle
     }
     
-    // MARK: - View Lifecycle
+    // MARK: - View Actions
     
     @MainActor
     func onAppear() {
         Task {
-            await loadDashboardData()
+            await loadFeedbackHistory()
         }
     }
     
@@ -54,14 +54,14 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
         self.feedbackHistoryData = nil
         self.currentTitle = "Loading..."
         Task {
-            await loadDashboardData()
+            await loadFeedbackHistory()
         }
     }
     
-    // MARK: - Private Methods (Internal Logic)
+    // MARK: - Private Methods
     
     @MainActor
-    private func loadDashboardData() async {
+    private func loadFeedbackHistory() async {
         self.isLoading = true
         self.currentError = nil
         
@@ -74,10 +74,10 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
             do {
                 let fetchedData = try await self.scriptService.fetchScriptWithSentences(id: scriptId)
                 let script = fetchedData.script
-                let sentenceObjects = fetchedData.sentences
+                let sentences = fetchedData.sentences
                 
                 let scriptTitle = script.title
-                let scriptSentences: [String] = sentenceObjects
+                let englishLines: [String] = sentences
                     .sorted { $0.orderIndex < $1.orderIndex }
                     .map { $0.englishText }
                 
@@ -86,9 +86,9 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
                 
                 let recentFeedbackSummaries = Array(allFeedbackSummariesSorted.prefix(5))
                 
-                let allFeedbackDetails = try await self.fetchRecentDetails(from: allFeedbackSummariesSorted)
+                let allFeedbackDetails = try await self.fetchAllFeedbackDetails(from: allFeedbackSummariesSorted)
                 
-                let frequentlyWrongWords = processFrequentlyWrongWords(from: allFeedbackDetails)
+                let frequentlyWrongWords = calculateTopWrongWords(from: allFeedbackDetails)
                 
                 let feedbackCount = allFeedbackSummariesSorted.count
                 
@@ -98,7 +98,7 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
                     recentFeedbackSummaries: recentFeedbackSummaries,
                     frequentlyWrongWords: frequentlyWrongWords,
                     feedbackCount: feedbackCount,
-                    scriptSentences: scriptSentences
+                    scriptSentences: englishLines
                 )
                 
                 self.currentTitle = scriptTitle
@@ -132,7 +132,8 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
     
     // MARK: - Private Helpers
     
-    private func fetchRecentDetails(from feedbackSummaries: [FeedbackSummary]) async throws -> [FeedbackDetail] {
+    /// 주어진 FeedbackSummary 목록에 대한 상세 정보를 비동기로 가져옴
+    private func fetchAllFeedbackDetails(from feedbackSummaries: [FeedbackSummary]) async throws -> [FeedbackDetail] {
         return try await withThrowingTaskGroup(
             of: [FeedbackDetail].self,
             returning: [FeedbackDetail].self
@@ -153,8 +154,7 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
     }
     
     /// FeedbackDetail에서 틀린 단어를 집계하는 헬퍼 함수
-    private func processFrequentlyWrongWords(from details: [FeedbackDetail]) -> [WrongWordCount] {
-        
+    private func calculateTopWrongWords(from details: [FeedbackDetail]) -> [WrongWordCount] {
         let incorrectWords = details.compactMap { detail -> String? in
             switch detail.wordDiff {
             case .missing(let expected):
@@ -172,15 +172,12 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
             case .matched:
                 return nil
             }
-        }.filter { !$0.isEmpty } // 빈 문자열 제거
+        }.filter { !$0.isEmpty }
         
-        // 단어별 빈도수 계산
         let wordCounts = Dictionary(incorrectWords.map { ($0, 1) }, uniquingKeysWith: +)
         
-        // 횟수(value) 기준으로 내림차순 정렬
         let sortedWords = wordCounts.sorted { $0.value > $1.value }
         
-        // Top 5 추출 (튜플 배열로 변환)
         let top5 = Array(sortedWords.prefix(5)).map { WrongWordCount(word: $0.key, count: $0.value) }
         
         return top5

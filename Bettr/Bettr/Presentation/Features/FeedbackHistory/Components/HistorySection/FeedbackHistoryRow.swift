@@ -9,13 +9,14 @@ import SwiftUI
 
 struct FeedbackHistoryRow: View {
     @Environment(NavigationRouter.self) var modalRouter
+    
     let feedback: FeedbackSummary
-    let scriptTitle: String
-    let feedbackNumber: Int
     
     var body: some View {
         Button(action: {
-            modalRouter.push(ModalRoute.feedbackResult(summaryId: feedback.id!, fromRecording: false))
+            if let summaryId = feedback.id {
+                modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId, fromRecording: false))
+            }
         }) {
             HStack {
                 VStack(alignment: .leading, spacing: 12) {

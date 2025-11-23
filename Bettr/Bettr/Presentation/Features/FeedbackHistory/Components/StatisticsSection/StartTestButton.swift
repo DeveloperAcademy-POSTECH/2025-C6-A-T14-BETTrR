@@ -11,14 +11,21 @@ struct StartTestButton: View {
     
     let viewModel: FeedbackHistoryViewModel
     @Environment(NavigationRouter.self) private var modalRouter
-
+    
+    private var isTestReady: Bool {
+        guard let data = viewModel.feedbackHistoryData,
+              let sentences = data.scriptSentences,
+              !sentences.isEmpty else {
+            return false
+        }
+        return true
+    }
+    
     var body: some View {
         Button(action: {
             guard let data = viewModel.feedbackHistoryData,
-                  let sentences = data.scriptSentences else {
-                print("스크립트 문장 데이터가 없습니다.")
-                return
-            }
+                  let sentences = data.scriptSentences else { return }
+            
             modalRouter.push(ModalRoute.recording(
                 scriptId: viewModel.scriptId,
                 scriptTitle: viewModel.currentTitle,
@@ -29,5 +36,6 @@ struct StartTestButton: View {
                 .font(.labelBold16)
         }
         .buttonStyle(.general)
+        .disabled(!isTestReady)
     }
 }

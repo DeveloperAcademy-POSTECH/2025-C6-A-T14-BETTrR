@@ -5,9 +5,7 @@
 //  Created by 길정수 on 11/20/25.
 //
 
-
 import SwiftUI
-import Charts
 
 struct FeedbackHistoryList: View {
     let viewModel: FeedbackHistoryViewModel
@@ -22,13 +20,8 @@ struct FeedbackHistoryList: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 36) {
-                let totalFeedbackCount = allFeedbackSummaries.count
-                
-                ForEach(Array(allFeedbackSummaries.enumerated()), id: \.element.id) { (index, feedback) in
-                    
-                    let specificFeedbackNumber = totalFeedbackCount - index
-                    
-                    FeedbackHistoryRow(feedback: feedback, scriptTitle: scriptTitle, feedbackNumber: specificFeedbackNumber)
+                ForEach(allFeedbackSummaries) { feedback in
+                    FeedbackHistoryRow(feedback: feedback)
                 }
             }
             .padding(.top, 12)

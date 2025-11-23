@@ -9,13 +9,12 @@ import Foundation
 
 @Observable
 final class ScoreTrendViewModel {
-    var pageIndex: Int = 0
     private let pageSize = 5
     
-    // 원본 데이터
+    var pageIndex: Int = 0
+    
     private var allFeedbackSummaries: [FeedbackSummary] = []
     
-    // 가공된 차트 데이터
     var chartData: [ScoreTrendDataPoint] = []
     
     init(summaries: [FeedbackSummary]) {
