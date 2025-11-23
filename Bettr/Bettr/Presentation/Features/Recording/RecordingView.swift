@@ -51,7 +51,7 @@ struct RecordingView: View {
                         .padding(.horizontal, 48)
                     
                     // 버튼
-                    RecordingControlBar(
+                    RecordingActionButtons(
                         viewModel: viewModel,
                         onSaveAction: {
                             Task {
