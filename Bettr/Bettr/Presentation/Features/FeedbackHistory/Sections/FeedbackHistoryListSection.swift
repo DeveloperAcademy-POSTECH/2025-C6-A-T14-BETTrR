@@ -32,7 +32,7 @@ struct FeedbackHistoryListSection: View {
                 FeedbackHistoryList(viewModel: viewModel)
             }
         }
-        .frame(minWidth: 330)
+        .frame(minWidth: 350)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .cardBordered(padding: 36)
     }
