@@ -29,40 +29,50 @@ struct RecordingView: View {
     }
     
     var body: some View {
-        VStack(alignment: .center) {
-            Spacer()
-            
-            VStack(spacing: 48) {
-                // 타이머
-                Text(viewModel.elapsedTime.toMMSSms())
-                    .font(.labelMedium64)
-                    .foregroundStyle(.normalBlack900)
-                    .padding(.top, 48)
+        ZStack {
+            VStack(alignment: .center) {
+                Spacer()
                 
-                // 로띠
-                LottieView(animation: .named("recordLottie"))
-                    .playbackMode(viewModel.isRecording ?
-                        .playing(.fromProgress(0, toProgress: 1, loopMode: .loop)) :
-                            .paused(at: .progress(0))
-                    )
-                    .animationSpeed(2.0)
-                    .frame(maxWidth: .infinity, maxHeight: 500)
-                    .padding(.horizontal, 48)
-                
-                // 버튼
-                RecordingControlBar(
-                    viewModel: viewModel,
-                    onSaveAction: {
-                        Task {
-                            if let summaryId = await viewModel.processAndSaveFeedback(scriptId: scriptId) {
-                                modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId, fromRecording: true))
+                VStack(spacing: 48) {
+                    // 타이머
+                    Text(viewModel.elapsedTime.toMMSSms())
+                        .font(.labelMedium64)
+                        .foregroundStyle(.normalBlack900)
+                        .padding(.top, 48)
+                    
+                    // 로띠
+                    LottieView(animation: .named("recordLottie"))
+                        .playbackMode(viewModel.isRecording ?
+                            .playing(.fromProgress(0, toProgress: 1, loopMode: .loop)) :
+                                .paused(at: .progress(0))
+                        )
+                        .animationSpeed(2.0)
+                        .frame(maxWidth: .infinity, maxHeight: 500)
+                        .padding(.horizontal, 48)
+                    
+                    // 버튼
+                    RecordingControlBar(
+                        viewModel: viewModel,
+                        onSaveAction: {
+                            Task {
+                                if let summaryId = await viewModel.processAndSaveFeedback(scriptId: scriptId) {
+                                    modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId, fromRecording: true))
+                                }
                             }
                         }
-                    }
-                )
+                    )
+                }
+                
+                Spacer()
             }
             
-            Spacer()
+            // 로딩
+            if viewModel.isLoading {
+                Color.normalBlack900.opacity(0.1)
+                    .ignoresSafeArea()
+                
+                ProgressView()
+            }
         }
         .safeAreaPadding(.horizontal, 84)
         .safeAreaPadding(.top, 24)
@@ -93,6 +103,13 @@ struct RecordingView: View {
             }
         } message: {
             Text("현재 녹음에서 인식된 영문 텍스트가 있습니다. 저장되지 않은 데이터는 사라집니다.")
+        }
+        .alert(item: $viewModel.appError) { error in
+            Alert(
+                title: Text("오류"),
+                message: Text(error.userFriendlyMessage),
+                dismissButton: .default(Text("확인"))
+            )
         }
     }
 }

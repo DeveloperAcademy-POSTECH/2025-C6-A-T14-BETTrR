@@ -24,6 +24,9 @@ class RecordingViewModel {
     
     var showEmptyTranscriptAlert = false
     
+    var isLoading = false
+    var appError: AppError?
+    
     // MARK: - Dependencies & Private
     private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en"))
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -97,21 +100,26 @@ class RecordingViewModel {
     /// 분석 및 저장을 수행하고, 성공 시 Summary ID를 반환합니다.
     /// 에러 발생 시 내부 상태(showEmptyTranscriptAlert)를 업데이트하거나 로그를 남깁니다.
     func processAndSaveFeedback(scriptId: Int64) async -> Int64? {
+        isLoading = true
+        
+        defer { isLoading = false }
+        
         do {
-            // 기존의 throwing 함수 호출
             return try await saveFeedback(scriptId: scriptId)
             
         } catch let error as RecordingError {
-            // 에러 종류에 따라 상태 업데이트
             if case .emptyTranscript = error {
                 self.showEmptyTranscriptAlert = true
+            } else if case .saveFailed(let innerError) = error {
+                self.appError = .unknown("저장 중 문제가 발생했습니다.\n(\(innerError.localizedDescription))")
             } else {
-                print("❌ 피드백 저장 실패 (RecordingError): \(error.localizedDescription)")
+                self.appError = .unknown(error.localizedDescription)
             }
             return nil
             
         } catch {
             print("❌ 피드백 저장 실패 (Unknown): \(error)")
+            self.appError = .unknown(error.localizedDescription)
             return nil
         }
     }
@@ -314,7 +322,7 @@ class RecordingViewModel {
         let totalTime = self.recordingStartTime.map { Date().timeIntervalSince($0) } ?? 0.0
         let finalTranscript = result?.bestTranscription.formattedString ?? ""
         
-        Task { @MainActor in // Task를 사용하여 비동기/메인 스레드 전환을 명시
+        Task { @MainActor in
             self.isRecording = false
             self.hasRecorded = true
             self.transcript = finalTranscript
