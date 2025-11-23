@@ -1,5 +1,5 @@
 //
-//  RecordingActionButtons.swift
+//  RecordingButtonGroup.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/24/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct RecordingActionButtons: View {
+struct RecordingButtonGroup: View {
     var viewModel: RecordingViewModel
     
     let onSaveAction: () -> Void
