@@ -18,7 +18,7 @@ struct RecordingControlBar: View {
             Button(action: { viewModel.cancelRecording() }) {
                 Image(systemName: "arrow.clockwise")
             }
-            .buttonStyle(RecordCancelButtonStyle())
+            .buttonStyle(ResetButtonStyle())
             .disabled(!viewModel.didFinishRecording)
             
             Spacer()
@@ -36,7 +36,7 @@ struct RecordingControlBar: View {
             Button(action: onSaveAction) {
                 Image(systemName: "arrow.right")
             }
-            .buttonStyle(RecordToggleButtonStyle(isRecording: false))
+            .buttonStyle(NextStepButtonStyle())
             .disabled(!viewModel.didFinishRecording)
         }
         .padding(.horizontal, 48)
