@@ -11,247 +11,133 @@ struct FeedbackSummarySection: View {
     let model: FeedbackResultModel
     
     var body: some View {
-        ViewThatFits {
-            FullResultTopContent(model: model)
-            CompactResultTopContent(model: model)
+        TitledSection.large(title: "피드백 결과 요약") {
+            ViewThatFits {
+                fullLayout
+                compactLayout
+            }
         }
     }
 }
 
-// MARK: - Full ver
+// MARK: - Layouts (Private)
 
-struct FullResultTopContent: View {
-    let model: FeedbackResultModel
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Text("피드백 결과 요약")
-                .font(.headingBold28)
-                .foregroundStyle(.normalBlack900)
-            
-            FullResultSummaryGrid(model: model)
-        }
-        .frame(maxHeight: 242)
-    }
-}
-
-struct FullResultSummaryGrid: View {
-    let model: FeedbackResultModel
-    
-    var body: some View {
+private extension FeedbackSummarySection {
+    var fullLayout: some View {
         HStack(spacing: 16) {
-            // 왼쪽
+            // 왼쪽 그룹
             VStack(spacing: 16) {
-                // 왼쪽 상단: 스크립트 제목, 피드백 회차
+                // 상단: 제목 + 회차
                 HStack(spacing: 16) {
-                    DiagonalLayoutCard(title: "스크립트 제목") {
-                        Text(model.scriptTitle)
-                            .font(.subbodyBold24)
-                            .fixedSize(horizontal: true, vertical: false)
-                    }
-                    .cardBordered(padding: 24, cornerRadius: 10)
-                    .frame(maxWidth: .infinity)
-                    
-                    DiagonalLayoutCard(title: "피드백 회차") {
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text("\(model.feedbackNumber)")
-                                .font(.subtitleBold32)
-                            
-                            Text("회")
-                                .font(.calloutRegular20)
-                        }
-                        .fixedSize(horizontal: true, vertical: false)
-                    }
-                    .cardBordered(padding: 24, cornerRadius: 10)
-                    .frame(maxWidth: 192)
+                    scriptTitleCard.frame(maxWidth: .infinity)
+                    feedbackCountCard.frame(maxWidth: 192)
                 }
                 .frame(maxWidth: .infinity)
                 
-                // 왼쪽 하단: 총 녹음 시간, 누락∙대체∙추가된 단어
+                // 하단: 시간 + 단어 카운트 3종
                 HStack(spacing: 16) {
-                    DiagonalLayoutCard(title: "총 녹음 시간") {
-                        Text(model.totalRecordingTime.toMMSSms())
-                            .font(.subbodyBold24)
-                            .fixedSize(horizontal: true, vertical: false)
-                    }
-                    .cardBordered(padding: 24, cornerRadius: 10)
-                    .frame(maxWidth: .infinity)
-                    
-                    DiagonalLayoutCard(title: "누락된 단어") {
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text("\(model.missingCount)")
-                                .font(.subbodyBold24)
-                            
-                            Text("개")
-                                .font(.calloutRegular16)
-                        }
-                        .fixedSize(horizontal: true, vertical: false)
-                    }
-                    .cardBordered(padding: 24, cornerRadius: 10)
-                    .frame(maxWidth: 150)
-                    
-                    DiagonalLayoutCard(title: "대체된 단어") {
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text("\(model.replacedCount)")
-                                .font(.subbodyBold24)
-                            
-                            Text("개")
-                                .font(.calloutRegular16)
-                        }
-                        .fixedSize(horizontal: true, vertical: false)
-                    }
-                    .cardBordered(padding: 24, cornerRadius: 10)
-                    .frame(maxWidth: 150)
-                    
-                    DiagonalLayoutCard(title: "추가된 단어") {
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
-                            Text("\(model.extraCount)")
-                                .font(.subbodyBold24)
-                            
-                            Text("개")
-                                .font(.calloutRegular16)
-                        }
-                        .fixedSize(horizontal: true, vertical: false)
-                    }
-                    .cardBordered(padding: 24, cornerRadius: 10)
-                    .frame(maxWidth: 150)
+                    timeCard.frame(maxWidth: .infinity)
+                    wordCountCards(maxWidth: 150)
                 }
                 .frame(maxWidth: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // 오른쪽: 종합 평가 점수
-            DiagonalLayoutCard(title: "종합 평가 점수") {
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("\(Int(model.accuracy * 100))")
-                        .font(.labelMedium64)
-                    
-                    Text("%")
-                        .font(.bodyRegular24)
-                }
-                .fixedSize(horizontal: true, vertical: false)
-            }
-            .cardBordered(padding: 24, cornerRadius: 10)
-            .frame(maxWidth: 242, maxHeight: .infinity)
+            // 오른쪽: 점수
+            scoreCard(font: .labelMedium64)
+                .frame(maxWidth: 242, maxHeight: .infinity)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxHeight: 242)
     }
-}
-
-// MARK: - Compact ver
-
-struct CompactResultTopContent: View {
-    let model: FeedbackResultModel
     
-    var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Text("피드백 결과 요약")
-                .font(.headingBold28)
-                .foregroundStyle(.normalBlack900)
-            
-            CompactResultSummaryGrid(model: model)
-        }
-    }
-}
-
-struct CompactResultSummaryGrid: View {
-    let model: FeedbackResultModel
-    
-    var body: some View {
+    var compactLayout: some View {
         VStack(spacing: 16) {
-            // 상단: 스크립트 제목
-            DiagonalLayoutCard(title: "스크립트 제목") {
-                Text(model.scriptTitle)
-                    .font(.subbodyBold24)
-                    .fixedSize(horizontal: true, vertical: false)
-            }
-            .cardBordered(padding: 24, cornerRadius: 10)
-            .frame(maxWidth: .infinity, maxHeight: 120)
+            // 상단: 제목
+            scriptTitleCard
+                .frame(maxWidth: .infinity, maxHeight: 120)
             
-            // 하단
+            // 하단 그룹
             HStack(spacing: 16) {
+                // 왼쪽: 시간/회차 + 단어 카운트 3종
                 VStack(spacing: 16) {
-                    // 왼쪽 상단: 총 녹음 시간, 피드백 회차
                     HStack(spacing: 16) {
-                        DiagonalLayoutCard(title: "총 녹음 시간") {
-                            Text(model.totalRecordingTime.toMMSSms())
-                                .font(.subbodyBold24)
-                                .fixedSize(horizontal: true, vertical: false)
-                        }
-                        .cardBordered(padding: 24, cornerRadius: 10)
-                        
-                        DiagonalLayoutCard(title: "피드백 회차") {
-                            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                                Text("\(model.feedbackNumber)")
-                                    .font(.subtitleBold32)
-                                
-                                Text("회")
-                                    .font(.calloutRegular20)
-                            }
-                            .fixedSize(horizontal: true, vertical: false)
-                        }
-                        .cardBordered(padding: 24, cornerRadius: 10)
+                        timeCard
+                        feedbackCountCard
                     }
                     
-                    // 왼쪽 하단: 누락∙대체∙추가된 단어
                     HStack(spacing: 16) {
-                        DiagonalLayoutCard(title: "누락된 단어") {
-                            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                                Text("\(model.missingCount)")
-                                    .font(.subbodyBold24)
-                                
-                                Text("개")
-                                    .font(.calloutRegular16)
-                            }
-                            .fixedSize(horizontal: true, vertical: false)
-                        }
-                        .cardBordered(padding: 24, cornerRadius: 10)
-                        
-                        DiagonalLayoutCard(title: "대체된 단어") {
-                            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                                Text("\(model.replacedCount)")
-                                    .font(.subbodyBold24)
-                                
-                                Text("개")
-                                    .font(.calloutRegular16)
-                            }
-                            .fixedSize(horizontal: true, vertical: false)
-                        }
-                        .cardBordered(padding: 24, cornerRadius: 10)
-                        
-                        DiagonalLayoutCard(title: "추가된 단어") {
-                            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                                Text("\(model.extraCount)")
-                                    .font(.subbodyBold24)
-                                
-                                Text("개")
-                                    .font(.calloutRegular16)
-                            }
-                            .fixedSize(horizontal: true, vertical: false)
-                        }
-                        .cardBordered(padding: 24, cornerRadius: 10)
+                        wordCountCards(maxWidth: nil)
                     }
                 }
                 .layoutPriority(1)
                 
-                // 오른쪽: 종합 평가 점수
-                DiagonalLayoutCard(title: "종합 평가 점수") {
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text("\(Int(model.accuracy * 100))")
-                            .font(.labelMedium48)
-                        
-                        Text("%")
-                            .font(.bodyRegular24)
-                    }
-                    .fixedSize(horizontal: true, vertical: false)
-                }
-                .cardBordered(padding: 24, cornerRadius: 10)
-                .frame(maxWidth: 240)
-                .layoutPriority(0)
+                // 오른쪽: 점수
+                scoreCard(font: .labelMedium48)
+                    .frame(maxWidth: 242)
+                    .layoutPriority(0)
             }
             .frame(maxHeight: 242)
         }
-        .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Components (Builders)
+private extension FeedbackSummarySection {
+    @ViewBuilder
+    func wordCountCards(maxWidth: CGFloat?) -> some View {
+        statCard(title: "누락된 단어", count: model.missingCount, maxWidth: maxWidth)
+        statCard(title: "대체된 단어", count: model.replacedCount, maxWidth: maxWidth)
+        statCard(title: "추가된 단어", count: model.extraCount, maxWidth: maxWidth)
+    }
+    
+    var scriptTitleCard: some View {
+        DiagonalLayoutCard(title: "스크립트 제목") {
+            Text(model.scriptTitle)
+                .font(.subbodyBold24)
+                .fixedSize(horizontal: true, vertical: false)
+        }
+        .cardBordered(padding: 24, cornerRadius: 10)
+    }
+    
+    var feedbackCountCard: some View {
+        DiagonalLayoutCard(title: "피드백 회차") {
+            unitText(value: "\(model.feedbackNumber)", unit: "회", valueFont: .subtitleBold32, unitFont: .calloutRegular20)
+        }
+        .cardBordered(padding: 24, cornerRadius: 10)
+    }
+    
+    var timeCard: some View {
+        DiagonalLayoutCard(title: "총 녹음 시간") {
+            Text(model.totalRecordingTime.toMMSSms())
+                .font(.subbodyBold24)
+                .fixedSize(horizontal: true, vertical: false)
+        }
+        .cardBordered(padding: 24, cornerRadius: 10)
+    }
+    
+    func scoreCard(font: Font) -> some View {
+        DiagonalLayoutCard(title: "종합 평가 점수") {
+            unitText(value: "\(Int(model.accuracy * 100))", unit: "%", valueFont: font, unitFont: .bodyRegular24)
+        }
+        .cardBordered(padding: 24, cornerRadius: 10)
+    }
+    
+    // 헬퍼: 숫자 + 단위 (예: 5개, 1회)
+    func statCard(title: String, count: Int, maxWidth: CGFloat?) -> some View {
+        DiagonalLayoutCard(title: title) {
+            unitText(value: "\(count)", unit: "개", valueFont: .subbodyBold24, unitFont: .calloutRegular16)
+        }
+        .cardBordered(padding: 24, cornerRadius: 10)
+        .frame(maxWidth: maxWidth)
+    }
+    
+    // 헬퍼: 텍스트 조합 (BaseLine 정렬)
+    func unitText(value: String, unit: String, valueFont: Font, unitFont: Font) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            Text(value).font(valueFont)
+            Text(unit).font(unitFont)
+        }
+        .fixedSize(horizontal: true, vertical: false)
     }
 }
 
