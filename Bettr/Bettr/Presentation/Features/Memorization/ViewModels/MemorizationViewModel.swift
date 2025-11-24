@@ -127,9 +127,7 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
                 uiState.isPlaybackActive = false
                 return
             }
-            
             uiState.funcMode = .hide
-            
             audioService.playAll(sentences: scriptData.sentences)
             uiState.isPause = false
         } else {
@@ -182,11 +180,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     // MARK: Service Callbacks
     
     func handleAudioServiceStateChange(isPlaybackActive serviceIsActive: Bool, isPaused serviceIsPaused: Bool) {
-        if !serviceIsActive && !serviceIsPaused {
-            self.uiState.isPlaybackActive = false
-            self.uiState.isPause = false
+            if !serviceIsActive && !serviceIsPaused {
+                self.uiState.isPlaybackActive = false
+                self.uiState.isPause = false
+            }
         }
-    }
     
     // MARK: - View State Logic
     
