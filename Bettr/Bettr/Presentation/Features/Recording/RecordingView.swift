@@ -111,5 +111,15 @@ struct RecordingView: View {
                 dismissButton: .default(Text("확인"))
             )
         }
+        .alert("마이크 및 음성 인식 권한 필요", isPresented: $viewModel.showPermissionAlert) {
+            Button("설정으로 이동") {
+                if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(settingsUrl)
+                }
+            }
+            Button("취소", role: .cancel) { }
+        } message: {
+            Text("피드백을 제공하기 위해 마이크와 음성 인식 권한이 필요합니다. 설정에서 권한을 허용해주세요.")
+        }
     }
 }

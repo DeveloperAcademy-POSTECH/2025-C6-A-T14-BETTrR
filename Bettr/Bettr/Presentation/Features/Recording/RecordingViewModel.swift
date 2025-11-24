@@ -23,6 +23,7 @@ class RecordingViewModel {
     var isLoading = false
     var appError: AppError?
     var showEmptyTranscriptAlert = false
+    var showPermissionAlert = false
     
     // MARK: - Properties: Permissions
     var authorizationStatus: SFSpeechRecognizerAuthorizationStatus = .notDetermined
@@ -107,6 +108,11 @@ class RecordingViewModel {
     
     /// 녹음 상태를 토글 (시작 <-> 중지)
     func toggleRecording() {
+        guard canRecord else {
+            showPermissionAlert = true
+            return
+        }
+        
         if audioEngine.isRunning {
             stopRecording()
         } else {

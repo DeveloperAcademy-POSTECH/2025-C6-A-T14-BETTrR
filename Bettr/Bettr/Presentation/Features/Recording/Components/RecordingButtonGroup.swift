@@ -28,7 +28,7 @@ struct RecordingButtonGroup: View {
                 Image(systemName: viewModel.isReadyToRecord ? "microphone" : "stop.fill")
             }
             .buttonStyle(RecordToggleButtonStyle(isRecording: viewModel.isRecording))
-            .disabled(!viewModel.canRecord || viewModel.didFinishRecording)
+            .disabled(viewModel.didFinishRecording)
             
             Spacer()
             
