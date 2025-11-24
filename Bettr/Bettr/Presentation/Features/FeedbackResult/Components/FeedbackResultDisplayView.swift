@@ -16,7 +16,8 @@ struct FeedbackResultDisplayView: View {
             if model.filteredSentenceDiffs.isEmpty {
                 VStack(alignment: .leading, spacing: 64) {
                     ResultTopContent(model: model)
-                    PerfectResultBottomView()
+                    IncorrectSentenceSection(model: model)
+                        .frame(maxHeight: .infinity, alignment: .top)
                 }
                 .frame(maxWidth: .infinity)
                 .safeAreaPadding(.horizontal, 84)
@@ -25,8 +26,8 @@ struct FeedbackResultDisplayView: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 64) {
                             ResultTopContent(model: model)
-                            ResultBottomContent(model: model)
-                        }
+                            IncorrectSentenceSection(model: model)
+                            .frame(maxHeight: .infinity, alignment: .top)                        }
                         .frame(maxWidth: .infinity)
                         .safeAreaPadding(.horizontal, 84)
                         .frame(minHeight: geometry.size.height)
