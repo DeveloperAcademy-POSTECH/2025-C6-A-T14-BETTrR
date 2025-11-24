@@ -13,11 +13,10 @@ struct SentenceModeView: View {
     var body: some View {
         ForEach(viewModel.scriptData?.sentences ?? [], id: \.orderIndex) { sentence in
             VStack(alignment: .leading, spacing: 6) {
-                
                 EnglishScriptTextView(
                     text: sentence.englishText,
                     isHidden: viewModel.isSentenceHidden(sentence.orderIndex),
-                    onTap: { handleSentenceTap(sentence: sentence) },
+                    onTap: { viewModel.handleSentenceTap(sentence: sentence) },
                     sentenceIndex: sentence.orderIndex
                 )
                 
@@ -29,9 +28,5 @@ struct SentenceModeView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .id(sentence.orderIndex)
         }
-    }
-    
-    private func handleSentenceTap(sentence: SentenceData) {
-        viewModel.handleSentenceTap(sentence: sentence)
     }
 }

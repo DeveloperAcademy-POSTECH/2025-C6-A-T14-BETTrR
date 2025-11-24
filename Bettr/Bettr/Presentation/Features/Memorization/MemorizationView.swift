@@ -33,6 +33,7 @@ struct MemorizationView: View {
                 )
             }
             
+            // 토스터
             toasterOverlay
         }
         .onTapGesture {

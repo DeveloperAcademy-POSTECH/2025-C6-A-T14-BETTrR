@@ -12,11 +12,8 @@ struct ChunkModeView: View {
     
     var body: some View {
         ForEach(viewModel.scriptData?.sentences ?? [], id: \.orderIndex) { sentence in
-            
             VStack(alignment: .leading, spacing: 6) {
-                
                 englishChunkLine(for: sentence)
-                
                 koreanChunkLine(for: sentence)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -49,13 +46,12 @@ struct ChunkModeView: View {
         
         return CustomFlowLayout(horizontalSpacing: 12, verticalSpacing: 8) {
             ForEach(chunksWithOffset, id: \.0.orderIndex) { (chunk, offset) in
-                
                 let chunkID = ChunkIdentifier(sentenceIndex: sentence.orderIndex, chunkIndex: chunk.orderIndex)
                 
                 EnglishScriptTextView(
                     text: chunk.englishText,
                     isHidden: viewModel.interactionState.hiddenEngChunks.contains(chunkID),
-                    onTap: { handleChunkTap(chunk: chunk, identifier: chunkID) },
+                    onTap: { viewModel.handleChunkTap(chunk: chunk, identifier: chunkID) },
                     sentenceIndex: sentence.orderIndex,
                     chunkOffset: offset
                 )
@@ -77,7 +73,6 @@ struct ChunkModeView: View {
         
         return CustomFlowLayout(horizontalSpacing: 0, verticalSpacing: 0) {
             ForEach(sentence.chunks, id: \.orderIndex) { chunk in
-                
                 KoreanScriptTextView(
                     text: chunk.koreanText,
                     isVisible: viewModel.uiState.isKoreanVisible,
@@ -92,9 +87,5 @@ struct ChunkModeView: View {
                 }
             }
         }
-    }
-    
-    private func handleChunkTap(chunk: ChunkData, identifier: ChunkIdentifier) {
-        viewModel.handleChunkTap(chunk: chunk, identifier: identifier)
     }
 }
