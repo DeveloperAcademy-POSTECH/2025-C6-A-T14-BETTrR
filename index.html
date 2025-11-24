@@ -98,11 +98,57 @@
 
         /* Header & Logo */
         header {
-            padding: 20px 0; position: sticky; top: 0; background: rgba(255,255,255,0.95);
+            padding: 16px 0; position: sticky; top: 0; background: rgba(255,255,255,0.95);
             backdrop-filter: blur(10px); z-index: 100; border-bottom: 1px solid rgba(0,0,0,0.05);
         }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
         .logo { display: flex; align-items: center; }
         .logo img { height: 28px; width: auto; display: block; }
+
+        /* Header Right Side */
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        /* Header Link (Team) */
+        .header-nav-link {
+            text-decoration: none;
+            color: var(--text-sub);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+        .header-nav-link:hover {
+            color: var(--dark-navy);
+        }
+
+        /* Header Download Button */
+        .header-download-btn {
+            background-color: var(--dark-navy);
+            color: #fff;
+            padding: 10px 24px; 
+            border-radius: 12px; 
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(44, 56, 70, 0.15);
+        }
+        .header-download-btn:hover {
+            transform: translateY(-2px);
+            background-color: var(--primary-slate);
+            box-shadow: 0 6px 16px rgba(44, 56, 70, 0.2);
+        }
 
         /* Info Badges */
         .info-badges {
@@ -193,6 +239,7 @@
             background: #fff;
             padding: 32px;
             border-radius: 16px;
+            /* 그림자 및 테두리 제거됨 */
             font-size: 1.3rem;
             font-weight: 500;
             line-height: 1.6;
@@ -216,7 +263,6 @@
         footer {
             background-color: var(--almost-black);
             color: #fff;
-            /* 상단 패딩을 줄이고 전체적으로 슬림하게 */
             padding: 40px 0; 
             border-top: 1px solid #333;
             font-size: 0.9rem;
@@ -235,7 +281,6 @@
         }
 
         .footer-bottom {
-            /* 상단 컨텐츠가 없으므로 border-top 제거 */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -244,62 +289,39 @@
             font-size: 0.85rem;
         }
 
+        @media (min-width: 768px) {
+            .footer-bottom {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+        
         @media (max-width: 768px) {
-            h1 { font-size: 2.2rem; }
+            h1 { font-size: 2.5rem; }
             section { padding: 60px 0; }
             .hero-section { padding-top: 60px; padding-bottom: 100px; }
-            .feature-row, .feature-row:nth-child(even) { flex-direction: column; gap: 40px; }
+            .feature-row, .feature-row:nth-child(even) { flex-direction: column; gap: 30px; }
             .sub-desc { font-size: 1.1rem; }
             .cta-section { padding: 80px 0; }
             .problem-grid { grid-template-columns: 1fr; }
-            
-            /* 01. Chunking Visualizer 모바일 최적화 (사이즈 축소) */
-            .visual-chunking { gap: 15px; } /* 간격 좁힘 */
-            
-            .mock-doc { 
-                width: 110px; /* 너비 축소 */
-                height: 160px; /* 높이 축소 */
-                padding: 15px; 
-            }
-            .mock-line { height: 10px; } /* 라인 두께 축소 */
-            
-            .arrow-icon { font-size: 24px; } /* 화살표 크기 축소 */
-            
-            .mock-cards-stack { gap: 10px; }
-            .mock-card { 
-                width: 170px; /* 카드 너비 축소 */
-                min-height: 45px; 
-                padding: 8px 12px; 
-                gap: 5px;
-            }
-            .mock-chunk-block { height: 10px; } /* 블럭 높이 축소 */
-            .mock-chunk-separator { font-size: 1rem; }
-
-            /* 03. App Screen 이미지 모바일 최적화 */
-            .feature-visual { 
-                border-radius: 18px; 
-                border: none; 
-                box-shadow: none; 
-                min-height: auto; /* 강제 높이 제거 (이미지 비율대로) */
-                background: transparent; /* 배경 투명하게 (필요시) */
-            }
-            
-            .feature-visual img { 
-                border-radius: 18px; 
-                width: 100%; /* 너비 꽉 차게 */
-                height: auto; /* 높이는 비율에 맞춰서 자동 조절 */
-                object-fit: cover; /* 비율 유지하며 꽉 채우기 */
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1); /* 모바일에서도 살짝 그림자 있으면 예쁨 */
-            } 
+            .feature-visual { border-radius: 18px; border: none; box-shadow: none; min-height: 250px;} 
+            .feature-visual img { border-radius: 18px; } 
         }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="container">
+        <div class="container header-content">
             <div class="logo">
                 <img src="images/BETTrR.svg" alt="BETTrR Logo">
+            </div>
+            
+            <div class="header-actions">
+                <a href="contact.html" class="header-nav-link">Team</a>
+                <a href="https://apps.apple.com/kr/app/bettrr/id6754756492" class="header-download-btn" target="_blank" rel="noopener noreferrer">
+                    다운로드
+                </a>
             </div>
         </div>
     </header>
@@ -490,7 +512,7 @@
                 </span>
                 <div style="display: flex; gap: 15px;">
                     <a href="https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR" target="_blank" class="footer-link" style="color:#5c6c7f;">GitHub</a>
-                    <a href="contact.html" class="footer-link" style="color:#5c6c7f;">Contact</a>
+                    <a href="contact.html" class="footer-link" style="color:#5c6c7f;">Team</a>
                 </div>
             </div>
         </div>
