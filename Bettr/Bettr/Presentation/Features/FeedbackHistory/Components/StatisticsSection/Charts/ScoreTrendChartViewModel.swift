@@ -56,18 +56,22 @@ final class ScoreTrendViewModel {
     
     /// Y축 최대값 (여유 공간 포함)
     var yAxisMax: Double {
-        let maxScore = Double(pagedChartData.map { $0.score }.max() ?? 0)
+        let globalMaxScore = Double(chartData.map { $0.score }.max() ?? 0)
         
-        if maxScore == 0 { return 100.0 }
+        let globalAverage = averageScore
         
-        return maxScore * 1.5
+        let highestPoint = max(globalMaxScore, globalAverage)
+        
+        if highestPoint == 0 { return 100.0 }
+        
+        return highestPoint * 1.5
     }
     
     /// Y축 그리드 결정을 위한 로컬 최대값
     var localMaxScore: Int {
         pagedChartData.map { $0.score }.max() ?? 0
     }
-        
+    
     /// 스와이프 제스처 처리
     func handleSwipe(translationWidth: CGFloat) {
         let threshold: CGFloat = 30
