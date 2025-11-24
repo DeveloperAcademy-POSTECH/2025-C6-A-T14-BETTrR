@@ -38,25 +38,10 @@ struct MemorizationView: View {
         .onTapGesture {
             viewModel.endTitleEditing()
         }
-        .animation(.easeInOut, value: viewModel.uiState.showWordList)
-        .onChange(of: audioService.isPlaybackActive) { _, serviceIsActive in
-            viewModel.handleAudioServiceStateChange(
-                isPlaybackActive: serviceIsActive,
-                isPaused: audioService.isPaused
-            )
-        }
-        .onChange(of: viewModel.uiState.showFeedbackModal) { _, isShowing in
-            if isShowing {
-                viewModel.stopPlayback()
-            }
-        }
-        .onDisappear {
-            viewModel.onDisappear()
-        }
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             MemorizationToolbar(viewModel: viewModel, showEditIcon: true)
         }
-        .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $viewModel.uiState.showFeedbackModal) {
             FeedbackHistoryView(
                 viewModel: FeedbackHistoryViewModel(
@@ -73,6 +58,21 @@ struct MemorizationView: View {
                 await wordListViewModel.loadWords()
             }
         }
+        .onDisappear {
+            viewModel.onDisappear()
+        }
+        .onChange(of: audioService.isPlaybackActive) { _, serviceIsActive in
+            viewModel.handleAudioServiceStateChange(
+                isPlaybackActive: serviceIsActive,
+                isPaused: audioService.isPaused
+            )
+        }
+        .onChange(of: viewModel.uiState.showFeedbackModal) { _, isShowing in
+            if isShowing {
+                viewModel.stopPlayback()
+            }
+        }
+        .animation(.easeInOut, value: viewModel.uiState.showWordList)
         .animation(.easeOut(duration: 0.2), value: viewModel.uiState.toasterMessage)
     }
     
