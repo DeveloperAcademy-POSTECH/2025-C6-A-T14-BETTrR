@@ -45,6 +45,11 @@ struct MemorizationView: View {
                 isPaused: audioService.isPaused
             )
         }
+        .onChange(of: viewModel.uiState.showFeedbackModal) { _, isShowing in
+            if isShowing {
+                viewModel.stopPlayback()
+            }
+        }
         .onDisappear {
             viewModel.onDisappear()
         }
