@@ -31,7 +31,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     var currentSpokenTextID: String? = nil
     
     /// 현재 재생 중인 대상의 고유 ID
-    var currentPlaybackID: AnyHashable? = nil
+    var currentPlaybackID: PlaybackTargetID? = nil
     
     /// 현재까지 재생된 텍스트 범위 (NSRange)
     var currentSpokenRange: NSRange? = nil
@@ -77,7 +77,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     // --- Public API ---
     
     /// 특정 텍스트 하나만 재생합니다. (청크 또는 문장 탭 시 사용)
-    func play(text: String, id: AnyHashable, language: String = "en-US") {
+    func play(text: String, id: PlaybackTargetID, language: String = "en-US") {
         self.currentPlaybackMode = .single
         self.currentMultiSentenceIndex = nil
         self.currentSpokenTextID = text

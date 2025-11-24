@@ -18,7 +18,7 @@ struct SentenceModeView: View {
                     isHidden: viewModel.isSentenceHidden(sentence.orderIndex),
                     onTap: { viewModel.handleSentenceTap(sentence: sentence) },
                     sentenceIndex: sentence.orderIndex,
-                    viewID: sentence.orderIndex,
+                    viewID: PlaybackTargetID.sentence(sentence.orderIndex),
                 )
                 
                 KoreanScriptTextView(

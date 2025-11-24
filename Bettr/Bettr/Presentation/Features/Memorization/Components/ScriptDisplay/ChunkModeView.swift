@@ -53,7 +53,7 @@ struct ChunkModeView: View {
                     isHidden: viewModel.interactionState.hiddenEngChunks.contains(chunkID),
                     onTap: { viewModel.handleChunkTap(chunk: chunk, identifier: chunkID) },
                     sentenceIndex: sentence.orderIndex,
-                    viewID: chunkID,
+                    viewID: PlaybackTargetID.chunk(chunkID),
                     chunkOffset: offset
                 )
                 

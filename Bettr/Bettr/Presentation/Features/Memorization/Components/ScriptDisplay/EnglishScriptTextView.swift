@@ -12,7 +12,7 @@ struct EnglishScriptTextView: View {
     let isHidden: Bool
     let onTap: () -> Void
     let sentenceIndex: Int?
-    let viewID: AnyHashable
+    let viewID: PlaybackTargetID
     
     var chunkOffset: Int? = nil
     
