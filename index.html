@@ -23,6 +23,12 @@
 
         /* Reset & Base */
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* 가로 스크롤 방지 추가 */
+        html, body {
+            overflow-x: hidden;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", Roboto, sans-serif;
             line-height: 1.6;
@@ -106,7 +112,6 @@
             justify-content: space-between;
             align-items: center;
         }
-        
         .logo { display: flex; align-items: center; }
         .logo img { height: 28px; width: auto; display: block; }
 
@@ -224,7 +229,7 @@
         }
         .mock-line { height: 14px; background: var(--bg-light); border-radius: 6px; width: 100%; }
         .mock-line.short { width: 60%; }
-        .arrow-icon { font-size: 32px; color: var(--secondary-blue); font-weight: 700; }
+        .arrow-icon { font-size: 32px; color: var(--secondary-blue); font-weight: 700; transition: transform 0.3s;}
         .mock-cards-stack { display: flex; flex-direction: column; gap: 16px; }
         .mock-card {
             width: 220px; min-height: 56px; background: #fff; border-radius: 16px;
@@ -239,7 +244,6 @@
             background: #fff;
             padding: 32px;
             border-radius: 16px;
-            /* 그림자 및 테두리 제거됨 */
             font-size: 1.3rem;
             font-weight: 500;
             line-height: 1.6;
@@ -296,16 +300,63 @@
             }
         }
         
+        /* ⭐ 모바일 최적화 (가로 스크롤 해결 및 폰트/배치 조정) */
         @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
+            h1 { font-size: 2.2rem; }
+            /* h2 폰트 사이즈 줄임 */
+            h2 { font-size: 1.75rem; }
+            
             section { padding: 60px 0; }
             .hero-section { padding-top: 60px; padding-bottom: 100px; }
-            .feature-row, .feature-row:nth-child(even) { flex-direction: column; gap: 30px; }
+            .feature-row, .feature-row:nth-child(even) { flex-direction: column; gap: 40px; }
             .sub-desc { font-size: 1.1rem; }
             .cta-section { padding: 80px 0; }
             .problem-grid { grid-template-columns: 1fr; }
-            .feature-visual { border-radius: 18px; border: none; box-shadow: none; min-height: 250px;} 
-            .feature-visual img { border-radius: 18px; } 
+            
+            /* 01. Visualizer: 세로 배치로 변경하여 가로 넘침 해결 */
+            .visual-chunking { 
+                flex-direction: column; /* 세로 정렬 */
+                gap: 20px; 
+            }
+            
+            .arrow-icon { 
+                transform: rotate(90deg); /* 화살표 아래로 회전 */
+                margin: 10px 0;
+            }
+
+            .mock-doc { 
+                width: 110px;
+                height: 160px;
+                padding: 15px; 
+            }
+            .mock-line { height: 10px; } 
+            
+            .mock-cards-stack { gap: 10px; }
+            .mock-card { 
+                width: 200px; /* 너비 약간 확보 */
+                min-height: 45px; 
+                padding: 8px 12px; 
+                gap: 5px;
+            }
+            .mock-chunk-block { height: 10px; } 
+            .mock-chunk-separator { font-size: 1rem; }
+
+            /* 03. App Screen 이미지 */
+            .feature-visual { 
+                border-radius: 18px; 
+                border: none; 
+                box-shadow: none; 
+                min-height: auto; 
+                background: transparent; 
+            }
+            
+            .feature-visual img { 
+                border-radius: 18px; 
+                width: 100%; 
+                height: auto; 
+                object-fit: cover; 
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            } 
         }
     </style>
 </head>
