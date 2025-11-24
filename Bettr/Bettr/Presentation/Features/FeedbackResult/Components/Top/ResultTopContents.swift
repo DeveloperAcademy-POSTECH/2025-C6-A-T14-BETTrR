@@ -1,5 +1,5 @@
 //
-//  ResultTopContents.swift
+//  ResultTopContent.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/12/25.
@@ -7,20 +7,20 @@
 
 import SwiftUI
 
-struct ResultTopContents: View {
+struct ResultTopContent: View {
     let model: FeedbackResultModel
     
     var body: some View {
         ViewThatFits {
-            FullResultTopContents(model: model)
-            CompactResultTopContents(model: model)
+            FullResultTopContent(model: model)
+            CompactResultTopContent(model: model)
         }
     }
 }
 
 // MARK: - Full ver
 
-struct FullResultTopContents: View {
+struct FullResultTopContent: View {
     let model: FeedbackResultModel
     
     var body: some View {
@@ -140,7 +140,7 @@ struct FullResultSummaryGrid: View {
 
 // MARK: - Compact ver
 
-struct CompactResultTopContents: View {
+struct CompactResultTopContent: View {
     let model: FeedbackResultModel
     
     var body: some View {
@@ -278,7 +278,7 @@ struct CompactResultSummaryGrid: View {
         ]
     )
     
-    return ResultTopContents(model: model)
+    return ResultTopContent(model: model)
         .safeAreaPadding(.horizontal, 84)
 }
 
@@ -294,6 +294,6 @@ struct CompactResultSummaryGrid: View {
         filteredSentenceDiffs: []
     )
     
-    return ResultTopContents(model: perfectModel)
+    return ResultTopContent(model: perfectModel)
         .safeAreaPadding(.horizontal, 84)
 }

@@ -1,5 +1,5 @@
 //
-//  ResultBottomContents.swift
+//  ResultBottomContent.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/12/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ResultBottomContents: View {
+struct ResultBottomContent: View {
     let model: FeedbackResultModel
     
     var body: some View {
@@ -23,39 +23,7 @@ struct ResultBottomContents: View {
     }
 }
 
-struct MistakesListCard: View {
-    let filteredSentenceDiffs: [FeedbackResultModel.FilteredSentenceDiff]
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 72) {
-            VStack(spacing: 36) {
-                ForEach(filteredSentenceDiffs, id: \.index) { (originalIndex, sentenceData) in
-                    OriginalScriptSentenceView(diffs: sentenceData.diffs)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            
-            VStack(spacing: 36) {
-                ForEach(filteredSentenceDiffs, id: \.index) { (originalIndex, sentenceData) in
-                    UserSpeechSentenceView(diffs: sentenceData.diffs)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .frame(maxWidth: .infinity)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .cardBordered(padding: 36)
-        .overlay {
-            Rectangle()
-                .foregroundStyle(.primaryBlue200)
-                .frame(width: 1)
-                .padding(.vertical, 36)
-        }
-    }
-}
+
 
 // MARK: - Preview
 
@@ -80,7 +48,7 @@ struct MistakesListCard: View {
         ]
     )
     
-    return ResultBottomContents(model: model)
+    return ResultBottomContent(model: model)
 }
 
 #Preview("틀린 문장 없음 (완벽)") {
@@ -95,5 +63,5 @@ struct MistakesListCard: View {
         filteredSentenceDiffs: []
     )
     
-    return ResultBottomContents(model: perfectModel)
+    return ResultBottomContent(model: perfectModel)
 }
