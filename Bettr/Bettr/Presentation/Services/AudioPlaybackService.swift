@@ -16,7 +16,6 @@ enum PlaybackMode {
 
 @Observable
 final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
-    
     var isPlaybackActive: Bool = false
     
     var isPaused: Bool {
@@ -25,18 +24,21 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
     var currentPlaybackMode: PlaybackMode = .stopped
     
-    // 전체 재생 모드에서만 사용되는 현재 문장 인덱스
+    /// 전체 재생 모드에서만 사용되는 현재 문장 인덱스
     var currentMultiSentenceIndex: Int? = nil
     
-    // 단일 재생/전체 재생의 현재 텍스트 ID
+    /// 단일 재생/전체 재생의 현재 텍스트 ID
     var currentPlayingSentenceIndex: Int? = nil
     
-    /// 현재 재생 중인 텍스트 (고유 식별자 역할)
+    /// 현재 재생 중인 텍스트
     var currentSpokenTextID: String? = nil
+    
+    /// 현재 재생 중인 대상의 고유 ID
+    var currentPlaybackID: AnyHashable? = nil
     
     /// 현재까지 재생된 텍스트 범위 (NSRange)
     var currentSpokenRange: NSRange? = nil
-        
+    
     private let synthesizer = AVSpeechSynthesizer()
     private var utteranceQueue: [(index: Int, utterance: AVSpeechUtterance)] = []
     
@@ -75,10 +77,11 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     // --- Public API ---
     
     /// 특정 텍스트 하나만 재생합니다. (청크 또는 문장 탭 시 사용)
-    func play(text: String, language: String = "en-US") {
+    func play(text: String, id: AnyHashable, language: String = "en-US") {
         self.currentPlaybackMode = .single
         self.currentMultiSentenceIndex = nil
         self.currentSpokenTextID = text
+        self.currentPlaybackID = id
         self.currentSpokenRange = nil
         
         synthesizer.stopSpeaking(at: .immediate)
@@ -98,6 +101,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         self.utteranceQueue.removeAll()
         self.currentPlaybackMode = .multi
         self.currentSpokenTextID = nil
+        self.currentPlaybackID = nil
         self.currentSpokenRange = nil
         
         activatePlaybackSession()
@@ -136,6 +140,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
             synthesizer.stopSpeaking(at: .immediate)
             utteranceQueue.removeAll()
             self.isPlaybackActive = false
+            self.currentPlaybackID = nil
         }
     }
     
@@ -182,6 +187,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
                     self.currentPlaybackMode = .stopped
                     self.currentSpokenTextID = nil
                     self.currentSpokenRange = nil
+                    self.currentPlaybackID = nil
                 }
             }
         }
@@ -202,6 +208,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
                 self.currentPlaybackMode = .stopped
                 self.currentMultiSentenceIndex = nil
                 self.deactivateSession()
+                self.currentPlaybackID = nil
             }
         }
     }

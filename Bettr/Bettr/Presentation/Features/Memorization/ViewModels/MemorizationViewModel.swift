@@ -159,10 +159,10 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         if uiState.funcMode == .hide {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngChunks, for: identifier)
         } else {
-            if audioService.currentSpokenTextID == chunk.englishText {
+            if audioService.currentPlaybackID as? ChunkIdentifier == identifier {
                 audioService.stop()
             } else {
-                audioService.play(text: chunk.englishText)
+                audioService.play(text: chunk.englishText, id: identifier)
             }
         }
     }
@@ -171,10 +171,10 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         if uiState.funcMode == .hide {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngSentences, for: sentence.orderIndex)
         } else {
-            if audioService.currentSpokenTextID == sentence.englishText {
+            if audioService.currentPlaybackID as? Int == sentence.orderIndex {
                 audioService.stop()
             } else {
-                audioService.play(text: sentence.englishText)
+                audioService.play(text: sentence.englishText, id: sentence.orderIndex)
             }
         }
     }

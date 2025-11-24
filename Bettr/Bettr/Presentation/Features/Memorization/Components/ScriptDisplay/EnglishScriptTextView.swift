@@ -12,6 +12,7 @@ struct EnglishScriptTextView: View {
     let isHidden: Bool
     let onTap: () -> Void
     let sentenceIndex: Int?
+    let viewID: AnyHashable
     
     var chunkOffset: Int? = nil
     
@@ -61,7 +62,7 @@ struct EnglishScriptTextView: View {
         } else {
             // B. 부분 재생
             // 재생 중인 문장(청크)는 회색, 아니면 검은색
-            return (audioService.currentSpokenTextID == text) ? unspokenColor : spokenColor
+            return (audioService.currentPlaybackID == viewID) ? unspokenColor : spokenColor
         }
     }
     
@@ -93,7 +94,7 @@ struct EnglishScriptTextView: View {
             }
         } else {
             // B. 부분 재생
-            if audioService.currentSpokenTextID == text,
+            if audioService.currentPlaybackID == viewID,
                let nsRange = audioService.currentSpokenRange,
                let swiftRange = Range(nsRange, in: text),
                let attrRange = Range(swiftRange, in: attr) {
