@@ -5,7 +5,6 @@
 //  Created by 길정수 on 11/4/25.
 //
 
-import Foundation
 import SwiftUI
 
 struct FeedbackResultDisplayView: View {

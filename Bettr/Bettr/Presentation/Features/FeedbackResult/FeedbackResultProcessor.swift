@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 struct FeedbackResultProcessor {
     
     private let analyzer = SpeechAnalyzer()
@@ -46,7 +45,6 @@ struct FeedbackResultProcessor {
             filteredSentenceDiffs: filteredSentenceDiffs
         )
     }
-    
     
     // MARK: - Private Helpers
     
