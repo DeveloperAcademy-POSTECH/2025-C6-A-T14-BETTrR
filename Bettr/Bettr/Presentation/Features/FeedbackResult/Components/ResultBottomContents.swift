@@ -16,14 +16,14 @@ struct ResultBottomContents: View {
                 .font(.headingBold28)
                 .foregroundStyle(.normalBlack900)
             
-            MistakesListView(filteredSentenceDiffs: model.filteredSentenceDiffs)
+            MistakesListCard(filteredSentenceDiffs: model.filteredSentenceDiffs)
                 .frame(maxHeight: .infinity, alignment: .top)
         }
         .frame(maxHeight: .infinity, alignment: .top)
     }
 }
 
-struct MistakesListView: View {
+struct MistakesListCard: View {
     let filteredSentenceDiffs: [FeedbackResultModel.FilteredSentenceDiff]
     
     var body: some View {

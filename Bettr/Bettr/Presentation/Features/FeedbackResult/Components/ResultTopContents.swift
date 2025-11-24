@@ -13,7 +13,6 @@ struct ResultTopContents: View {
     var body: some View {
         ViewThatFits {
             FullResultTopContents(model: model)
-            
             CompactResultTopContents(model: model)
         }
     }

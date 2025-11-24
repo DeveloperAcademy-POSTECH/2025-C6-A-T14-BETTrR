@@ -32,16 +32,13 @@ struct UserSpeechSentenceView: View {
         case .matched(let word):
             Text(word)
                 .foregroundStyle(matchedColor)
-            
         case .missing(let expected):
             Text(expected)
                 .foregroundStyle(missingWordColor)
-            
         case .extra(let actual):
             Text(actual)
                 .foregroundStyle(extraWordColor)
                 .strikethrough(color: extraWordColor)
-            
         case .replaced(_, let actual):
             Text(actual)
                 .bold()

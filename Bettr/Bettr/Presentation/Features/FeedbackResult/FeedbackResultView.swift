@@ -9,7 +9,6 @@ import Foundation
 import SwiftUI
 
 struct FeedbackResultView: View {
-    
     @State private var viewModel: FeedbackResultViewModel
     
     init(viewModel: FeedbackResultViewModel) {

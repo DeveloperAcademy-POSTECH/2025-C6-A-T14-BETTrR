@@ -8,11 +8,8 @@
 import Foundation
 
 struct FeedbackResultModel {
-    // 뷰에서 사용할 데이터 타입
     typealias SentenceDiffData = (original: String, diffs: [WordDiff])
     typealias FilteredSentenceDiff = (index: Int, data: SentenceDiffData)
-    
-    // MARK: - Properties
     
     let scriptTitle: String
     let feedbackNumber: Int

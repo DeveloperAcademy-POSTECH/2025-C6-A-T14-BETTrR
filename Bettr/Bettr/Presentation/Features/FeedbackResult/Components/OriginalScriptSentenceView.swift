@@ -26,13 +26,10 @@ struct OriginalScriptSentenceView: View {
         switch diff {
         case .matched(let word):
             Text(word)
-             
         case .missing(let expected):
             Text(expected)
-             
         case .extra:
             EmptyView()
-             
         case .replaced(let expected, _):
             Text(expected)
                 .bold()
