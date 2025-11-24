@@ -20,12 +20,12 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     // MARK: Grouped States (그룹화된 상태)
     var uiState = MemorizationUIState()
     var interactionState = MemorizationInteractionState()
-        
+    
     // MARK: Mutex Playback Control
     var isFullPlaybackActive: Bool {
         return audioService.currentPlaybackMode == .multi
     }
-
+    
     var isSinglePlaybackActive: Bool {
         return audioService.currentPlaybackMode == .single
     }
@@ -110,6 +110,14 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     }
     
     // MARK: Playback Controls
+    
+    func stopPlayback() {
+        if uiState.isPlaybackActive {
+            uiState.isPlaybackActive = false
+            uiState.isPause = false
+        }
+        audioService.stop()
+    }
     
     func togglePlayStop() {
         uiState.isPlaybackActive.toggle()
