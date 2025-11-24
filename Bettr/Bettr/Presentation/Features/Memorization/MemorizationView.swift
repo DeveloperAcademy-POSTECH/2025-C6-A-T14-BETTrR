@@ -22,7 +22,6 @@ struct MemorizationView: View {
     
     var body: some View {
         ZStack {
-            
             contentView
             
             // 단어장 뷰
