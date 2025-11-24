@@ -36,8 +36,9 @@ struct ErrorView: View {
             // 2. "권한" 에러일 때만 버튼 표시
             if case .permissionDenied = error {
                 Button("설정으로 이동") {
-                    // 👈 여기에 설정 화면 여는 로직 추가
-                    // (예: UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!))
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
                 }
                 .buttonStyle(.general)
             }
