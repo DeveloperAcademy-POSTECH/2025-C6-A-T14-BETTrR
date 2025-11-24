@@ -16,7 +16,6 @@ enum PlaybackMode {
 
 @Observable
 final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
-    
     var isPlaybackActive: Bool = false
     
     var isPaused: Bool {
@@ -25,20 +24,23 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
     var currentPlaybackMode: PlaybackMode = .stopped
     
-    // 전체 재생 모드에서만 사용되는 현재 문장 인덱스
+    /// 전체 재생 모드에서만 사용되는 현재 문장 인덱스
     var currentMultiSentenceIndex: Int? = nil
     
-    // 단일 재생/전체 재생의 현재 텍스트 ID
-    var currentPlayingSentenceIndex: Int? = nil
-    
-    /// 현재 재생 중인 텍스트 (고유 식별자 역할)
+    /// 현재 재생 중인 텍스트
     var currentSpokenTextID: String? = nil
+    
+    /// 현재 재생 중인 대상의 고유 ID
+    var currentPlaybackID: PlaybackTargetID? = nil
     
     /// 현재까지 재생된 텍스트 범위 (NSRange)
     var currentSpokenRange: NSRange? = nil
-        
+    
     private let synthesizer = AVSpeechSynthesizer()
     private var utteranceQueue: [(index: Int, utterance: AVSpeechUtterance)] = []
+    
+    /// 현재 재생 중인 '객체' 자체
+    private var currentUtterance: AVSpeechUtterance? = nil
     
     /// 발화 속도 (기본 0.5보다 느리게 설정)
     private let speechRate: Float = 0.45
@@ -75,10 +77,11 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     // --- Public API ---
     
     /// 특정 텍스트 하나만 재생합니다. (청크 또는 문장 탭 시 사용)
-    func play(text: String, language: String = "en-US") {
+    func play(text: String, id: PlaybackTargetID, language: String = "en-US") {
         self.currentPlaybackMode = .single
         self.currentMultiSentenceIndex = nil
         self.currentSpokenTextID = text
+        self.currentPlaybackID = id
         self.currentSpokenRange = nil
         
         synthesizer.stopSpeaking(at: .immediate)
@@ -86,6 +89,8 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         activatePlaybackSession()
         
         let utterance = createUtterance(text: text, language: language)
+        self.currentUtterance = utterance
+        
         synthesizer.speak(utterance)
     }
     
@@ -98,7 +103,9 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         self.utteranceQueue.removeAll()
         self.currentPlaybackMode = .multi
         self.currentSpokenTextID = nil
+        self.currentPlaybackID = nil
         self.currentSpokenRange = nil
+        self.currentUtterance = nil
         
         activatePlaybackSession()
         
@@ -132,11 +139,18 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
     /// 재생을 완전히 중지하고 큐를 비웁니다.
     func stop() {
-        if synthesizer.isSpeaking || synthesizer.isPaused {
-            synthesizer.stopSpeaking(at: .immediate)
-            utteranceQueue.removeAll()
-            self.isPlaybackActive = false
-        }
+        synthesizer.stopSpeaking(at: .immediate)
+        utteranceQueue.removeAll()
+        
+        self.isPlaybackActive = false
+        self.currentPlaybackMode = .stopped
+        self.currentPlaybackID = nil
+        self.currentMultiSentenceIndex = nil
+        self.currentSpokenTextID = nil
+        self.currentSpokenRange = nil
+        self.currentUtterance = nil
+        
+        deactivateSession()
     }
     
     // --- AVSpeechSynthesizerDelegate Callbacks ---
@@ -145,6 +159,8 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
         // 콜백이 서브 스레드에서 올 수 있으므로 메인 스레드로 전달
         DispatchQueue.main.async {
+            guard self.currentUtterance == utterance else { return }
+            
             self.isPlaybackActive = true
             self.currentSpokenTextID = utterance.speechString
             self.currentSpokenRange = NSRange(location: 0, length: 0)
@@ -163,26 +179,18 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     /// 한 문장의 재생이 완료되었을 때 호출됩니다.
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         DispatchQueue.main.async {
+            guard self.currentUtterance == utterance else { return }
             
             print("--- DID FINISH ---")
             print("Finished Utterance: \(utterance.speechString.prefix(20))...")
             print("Queue Count Before Check: \(self.utteranceQueue.count)")
             
             if !self.utteranceQueue.isEmpty {
-                print("Action: Scheduling next utterance.")
                 DispatchQueue.main.asyncAfter(deadline: .now() + self.interSentenceDelay) { [weak self] in
                     self?.playNextInQueue()
                 }
             } else {
-                print("Action: Queue is EMPTY. Stopping playback.")
-                if self.currentSpokenTextID == utterance.speechString {
-                    self.isPlaybackActive = false
-                    self.currentMultiSentenceIndex = nil
-                    self.deactivateSession()
-                    self.currentPlaybackMode = .stopped
-                    self.currentSpokenTextID = nil
-                    self.currentSpokenRange = nil
-                }
+                self.resetState()
             }
         }
     }
@@ -196,17 +204,24 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
         DispatchQueue.main.async {
-            if self.currentSpokenTextID == utterance.speechString {
-                self.currentSpokenTextID = nil
-                self.currentSpokenRange = nil
-                self.currentPlaybackMode = .stopped
-                self.currentMultiSentenceIndex = nil
-                self.deactivateSession()
+            if self.currentUtterance == utterance {
+                self.resetState()
             }
         }
     }
     
     // --- Private Helpers ---
+    
+    private func resetState() {
+        self.isPlaybackActive = false
+        self.currentPlaybackMode = .stopped
+        self.currentPlaybackID = nil
+        self.currentMultiSentenceIndex = nil
+        self.currentSpokenTextID = nil
+        self.currentSpokenRange = nil
+        self.currentUtterance = nil
+        self.deactivateSession()
+    }
     
     private func createUtterance(text: String, language: String) -> AVSpeechUtterance {
         let utterance = AVSpeechUtterance(string: text)
@@ -237,6 +252,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         
         self.currentMultiSentenceIndex = index
         self.currentSpokenTextID = utterance.speechString
+        self.currentUtterance = utterance
         
         synthesizer.speak(utterance)
         self.isPlaybackActive = true
