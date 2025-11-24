@@ -1,5 +1,5 @@
 //
-//  MistakesListCard.swift
+//  SpeechComparisonCard.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/24/25.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct MistakesListCard: View {
+struct SpeechComparisonCard: View {
     let filteredSentenceDiffs: [FeedbackResultModel.FilteredSentenceDiff]
     
     var body: some View {

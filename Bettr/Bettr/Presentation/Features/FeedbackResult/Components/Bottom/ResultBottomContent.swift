@@ -16,7 +16,7 @@ struct ResultBottomContent: View {
                 .font(.headingBold28)
                 .foregroundStyle(.normalBlack900)
             
-            MistakesListCard(filteredSentenceDiffs: model.filteredSentenceDiffs)
+            SpeechComparisonCard(filteredSentenceDiffs: model.filteredSentenceDiffs)
                 .frame(maxHeight: .infinity, alignment: .top)
         }
         .frame(maxHeight: .infinity, alignment: .top)
