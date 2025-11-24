@@ -12,7 +12,7 @@ struct FrequentlyWrongWordsSection: View {
     let maxDisplayCount: Int
     
     var body: some View {
-        TitledSection(title: "자주 틀린 단어") {
+        TitledSection.standard(title: "자주 틀린 단어") {
             FrequentlyWrongWordList(
                 frequentlyWrongWords: wrongWords,
                 maxDisplayCount: maxDisplayCount

@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-/// '틀린 문장 모아보기'의 오른쪽에 표시될, 스타일이 적용된 '사용자의 발화' 스크립트 뷰입니다.
-/// CustomFlowLayout을 사용하여 단어를 배치하고, .missing 단어는 회색으로, .extra 단어는 흐린 파란색과 취소선으로, .replaced된 단어는 빨간색으로 표시합니다.
+/// '틀린 문장 모아보기'의 오른쪽에 표시될, 스타일이 적용된 '사용자의 발화' 스크립트 뷰
+/// CustomFlowLayout을 사용하여 단어를 배치하고, .missing 단어는 회색으로, .extra 단어는 흐린 파란색과 취소선으로, .replaced된 단어는 빨간색으로 표시
 struct UserSpeechSentenceView: View {
     let diffs: [WordDiff]
     
@@ -32,16 +32,13 @@ struct UserSpeechSentenceView: View {
         case .matched(let word):
             Text(word)
                 .foregroundStyle(matchedColor)
-            
         case .missing(let expected):
             Text(expected)
                 .foregroundStyle(missingWordColor)
-            
         case .extra(let actual):
             Text(actual)
                 .foregroundStyle(extraWordColor)
                 .strikethrough(color: extraWordColor)
-            
         case .replaced(_, let actual):
             Text(actual)
                 .bold()

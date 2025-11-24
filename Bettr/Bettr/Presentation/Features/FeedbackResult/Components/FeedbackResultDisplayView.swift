@@ -5,7 +5,6 @@
 //  Created by 길정수 on 11/4/25.
 //
 
-import Foundation
 import SwiftUI
 
 struct FeedbackResultDisplayView: View {
@@ -15,8 +14,9 @@ struct FeedbackResultDisplayView: View {
         Group {
             if model.filteredSentenceDiffs.isEmpty {
                 VStack(alignment: .leading, spacing: 64) {
-                    ResultTopContents(model: model)
-                    PerfectResultBottomView()
+                    FeedbackSummarySection(model: model)
+                    IncorrectSentenceSection(model: model)
+                        .frame(maxHeight: .infinity, alignment: .top)
                 }
                 .frame(maxWidth: .infinity)
                 .safeAreaPadding(.horizontal, 84)
@@ -24,8 +24,9 @@ struct FeedbackResultDisplayView: View {
                 GeometryReader { geometry in
                     ScrollView {
                         VStack(alignment: .leading, spacing: 64) {
-                            ResultTopContents(model: model)
-                            ResultBottomContents(model: model)
+                            FeedbackSummarySection(model: model)
+                            IncorrectSentenceSection(model: model)
+                                .frame(maxHeight: .infinity, alignment: .top)
                         }
                         .frame(maxWidth: .infinity)
                         .safeAreaPadding(.horizontal, 84)

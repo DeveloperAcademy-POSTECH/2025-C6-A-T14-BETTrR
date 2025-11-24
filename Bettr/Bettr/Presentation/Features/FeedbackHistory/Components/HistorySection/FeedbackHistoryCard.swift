@@ -19,7 +19,7 @@ struct FeedbackHistoryCard: View {
     }
     
     var body: some View {
-        TitledSection(
+        TitledSection.standard(
             title: "피드백 히스토리",
             subtitle: "총 \(feedbackCount)회",
             spacing: summaries.isEmpty ? 16 : 4
