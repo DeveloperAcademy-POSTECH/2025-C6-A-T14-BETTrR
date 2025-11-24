@@ -26,7 +26,8 @@ struct FeedbackResultDisplayView: View {
                         VStack(alignment: .leading, spacing: 64) {
                             FeedbackSummarySection(model: model)
                             IncorrectSentenceSection(model: model)
-                            .frame(maxHeight: .infinity, alignment: .top)                        }
+                                .frame(maxHeight: .infinity, alignment: .top)
+                        }
                         .frame(maxWidth: .infinity)
                         .safeAreaPadding(.horizontal, 84)
                         .frame(minHeight: geometry.size.height)
