@@ -13,12 +13,7 @@ struct StartTestButton: View {
     @Environment(NavigationRouter.self) private var modalRouter
     
     private var isTestReady: Bool {
-        guard let data = viewModel.feedbackHistoryData,
-              let sentences = data.scriptSentences,
-              !sentences.isEmpty else {
-            return false
-        }
-        return true
+        return !(viewModel.feedbackHistoryData?.scriptSentences ?? []).isEmpty
     }
     
     var body: some View {
