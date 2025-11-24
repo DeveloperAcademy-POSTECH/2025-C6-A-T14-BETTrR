@@ -13,7 +13,6 @@ struct EnglishScriptTextView: View {
     let onTap: () -> Void
     let sentenceIndex: Int?
     
-    // 문장 내에서 이 청크가 시작되는 위치 (전체 재생 시 계산용)
     var chunkOffset: Int? = nil
     
     @Environment(AudioPlaybackService.self) private var audioService
@@ -120,7 +119,6 @@ struct EnglishScriptTextView: View {
 }
 
 struct ScriptButtonStyle: ButtonStyle {
-    
     private let cornerRadius: CGFloat = 2
     private let shadowColor = Color.normalBlack900.opacity(0.2)
     private let shadowOffset: CGFloat = 2
