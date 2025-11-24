@@ -11,17 +11,20 @@ struct TitledSection<Content: View>: View {
     let title: String
     let subtitle: String?
     let spacing: CGFloat
+    let titleFont: Font
     let content: Content
     
     init(
         title: String,
         subtitle: String? = nil,
-        spacing: CGFloat = 16, // 기본값 16
+        spacing: CGFloat = 16,
+        titleFont: Font = .subbodyBold24,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
         self.subtitle = subtitle
         self.spacing = spacing
+        self.titleFont = titleFont
         self.content = content()
     }
     
@@ -30,7 +33,7 @@ struct TitledSection<Content: View>: View {
             // 타이틀
             HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text(title)
-                    .font(.subbodyBold24)
+                    .font(titleFont)
                     .padding(8)
                 
                 
@@ -47,5 +50,20 @@ struct TitledSection<Content: View>: View {
             // 콘텐츠
             content
         }
+    }
+}
+
+extension TitledSection {
+    /// 제목이 크고 간격이 넓은 '결과 화면용' 이니셜라이저 (프리셋)
+    static func large(
+        title: String,
+        @ViewBuilder content: () -> Content
+    ) -> TitledSection {
+        TitledSection(
+            title: title,
+            spacing: 24,
+            titleFont: .headingBold28,
+            content: content
+        )
     }
 }

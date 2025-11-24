@@ -10,11 +10,7 @@ import SwiftUI
 
 struct PerfectResultBottomView: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Text("틀린 문장 모아보기")
-                .font(.headingBold28)
-                .foregroundStyle(.normalBlack900)
-            
+        TitledSection.large(title: "틀린 문장 모아보기") {
             VStack {
                 Spacer()
                 
@@ -26,8 +22,8 @@ struct PerfectResultBottomView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             .cardBorderedFilled(padding: 36)
-            .frame(maxHeight: .infinity)
         }
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 }
 

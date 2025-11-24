@@ -11,19 +11,13 @@ struct ResultBottomContent: View {
     let model: FeedbackResultModel
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            Text("틀린 문장 모아보기")
-                .font(.headingBold28)
-                .foregroundStyle(.normalBlack900)
-            
+        TitledSection.large(title: "틀린 문장 모아보기") {
             SpeechComparisonCard(filteredSentenceDiffs: model.filteredSentenceDiffs)
                 .frame(maxHeight: .infinity, alignment: .top)
         }
         .frame(maxHeight: .infinity, alignment: .top)
     }
 }
-
-
 
 // MARK: - Preview
 

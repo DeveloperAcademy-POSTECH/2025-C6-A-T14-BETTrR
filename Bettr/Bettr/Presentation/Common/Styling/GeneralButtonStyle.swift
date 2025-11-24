@@ -35,7 +35,6 @@ struct GeneralButtonStyle: ButtonStyle {
 }
 
 extension ButtonStyle where Self == GeneralButtonStyle {
-    
     /// 기본 버튼 스타일 (너비 160)
     static var general: GeneralButtonStyle {
         GeneralButtonStyle()
