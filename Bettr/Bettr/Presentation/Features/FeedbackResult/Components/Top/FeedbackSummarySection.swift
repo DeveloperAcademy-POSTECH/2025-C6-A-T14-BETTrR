@@ -1,5 +1,5 @@
 //
-//  ResultTopContent.swift
+//  FeedbackSummarySection.swift
 //  Bettr
 //
 //  Created by 길정수 on 11/12/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ResultTopContent: View {
+struct FeedbackSummarySection: View {
     let model: FeedbackResultModel
     
     var body: some View {
@@ -278,7 +278,7 @@ struct CompactResultSummaryGrid: View {
         ]
     )
     
-    return ResultTopContent(model: model)
+    return FeedbackSummarySection(model: model)
         .safeAreaPadding(.horizontal, 84)
 }
 
@@ -294,6 +294,6 @@ struct CompactResultSummaryGrid: View {
         filteredSentenceDiffs: []
     )
     
-    return ResultTopContent(model: perfectModel)
+    return FeedbackSummarySection(model: perfectModel)
         .safeAreaPadding(.horizontal, 84)
 }

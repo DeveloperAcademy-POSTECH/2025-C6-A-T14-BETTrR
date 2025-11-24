@@ -15,7 +15,7 @@ struct FeedbackResultDisplayView: View {
         Group {
             if model.filteredSentenceDiffs.isEmpty {
                 VStack(alignment: .leading, spacing: 64) {
-                    ResultTopContent(model: model)
+                    FeedbackSummarySection(model: model)
                     IncorrectSentenceSection(model: model)
                         .frame(maxHeight: .infinity, alignment: .top)
                 }
@@ -25,7 +25,7 @@ struct FeedbackResultDisplayView: View {
                 GeometryReader { geometry in
                     ScrollView {
                         VStack(alignment: .leading, spacing: 64) {
-                            ResultTopContent(model: model)
+                            FeedbackSummarySection(model: model)
                             IncorrectSentenceSection(model: model)
                             .frame(maxHeight: .infinity, alignment: .top)                        }
                         .frame(maxWidth: .infinity)
