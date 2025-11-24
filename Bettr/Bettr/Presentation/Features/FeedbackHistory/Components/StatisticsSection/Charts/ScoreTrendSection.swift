@@ -11,7 +11,7 @@ struct ScoreTrendSection: View {
     let summaries: [FeedbackSummary]
     
     var body: some View {
-        TitledSection(title: "종합 점수 추이") {
+        TitledSection.standard(title: "종합 점수 추이") {
             ScoreTrendChart(allFeedbackSummaries: summaries)
         }
     }
