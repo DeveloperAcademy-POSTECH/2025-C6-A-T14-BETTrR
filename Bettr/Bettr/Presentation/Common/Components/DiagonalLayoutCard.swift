@@ -17,11 +17,12 @@ struct DiagonalLayoutCard<Content: View>: View {
             Text(title)
                 .font(.calloutRegular16)
                 .foregroundStyle(.normalBlack900)
+                .fixedSize(horizontal: true, vertical: false)
             
-            Spacer()
+            Spacer(minLength: 0)
 
             HStack {
-                Spacer()
+                Spacer(minLength: 0)
                 content()
             }
         }

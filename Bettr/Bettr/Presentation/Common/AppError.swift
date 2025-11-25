@@ -41,3 +41,10 @@ enum AppError: Error, Equatable {
         }
     }
 }
+
+extension AppError: Identifiable {
+    var id: String {
+        // 에러 메시지 자체를 ID로 사용하여, 내용이 다르면 다른 에러로 인식
+        return userFriendlyMessage + String(describing: self)
+    }
+}

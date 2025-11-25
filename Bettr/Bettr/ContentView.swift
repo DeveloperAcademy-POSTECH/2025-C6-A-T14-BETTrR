@@ -26,20 +26,11 @@ struct ContentView: View {
                         
                     case .scriptConfirm(let initialText, let initialTitle):
                         ScriptConfirmView(initialText: initialText, initialTitle: initialTitle)
-                        
-                    case .scriptDashboard(let scriptId):
-                        let viewModel = ScriptDashboardViewModel(
-                            scriptId: scriptId,
-                            scriptService: container.scriptManagementService
-                        )
-                        
-                        ScriptDashboardView(viewModel: viewModel)
-                        
-                    case .memorization(let scriptId, let scriptTitle, let currentFeedbackCount):
+
+                    case .memorization(let scriptId, let scriptTitle):
                         let mainViewModel = MemorizationViewModel(
                             scriptId: scriptId,
                             scriptTitle: scriptTitle,
-                            currentFeedbackCount: currentFeedbackCount,
                             scriptService: container.scriptManagementService,
                             audioService: audioService,
                         )
@@ -53,25 +44,6 @@ struct ContentView: View {
                             viewModel: mainViewModel,
                             wordListViewModel: wordViewModel
                         )
-                        
-                    case .historicalFeedback(let summary, let scriptTitle, let feedbackNumber):
-                        let viewModel = HistoricalFeedbackViewModel(
-                            summary: summary,
-                            scriptTitle: scriptTitle,
-                            feedbackNumber: feedbackNumber,
-                            scriptManagementService: container.scriptManagementService
-                        )
-                        
-                        HistoricalFeedbackView(viewModel: viewModel)
-                        
-                    case .allFeedback(let feedbacks, let scriptTitle, let feedbackNumber):
-                        let viewModel = AllFeedbackViewModel(
-                            allFeedbacks: feedbacks,
-                            scriptTitle: scriptTitle,
-                            feedbackNumber: feedbackNumber
-                        )
-                        
-                        AllFeedbackView(viewModel: viewModel)
                     }
                 }
         }

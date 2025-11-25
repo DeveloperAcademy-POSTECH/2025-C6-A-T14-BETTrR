@@ -1,7 +1,8 @@
 
 import Foundation
 import GRDB
-import FirebaseAI
+//import FirebaseAI
+import FirebaseAILogic
 
 enum WordExtractionError: Error {
     case scriptNotFound
@@ -35,7 +36,7 @@ class WordExtractionService {
         }
         
         let maxRetry = 2
-        let ai = FirebaseAI.firebaseAI(backend: .googleAI())
+        let ai = FirebaseAI.firebaseAI(backend: .googleAI(), useLimitedUseAppCheckTokens: true)
         let model = ai.generativeModel(modelName: "gemini-2.5-flash-lite")
         
         do {

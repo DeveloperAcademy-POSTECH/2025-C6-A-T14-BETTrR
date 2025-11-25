@@ -7,20 +7,46 @@
 
 import AVFoundation
 
+@MainActor
+enum PlaybackMode {
+    case stopped
+    case single // 부분 재생 (문장/청크 하나 재생)
+    case multi  // 전체 재생
+}
+
 @Observable
 final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
+    var isPlaybackActive: Bool = false
     
-    /// true인 경우: 전체 재생, 단일 재생, 일시정지 상태입니다,
-    /// false인 경우: 재생 완료, 정지, 테스크 없음 상태입니다.
-    var isPlaying: Bool = false
-    
-    /// true인 경우: isPlaying이 true이지만 pause() 명령으로 인해 잠시 멈춰있는 경우입니다.
     var isPaused: Bool {
         synthesizer.isPaused
     }
     
+    var currentPlaybackMode: PlaybackMode = .stopped
+    
+    /// 전체 재생 모드에서만 사용되는 현재 문장 인덱스
+    var currentMultiSentenceIndex: Int? = nil
+    
+    /// 현재 재생 중인 텍스트
+    var currentSpokenTextID: String? = nil
+    
+    /// 현재 재생 중인 대상의 고유 ID
+    var currentPlaybackID: PlaybackTargetID? = nil
+    
+    /// 현재까지 재생된 텍스트 범위 (NSRange)
+    var currentSpokenRange: NSRange? = nil
+    
     private let synthesizer = AVSpeechSynthesizer()
-    private var utteranceQueue: [AVSpeechUtterance] = []
+    private var utteranceQueue: [(index: Int, utterance: AVSpeechUtterance)] = []
+    
+    /// 현재 재생 중인 '객체' 자체
+    private var currentUtterance: AVSpeechUtterance? = nil
+    
+    /// 발화 속도 (기본 0.5보다 느리게 설정)
+    private let speechRate: Float = 0.45
+    
+    /// 문장과 문장 사이 딜레이
+    private let interSentenceDelay: TimeInterval = 0.5
     
     override init() {
         super.init()
@@ -51,32 +77,47 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     // --- Public API ---
     
     /// 특정 텍스트 하나만 재생합니다. (청크 또는 문장 탭 시 사용)
-    func play(text: String, language: String = "en-US") {
+    func play(text: String, id: PlaybackTargetID, language: String = "en-US") {
+        self.currentPlaybackMode = .single
+        self.currentMultiSentenceIndex = nil
+        self.currentSpokenTextID = text
+        self.currentPlaybackID = id
+        self.currentSpokenRange = nil
         
-        stop() // 기존 큐 중지
+        synthesizer.stopSpeaking(at: .immediate)
         
         activatePlaybackSession()
         
-        // 읽어주기를 원하는 텍스트를 큐에 넣고 읽기 요청
         let utterance = createUtterance(text: text, language: language)
-        synthesizer.speak(utterance)
+        self.currentUtterance = utterance
         
-        // 재생 중(테스크 처리중)으로 설정
-        isPlaying = true
+        synthesizer.speak(utterance)
     }
     
     /// 스크립트 전체 문장을 순서대로 재생합니다. (전체 재생 버튼용)
     func playAll(sentences: [SentenceData], language: String = "en-US") {
-        stop() // 기존 큐 중지
+        if synthesizer.isSpeaking || synthesizer.isPaused {
+            synthesizer.stopSpeaking(at: .immediate)
+        }
+        
+        self.utteranceQueue.removeAll()
+        self.currentPlaybackMode = .multi
+        self.currentSpokenTextID = nil
+        self.currentPlaybackID = nil
+        self.currentSpokenRange = nil
+        self.currentUtterance = nil
         
         activatePlaybackSession()
         
-        // SentenceData 배열을 AVSpeechUtterance 배열로 변환
-        self.utteranceQueue = sentences
-            .sorted { $0.orderIndex < $1.orderIndex } // 순서 보장
-            .map { createUtterance(text: $0.englishText, language: language) }
+        let sortedSentences = sentences
+            .sorted { $0.orderIndex < $1.orderIndex }
         
-        // 큐의 첫 번째 항목부터 재생 시작
+        self.utteranceQueue = sortedSentences
+            .map { (index: $0.orderIndex, utterance: createUtterance(text: $0.englishText, language: language)) }
+        
+        print("--- PLAY ALL START ---")
+        print("Total Sentences in Queue: \(self.utteranceQueue.count)")
+        
         playNextInQueue()
     }
     
@@ -98,23 +139,59 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
     /// 재생을 완전히 중지하고 큐를 비웁니다.
     func stop() {
-        if synthesizer.isSpeaking || synthesizer.isPaused {
-            synthesizer.stopSpeaking(at: .immediate)
-            utteranceQueue.removeAll()
-            isPlaying = false
-            deactivateSession()
-        }
+        synthesizer.stopSpeaking(at: .immediate)
+        utteranceQueue.removeAll()
+        
+        self.isPlaybackActive = false
+        self.currentPlaybackMode = .stopped
+        self.currentPlaybackID = nil
+        self.currentMultiSentenceIndex = nil
+        self.currentSpokenTextID = nil
+        self.currentSpokenRange = nil
+        self.currentUtterance = nil
+        
+        deactivateSession()
     }
     
     // --- AVSpeechSynthesizerDelegate Callbacks ---
     
+    /// 발화가 시작될 때
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+        // 콜백이 서브 스레드에서 올 수 있으므로 메인 스레드로 전달
+        DispatchQueue.main.async {
+            guard self.currentUtterance == utterance else { return }
+            
+            self.isPlaybackActive = true
+            self.currentSpokenTextID = utterance.speechString
+            self.currentSpokenRange = NSRange(location: 0, length: 0)
+        }
+    }
+    
+    /// 특정 범위의 발화를 "시작할 예정"일 때 (핵심)
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString range: NSRange, utterance: AVSpeechUtterance) {
+        DispatchQueue.main.async {
+            // "지금까지 말한 범위" = 시작점(0)부터 방금 말한 범위의 끝까지
+            let newLength = range.location + range.length
+            self.currentSpokenRange = NSRange(location: 0, length: newLength)
+        }
+    }
+    
     /// 한 문장의 재생이 완료되었을 때 호출됩니다.
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        if !utteranceQueue.isEmpty {
-            playNextInQueue()
-        } else {
-            isPlaying = false
-            deactivateSession()
+        DispatchQueue.main.async {
+            guard self.currentUtterance == utterance else { return }
+            
+            print("--- DID FINISH ---")
+            print("Finished Utterance: \(utterance.speechString.prefix(20))...")
+            print("Queue Count Before Check: \(self.utteranceQueue.count)")
+            
+            if !self.utteranceQueue.isEmpty {
+                DispatchQueue.main.asyncAfter(deadline: .now() + self.interSentenceDelay) { [weak self] in
+                    self?.playNextInQueue()
+                }
+            } else {
+                self.resetState()
+            }
         }
     }
     
@@ -122,21 +199,34 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     }
     
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didContinue utterance: AVSpeechUtterance) {
-        isPlaying = true
+        isPlaybackActive = true
     }
     
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        if utteranceQueue.isEmpty {
-            isPlaying = false
+        DispatchQueue.main.async {
+            if self.currentUtterance == utterance {
+                self.resetState()
+            }
         }
     }
     
     // --- Private Helpers ---
     
+    private func resetState() {
+        self.isPlaybackActive = false
+        self.currentPlaybackMode = .stopped
+        self.currentPlaybackID = nil
+        self.currentMultiSentenceIndex = nil
+        self.currentSpokenTextID = nil
+        self.currentSpokenRange = nil
+        self.currentUtterance = nil
+        self.deactivateSession()
+    }
+    
     private func createUtterance(text: String, language: String) -> AVSpeechUtterance {
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: language)
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate // 기본 속도
+        utterance.rate = self.speechRate
         utterance.pitchMultiplier = 1.0
         utterance.volume = 1.0
         return utterance
@@ -144,15 +234,27 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
     // utteranceQueue를 순서대로 처리
     private func playNextInQueue() {
+        print("--- PLAY NEXT IN QUEUE ---")
+        print("Queue Count at Start: \(utteranceQueue.count)")
+        
         guard !utteranceQueue.isEmpty else {
-            // 큐가 비었으면 재생 완료
-            isPlaying = false
+            print("Error: playNextInQueue called with empty queue. Stopping.")
+            self.currentPlaybackMode = .stopped
+            self.isPlaybackActive = false
+            self.currentMultiSentenceIndex = nil
             deactivateSession()
             return
         }
         
-        let utterance = utteranceQueue.removeFirst()
+        let (index, utterance) = utteranceQueue.removeFirst()
+        print("Action: Starting index \(index) - Text: \(utterance.speechString.prefix(20))...")
+        print("Queue Count After Removal: \(utteranceQueue.count)") // 큐에서 제거된 후 크기 확인
+        
+        self.currentMultiSentenceIndex = index
+        self.currentSpokenTextID = utterance.speechString
+        self.currentUtterance = utterance
+        
         synthesizer.speak(utterance)
-        isPlaying = true
+        self.isPlaybackActive = true
     }
 }

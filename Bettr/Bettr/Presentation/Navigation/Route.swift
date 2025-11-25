@@ -10,18 +10,10 @@ import SwiftUI
 enum Route: Hashable {
     case home
     case scriptConfirm(initialText: String?, initialTitle: String?)
-    case scriptDashboard(scriptId: Int64)
-    case memorization(scriptId: Int64, scriptTitle: String, currentFeedbackCount: Int)
-    case historicalFeedback(summary: FeedbackSummary, scriptTitle: String, feedbackNumber: Int)
-    case allFeedback(feedbacks: [FeedbackSummary], scriptTitle: String, feedbackNumber: Int)
+    case memorization(scriptId: Int64, scriptTitle: String)
 }
 
 enum ModalRoute: Hashable {
-    case feedbackResult(
-        diffs: [WordDiff],
-        practiceDuration: Double,
-        sentences: [String],
-        scriptTitle: String,
-        currentFeedbackCount: Int
-    )
+    case recording(scriptId: Int64, scriptTitle: String, sentences: [String])
+    case feedbackResult(summaryId: Int64, fromRecording: Bool)
 }

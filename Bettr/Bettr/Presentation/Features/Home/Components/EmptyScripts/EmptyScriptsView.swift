@@ -30,7 +30,7 @@ private struct FolderIconView: View {
             .resizable()
             .scaledToFit()
             .frame(width: width, height: height)
-            .foregroundColor(.normalGray600)
+            .foregroundStyle(.normalGray600)
     }
 }
 
@@ -39,11 +39,11 @@ private struct GuidanceTextView: View {
         VStack(spacing: 8) {
             Text("암기하고 싶은 스크립트를 등록하고,")
                 .font(.calloutRegular16)
-                .foregroundColor(.normalGray600)
+                .foregroundStyle(.normalGray600)
             
             Text("학습을 시작해 보세요.")
                 .font(.calloutRegular16)
-                .foregroundColor(.normalGray600)
+                .foregroundStyle(.normalGray600)
         }
         .padding(.vertical, 16)
     }
@@ -59,8 +59,8 @@ private struct AddButtonView: View {
         }
         .buttonStyle(.general)
         .padding(.bottom, 78) // 아래에 공간이 있어야 Menu가 아래로 열림
-        .overlay(
+        .overlay {
             AddScriptMenuView(onSelectPhoto: onSelectPhoto, onTakePhoto: onTakePhoto, onSelectFile: onSelectFile)
-        )
+        }
     }
 }

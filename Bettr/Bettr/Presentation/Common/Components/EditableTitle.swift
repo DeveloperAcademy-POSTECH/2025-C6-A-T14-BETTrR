@@ -52,23 +52,25 @@ struct EditableTitle: View {
                 .frame(minWidth: 200)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(
+                .background {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(.primaryBlue50)
-                )
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 10))
                 .onAppear {
                     editedTitle = title
                     isFocused = true
                 }
             } else {
                 // --- 수정 중이 아닐 때 ---
-                HStack(spacing: 4) {
+                HStack(alignment: .center, spacing: 4) {
                     Text(title)
                         .foregroundStyle(.normalBlack900)
                     
                     if showEditIcon {
-                        Image(systemName: "chevron.down.circle.fill")
-                            .font(.system(size: 12))
+                        Image(systemName: "pencil.line")
+                            .font(.system(size: 11))
+                            .fontWeight(.black)
                             .foregroundStyle(.primaryBlue300)
                     }
                 }
@@ -94,12 +96,12 @@ struct EditableTitle: View {
         }
     }
     
+    
     private func saveAndExit() {
-        guard isEditing else { return }
-        
         if !editedTitle.isEmpty && editedTitle != title {
             title = editedTitle
         }
         isEditing = false
+        isFocused = false
     }
 }

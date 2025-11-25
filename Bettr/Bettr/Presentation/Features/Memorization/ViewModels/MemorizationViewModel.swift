@@ -1,5 +1,5 @@
 
-import SwiftUI
+import Foundation
 import AVFoundation
 
 @Observable
@@ -11,7 +11,6 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     let scriptId: Int64
     let scriptService: ScriptManagementServiceProtocol
     let audioService: AudioPlaybackServiceProtocol
-    let currentFeedbackCount: Int
     
     // MARK: Core Data State (핵심 데이터 상태)
     var scriptData: ScriptData?
@@ -22,22 +21,28 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     var uiState = MemorizationUIState()
     var interactionState = MemorizationInteractionState()
     
-    // MARK: Computed Properties (계산 프로퍼티)
-    var isRecordingDisabled: Bool { scriptData == nil }
-    var referenceSentences: [String] { scriptData?.sentences.map { $0.englishText } ?? [] }
+    // MARK: Mutex Playback Control
+    var isFullPlaybackActive: Bool {
+        return audioService.currentPlaybackMode == .multi
+    }
+    
+    var isSinglePlaybackActive: Bool {
+        return audioService.currentPlaybackMode == .single
+    }
+    
+    // MARK: Toaster Task
+    private var toasterTask: Task<Void, Never>?
     
     // MARK: - Initialization
     
     init(
         scriptId: Int64,
         scriptTitle: String,
-        currentFeedbackCount: Int,
         scriptService: ScriptManagementServiceProtocol,
         audioService: AudioPlaybackServiceProtocol,
     ) {
         self.scriptId = scriptId
         self.currentTitle = scriptTitle
-        self.currentFeedbackCount = currentFeedbackCount
         self.scriptService = scriptService
         self.audioService = audioService
     }
@@ -77,7 +82,9 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         uiState.isChunkMode.toggle()
         
         interactionState.clearAllHiddenStates()
-        uiState.tappedPlaybackText = nil
+        
+        let message = uiState.isChunkMode ? "청크 모드" : "문장 모드"
+        showToaster(message: message)
     }
     
     func setFunctionMode(_ newMode: FunctionMode) {
@@ -86,30 +93,54 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         if uiState.funcMode == .read {
             interactionState.clearAllHiddenStates()
         }
-        uiState.tappedPlaybackText = nil
+        
+        switch newMode {
+        case .hide:
+            showToaster(message: "탭하여 가리기")
+        case .read:
+            showToaster(message: "탭하여 재생하기")
+        }
+    }
+    
+    func toggleKoreanVisibility() {
+        uiState.isKoreanVisible.toggle()
+        
+        let message = uiState.isKoreanVisible ? "번역 보기" : "번역 숨기기"
+        showToaster(message: message)
     }
     
     // MARK: Playback Controls
     
+    func stopPlayback() {
+        if uiState.isPlaybackActive {
+            uiState.isPlaybackActive = false
+            uiState.isPause = false
+        }
+        audioService.stop()
+    }
+    
     func togglePlayStop() {
-        uiState.isPlaying.toggle()
+        uiState.isPlaybackActive.toggle()
         
-        if uiState.isPlaying {
+        if uiState.isPlaybackActive {
             guard let scriptData = scriptData else {
-                uiState.isPlaying = false
+                uiState.isPlaybackActive = false
                 return
             }
+            uiState.funcMode = .hide
             audioService.playAll(sentences: scriptData.sentences)
             uiState.isPause = false
-            uiState.tappedPlaybackText = nil
         } else {
             audioService.stop()
-            uiState.tappedPlaybackText = nil
+            
+            if audioService.isPlaybackActive {
+                self.uiState.isPlaybackActive = false
+            }
         }
     }
     
     func togglePauseResume() {
-        guard uiState.isPlaying else { return }
+        guard uiState.isPlaybackActive else { return }
         
         uiState.isPause.toggle()
         
@@ -126,8 +157,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         if uiState.funcMode == .hide {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngChunks, for: identifier)
         } else {
-            audioService.play(text: chunk.englishText)
-            uiState.tappedPlaybackText = chunk.englishText
+            if audioService.currentPlaybackID == .chunk(identifier) {
+                audioService.stop()
+            } else {
+                audioService.play(text: chunk.englishText, id: .chunk(identifier))
+            }
         }
     }
     
@@ -135,19 +169,22 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         if uiState.funcMode == .hide {
             interactionState.toggleHiddenState(in: &interactionState.hiddenEngSentences, for: sentence.orderIndex)
         } else {
-            audioService.play(text: sentence.englishText)
-            uiState.tappedPlaybackText = sentence.englishText
+            if audioService.currentPlaybackID == .sentence(sentence.orderIndex) {
+                audioService.stop()
+            } else {
+                audioService.play(text: sentence.englishText, id: .sentence(sentence.orderIndex))
+            }
         }
     }
     
     // MARK: Service Callbacks
     
-    func handleAudioServiceStateChange(isPlaying serviceIsPlaying: Bool, isPaused serviceIsPaused: Bool) {
-        if !serviceIsPlaying && !serviceIsPaused {
-            self.uiState.isPlaying = false
-            self.uiState.isPause = false
+    func handleAudioServiceStateChange(isPlaybackActive serviceIsActive: Bool, isPaused serviceIsPaused: Bool) {
+            if !serviceIsActive && !serviceIsPaused {
+                self.uiState.isPlaybackActive = false
+                self.uiState.isPause = false
+            }
         }
-    }
     
     // MARK: - View State Logic
     
@@ -159,8 +196,25 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         return interactionState.hiddenEngSentences.contains(index)
     }
     
-    func isTextHighlighted(_ text: String) -> Bool {
-        return uiState.tappedPlaybackText == text
+    // MARK: - Toaster Logic
+    
+    /// 토스터 메시지를 2초간 표시
+    func showToaster(message: String, duration: TimeInterval = 2.0) {
+        toasterTask?.cancel()
+        
+        uiState.toasterMessage = message
+        
+        toasterTask = Task {
+            do {
+                try await Task.sleep(for: .seconds(duration))
+                
+                if uiState.toasterMessage == message {
+                    uiState.toasterMessage = nil
+                }
+            } catch {
+                // Task가 취소(새 토스터가 호출되면)되었을 때 이전 토스터의 숨김 타이머를 조용히 무시하고 종료
+            }
+        }
     }
     
     // MARK: - Data Fetching
@@ -196,12 +250,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
                 return
                 
             } catch let error as ScriptRepositoryError where error.isNotFoundError {
-                // 실패: 404 - 데이터를 찾을 수 없음
                 let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
                 currentError = .dataNotFound(message)
                 self.currentTitle = "스크립트 없음"
                 isLoadingScript = false
-                return // 재시도 없이 즉시 함수 종료
+                return
                 
             } catch {
                 let appError = error.toAppError()

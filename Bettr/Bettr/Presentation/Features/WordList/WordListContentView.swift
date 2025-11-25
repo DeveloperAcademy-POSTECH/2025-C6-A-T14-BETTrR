@@ -41,14 +41,14 @@ private struct WordRow: View {
                     .font(.footerRegular11)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 2)
-                    .background(
+                    .background {
                         RoundedRectangle(cornerRadius: 10)
                             .fill(Color.clear)
-                            .overlay(
+                            .overlay {
                                 RoundedRectangle(cornerRadius: 4)
                                     .stroke(.primaryBlue500, lineWidth: 1)
-                            )
-                    )
+                            }
+                    }
                     .foregroundStyle(.primaryBlue500)
                 Spacer(minLength: 0)
             }

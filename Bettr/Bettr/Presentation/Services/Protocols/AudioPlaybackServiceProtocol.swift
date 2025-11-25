@@ -9,22 +9,26 @@ import Foundation
 
 protocol AudioPlaybackServiceProtocol {
     
-    var isPlaying: Bool { get }
+    var isPlaybackActive: Bool { get }
     var isPaused: Bool { get }
     
-    func play(text: String, language: String)
+    var currentPlaybackMode: PlaybackMode { get }
+    var currentSpokenTextID: String? { get }
+    var currentPlaybackID: PlaybackTargetID? { get }
     
+    var currentMultiSentenceIndex: Int? { get }
+    var currentSpokenRange: NSRange? { get }
+    
+    func play(text: String, id: PlaybackTargetID, language: String)
     func playAll(sentences: [SentenceData], language: String)
-    
     func stop()
     func pause()
     func resume()
 }
 
 extension AudioPlaybackServiceProtocol {
-    
-    func play(text: String) {
-        self.play(text: text, language: "en-US")
+    func play(text: String, id: PlaybackTargetID) {
+        self.play(text: text, id: id, language: "en-US")
     }
     
     func playAll(sentences: [SentenceData]) {

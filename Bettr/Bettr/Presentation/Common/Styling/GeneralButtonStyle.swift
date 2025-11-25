@@ -18,23 +18,23 @@ struct GeneralButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         // 비활성화 상태일 때 색상 처리
         let currentBackgroundColor = isEnabled ? Color.primaryBlue500 : Color.defaultWhite50
-        let currentForegroundColor = isEnabled ? Color.defaultWhite50 : .gray.opacity(0.2)
+        let currentForegroundColor = isEnabled ? Color.defaultWhite50 : Color.primaryBlue200
         
         configuration.label
             .font(font)
             .padding(.vertical, paddingVertical)
             .frame(width: width)
             .foregroundStyle(currentForegroundColor)
-            .background(
+            .background {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(currentBackgroundColor)
-            )
+            }
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .glassEffect(.regular.interactive(true))
     }
 }
 
 extension ButtonStyle where Self == GeneralButtonStyle {
-    
     /// 기본 버튼 스타일 (너비 160)
     static var general: GeneralButtonStyle {
         GeneralButtonStyle()
