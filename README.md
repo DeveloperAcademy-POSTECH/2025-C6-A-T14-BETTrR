@@ -245,6 +245,6 @@ in the Software without restriction...
 
 **copyright&copy;2025Team D.U. All rights reserved.**
 
-[:arrow_up: Back to Top](#BETTrR)
+[:arrow_up: Back to Top](#rocket-bettrr)
 
 </div>
