@@ -1,8 +1,4 @@
-# :rocket: BETTrR
-
-![BETTrR Logo](images/BETTrR.svg)
-
-> 영어 스크립트 암기를 위한 스마트 학습 도우미 - 녹음 확인 시간은 아끼고, 암기에만 집중하세요.
+![landing-page](images/md/landing_page.png)
 
 [![Swift](https://img.shields.io/badge/Swift-5.0-orange.svg)]()
 [![Xcode](https://img.shields.io/badge/Xcode-26.0-blue.svg)]()
@@ -245,6 +241,6 @@ in the Software without restriction...
 
 **copyright&copy;2025Team D.U. All rights reserved.**
 
-[:arrow_up: Back to Top](#rocket-bettrr)
+[:arrow_up: Back to Top](#card_index_dividers-목차)
 
 </div>
