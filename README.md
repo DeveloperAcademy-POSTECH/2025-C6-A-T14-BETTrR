@@ -235,7 +235,7 @@ in the Software without restriction...
 
 프로젝트에 대한 문의사항이나 피드백은 아래로 연락 주세요:
 
-- **Email**: [대표 이메일](mailto:doyeonyyy@gmail.com)
+- **Email**: [이메일](mailto:bettrr.official@gmail.com)
 - **GitHub Issues**: [이슈 등록](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues)
 - **Website**: [Contact Page](https://developeracademy-postech.github.io/2025-C6-A-T14-BETTrR/contact.html)
 
