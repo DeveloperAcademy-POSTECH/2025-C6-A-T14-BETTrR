@@ -116,7 +116,7 @@
 ┃ ┃ ┃ ┣ 📂 Repositories/             # 데이터 저장소 인터페이스
 ┃ ┃ ┃ └ 📂 Services/                 # 도메인 서비스 (비즈니스 로직)
 ┃ ┃ ┣ 📂 Extensions/                 # Swift 기본 타입 확장
-┃ ┃ ┣ 📂 Persistence/                # 데이터 영속성 (SwiftData) 관련 코드
+┃ ┃ ┣ 📂 Persistence/                # 데이터 영속성 관련 코드
 ┃ ┃ ┣ 📂 Presentation/               # UI (사용자 인터페이스) 계층
 ┃ ┃ ┃ ┣ 📂 Common/                   # 공통 UI 컴포넌트 및 유틸리티
 ┃ ┃ ┃ ┣ 📂 Features/                 # 기능별 뷰 및 뷰모델
