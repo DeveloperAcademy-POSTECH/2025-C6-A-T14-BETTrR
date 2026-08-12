@@ -1,0 +1,18 @@
+{
+  "configurations" : [
+    {
+      "id" : "8C1E62E0-5DF1-4B3A-9C64-000000000002",
+      "name" : "GeminiContract",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false
+  },
+  "testTargets" : [
+
+  ],
+  "version" : 1
+}
