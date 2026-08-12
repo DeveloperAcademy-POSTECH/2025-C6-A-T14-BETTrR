@@ -12,7 +12,16 @@
     "codeCoverage" : false
   },
   "testTargets" : [
+    {
+      "selectedTests" : [
 
+      ],
+      "target" : {
+        "containerPath" : "container:Bettr.xcodeproj",
+        "identifier" : "A7CF26052EB2440300CEA916",
+        "name" : "BettrTests"
+      }
+    }
   ],
   "version" : 1
 }
