@@ -1,7 +1,6 @@
 name: 📄 문서 작업
 description: 문서 생성 또는 갱신이 필요할 때 사용합니다.
 title: "📄 Docs: "
-labels: ["Docs"]
 body:
   - type: textarea
     id: doc-target

@@ -213,17 +213,7 @@ cd 2025-C6-A-T14-BETTrR
 
 ## :scroll: License
 
-This project is licensed under the MIT License.
-
-```
-MIT License
-
-Copyright (c) 2025 Team D.U.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction...
-```
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
