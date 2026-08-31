@@ -38,7 +38,8 @@ xcodebuild test \
   -project Bettr/Bettr.xcodeproj \
   -scheme Bettr \
   -testPlan Default \
-  -destination 'platform=iOS Simulator,name=iPad Pro 11-inch (M4)'
+  -destination 'platform=iOS Simulator,name=iPad Pro 11-inch (M4)' \
+  CODE_SIGNING_ALLOWED=NO
 ```
 
 ## Firebase 초기화 정책
@@ -47,4 +48,11 @@ xcodebuild test \
   (`NSClassFromString("XCTestCase")` 감지 — `BettrApp.swift` 참고).
 - 따라서 `GoogleService-Info.plist` 없이도 Default Plan을 실행할 수 있습니다.
 - GeminiContract 테스트(#297)는 테스트 코드에서 직접 Firebase를 초기화해야 하며,
-  로컬에서는 커밋되지 않은 `GoogleService-Info.plist`, CI에서는 Secrets로 생성한 설정 파일을 사용합니다.
+  로컬에서는 커밋되지 않은 `GoogleService-Info.plist`를 사용합니다.
+
+## GeminiContract CI 설정
+
+- `GoogleService-Info.plist`는 로컬 전용 파일이며 계속 Git에 커밋하지 않습니다.
+- #297에서 GeminiContract workflow를 추가할 때는 `GOOGLE_SERVICE_INFO_PLIST_BASE64` GitHub Secret을
+  `Bettr/Bettr/GoogleService-Info.plist`로 복원합니다.
+- Secret 값이나 복원된 파일 내용은 workflow 로그에 출력하지 않습니다.
