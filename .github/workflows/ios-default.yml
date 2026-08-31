@@ -25,8 +25,6 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
       PROJECT: Bettr/Bettr.xcodeproj
       SCHEME: Bettr
-      SOURCE_PACKAGES: ${{ runner.temp }}/SourcePackages
-      DERIVED_DATA: ${{ runner.temp }}/BettrDerivedData
 
     steps:
       - name: Check out repository
@@ -73,6 +71,8 @@ jobs:
 
       - name: Resolve Swift packages
         run: |
+          SOURCE_PACKAGES="$RUNNER_TEMP/SourcePackages"
+
           xcodebuild -resolvePackageDependencies \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
@@ -80,6 +80,9 @@ jobs:
 
       - name: Build iPad app
         run: |
+          SOURCE_PACKAGES="$RUNNER_TEMP/SourcePackages"
+          DERIVED_DATA="$RUNNER_TEMP/BettrDerivedData"
+
           xcodebuild build \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
@@ -92,6 +95,9 @@ jobs:
 
       - name: Run Default Test Plan
         run: |
+          SOURCE_PACKAGES="$RUNNER_TEMP/SourcePackages"
+          DERIVED_DATA="$RUNNER_TEMP/BettrDerivedData"
+
           xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
