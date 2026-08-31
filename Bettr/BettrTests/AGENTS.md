@@ -27,6 +27,16 @@
   실행합니다.
 - 일반 로컬 검증과 PR CI에는 Default Plan을 사용합니다.
 
+## Default CI
+
+- `.github/workflows/ios-default.yml`의 `iOS Default` workflow는 `dev`와 `main`
+  대상 PR 및 `dev` push에서 Default Plan을 실행합니다.
+- CI는 iPad Simulator 빌드와 Unit/DatabaseIntegration 테스트만 수행합니다.
+  GeminiContract Test Plan, Firebase plist, App Check token, Gemini 호출은 포함하지
+  않습니다.
+- workflow의 SPM cache는 `Package.resolved`로 무효화됩니다. DerivedData와 simulator
+  data는 cache하지 않습니다.
+
 Xcode에서는 `Cmd+U`로 기본 Plan(Default)을 실행합니다. 다른 Plan은 Product >
 Test Plan에서 선택합니다. 터미널과 CI에서는 다음 명령을 사용합니다.
 

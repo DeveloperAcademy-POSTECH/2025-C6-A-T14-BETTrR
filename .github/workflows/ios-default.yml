@@ -1,0 +1,114 @@
+name: iOS Default
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-default-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-default:
+    name: iOS Default
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      PROJECT: Bettr/Bettr.xcodeproj
+      SCHEME: Bettr
+      SOURCE_PACKAGES: ${{ runner.temp }}/SourcePackages
+      DERIVED_DATA: ${{ runner.temp }}/BettrDerivedData
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Restore SPM cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/SourcePackages
+          key: spm-${{ runner.os }}-${{ runner.arch }}-xcode-26.6-${{ hashFiles('Bettr/Bettr.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+
+      - name: Create iPad Simulator
+        id: simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          runtime_id="$(xcrun simctl list runtimes --json | jq -r '
+            .runtimes[]
+            | select(.identifier == "com.apple.CoreSimulator.SimRuntime.iOS-26-2" and .isAvailable)
+            | .identifier
+          ')"
+          device_type_id="$(xcrun simctl list devicetypes --json | jq -r '
+            .devicetypes[]
+            | select(.name == "iPad Pro 11-inch (M4)")
+            | .identifier
+          ')"
+
+          if [[ -z "$runtime_id" ]]; then
+            echo "iOS 26.2 Simulator runtime is unavailable."
+            exit 1
+          fi
+
+          if [[ -z "$device_type_id" ]]; then
+            echo "iPad Pro 11-inch (M4) device type is unavailable."
+            exit 1
+          fi
+
+          simulator_id="$(xcrun simctl create "BETTrR CI iPad" "$device_type_id" "$runtime_id")"
+          echo "destination=platform=iOS Simulator,id=$simulator_id" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES"
+
+      - name: Build iPad app
+        run: |
+          xcodebuild build \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination "${{ steps.simulator.outputs.destination }}" \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES" \
+            -derivedDataPath "$DERIVED_DATA" \
+            -resultBundlePath "$RUNNER_TEMP/BettrBuild.xcresult" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Run Default Test Plan
+        run: |
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -testPlan Default \
+            -destination "${{ steps.simulator.outputs.destination }}" \
+            -clonedSourcePackagesDirPath "$SOURCE_PACKAGES" \
+            -derivedDataPath "$DERIVED_DATA" \
+            -resultBundlePath "$RUNNER_TEMP/BettrTest.xcresult" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload Xcode results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-default-xcresult
+          path: |
+            ${{ runner.temp }}/BettrBuild.xcresult
+            ${{ runner.temp }}/BettrTest.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
