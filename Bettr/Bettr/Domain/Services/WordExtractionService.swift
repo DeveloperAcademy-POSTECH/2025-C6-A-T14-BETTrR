@@ -35,9 +35,9 @@ class WordExtractionService {
             return
         }
         
-        let maxRetry = 2
         let ai = FirebaseAI.firebaseAI(backend: .googleAI(), useLimitedUseAppCheckTokens: true)
         let model = ai.generativeModel(modelName: "gemini-2.5-flash-lite")
+        let retryExecutor = GeminiRetryExecutor()
         
         do {
             // 1️⃣ 스크립트 불러오기
@@ -98,8 +98,7 @@ class WordExtractionService {
 """
             
             // 4️⃣ Gemini 호출 + 재시도
-            for attempt in 1...maxRetry {
-                do {
+            let didExtractWords = await retryExecutor.perform {
                     let response = try await model.generateContent(prompt)
                     guard let text = response.text else {
                         throw URLError(.badServerResponse)
@@ -128,51 +127,11 @@ class WordExtractionService {
                     // GRDB 저장
                     try await saveWordsToDatabase(scriptId: scriptId, words: words)
                     print("✅ Gemini 기반 단어 \(words.count)개 저장 완료")
-                    return // 성공 시 종료
-                    
-                } catch {
-                    // 에러 로깅 및 분류
-                    print("🔥 WordExtraction 오류 (시도 \(attempt)/\(maxRetry)): \(error.localizedDescription)")
-                    
-                    let nsError = error as NSError
-                    let category = classifyGeminiCallError(error)
-                    print("   - Domain: \(nsError.domain), Code: \(nsError.code)")
-                    print("   - 분류 결과: \(category)")
-                    
-                    switch category {
-                    case .clientInput:
-                        print("❌ 입력 문제 — 문장 형식을 점검하세요.")
-                        return
-                    case .auth:
-                        print("🔑 인증 오류 — FirebaseAI 연결을 확인하세요.")
-                        return
-                    case .rateLimited:
-                        print("⏳ 요청 한도 초과 — 잠시 후 재시도 필요.")
-                        return
-                    case .transient:
-                        if attempt < maxRetry {
-                            let delay = pow(2.0, Double(attempt - 1))
-                            print("🌐 일시적 오류 — \(delay)s 후 재시도 (\(attempt)/\(maxRetry))")
-                            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                            continue
-                        } else {
-                            print("❌ 재시도 실패 — 서버 연결 불안정.")
-                            return
-                        }
-                    case .jsonParsing:
-                        if attempt < maxRetry {
-                            print("⚠️ JSON 파싱 실패 — 재시도 중 (\(attempt)/\(maxRetry))")
-                            try? await Task.sleep(nanoseconds: 1_000_000_000)
-                            continue
-                        } else {
-                            print("❌ JSON 파싱 실패 — Gemini 출력 확인 필요.")
-                            return
-                        }
-                    case .unknown:
-                        print("❓ 알 수 없는 오류 발생 — \(error.localizedDescription)")
-                        return
-                    }
-                }
+                return true
+            }
+
+            guard didExtractWords != nil else {
+                return
             }
         } catch {
             print("❌ WordExtractionService 오류: \(error.localizedDescription)")

@@ -13,14 +13,12 @@ final class ScriptGeminiCall {
     // 🔹 스크립트를 분석해 ScriptData(JSON)로 반환
     func analyzeScript(_ scriptContent: String) async throws -> ScriptData? {
         
-        let maxRetry = 2 // 공식문서 참조 두 번 이하 재시도
-        
         //모델 초기화는 루프 밖에서 진행.
         let ai = FirebaseAI.firebaseAI(backend: .googleAI(), useLimitedUseAppCheckTokens: true)
         let model = ai.generativeModel(modelName: "gemini-2.5-flash-lite")
-        
-        for attempt in 1...maxRetry {
-            do {
+        let retryExecutor = GeminiRetryExecutor()
+
+        return await retryExecutor.perform {
                 // 새로운 JSON 전용 프롬프트 추가
                 let prompt = """
                                당신은 20년 경력의 영어-한국어 언어 코치입니다.
@@ -146,47 +144,6 @@ final class ScriptGeminiCall {
                     throw URLError(.cannotParseResponse)
                 }
                 
-            } catch {
-                // 🔹 에러 로그
-                print("🔥 Gemini 호출 오류 (\(attempt)/\(maxRetry)): \(error.localizedDescription)")
-                let category = classifyGeminiCallError(error)
-                
-                switch category {
-                case .clientInput:
-                    print("❌ 입력 형식 문제 (Gemini 프롬프트 점검 필요)")
-                    return nil
-                case .auth:
-                    print("🔑 인증 오류 - FirebaseAI 토큰 확인 필요")
-                    return nil
-                case .rateLimited:
-                    print("⏳ 요청 한도 초과 - 잠시 후 재시도 필요")
-                    return nil
-                case .transient:
-                    if attempt < maxRetry {
-                        let delay = pow(2.0, Double(attempt - 1))
-                        print("🌐 일시적 오류 — \(delay)s 후 재시도")
-                        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                        continue
-                    } else {
-                        print("❌ 재시도 실패 — 네트워크 불안정")
-                        return nil
-                    }
-                case .jsonParsing:
-                    if attempt < maxRetry {
-                        print("⚠️ JSON 파싱 실패 — 재시도 중 (\(attempt)/\(maxRetry))")
-                        try? await Task.sleep(nanoseconds: 1_000_000_000)
-                        continue
-                    } else {
-                        print("❌ JSON 파싱 실패 — Gemini 출력 형식 확인 필요")
-                        return nil
-                    }
-                case .unknown:
-                    print("❓ 알 수 없는 오류 발생: \(error.localizedDescription)")
-                    return nil
-                }
-            }
         }
-        return nil
     }
 }
-
