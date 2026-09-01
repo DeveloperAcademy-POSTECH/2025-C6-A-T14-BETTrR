@@ -13,18 +13,19 @@ import Foundation
 final class LocalRateLimiter {
     static let shared = LocalRateLimiter()
     
-    private let uuid = DeviceUUIDProvider.shared.uuid //uuid 추가
+    private let uuid: String
 
 //    private var timestamps: [Date] = []
     private var timestamps: [String: [Date]] = [:]
     private let limit = 3           // 1분에 3번까지 허용
     private let window: TimeInterval = 60 // 60초
     
-    private init() {}
+    init(uuid: String = DeviceUUIDProvider.shared.uuid) {
+        self.uuid = uuid
+    }
     
     /// 호출 가능 여부를 반환
-    func canCall() -> Bool {
-        let now = Date()
+    func canCall(at now: Date = Date()) -> Bool {
         // 1분 이내의 호출만 필터링
 //        timestamps = timestamps.filter { now.timeIntervalSince($0) < window }
 //        
