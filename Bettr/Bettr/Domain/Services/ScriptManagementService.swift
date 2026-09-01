@@ -8,6 +8,9 @@ class ScriptManagementService {
         self.scriptRepository = scriptRepository
     }
 
+    // iOS 26.2의 MainActor deinit 런타임 오류를 우회한다. (swiftlang/swift@29245e4)
+    nonisolated deinit {}
+
     // MARK: - Script Create
     func createScript(scriptData: ScriptData) async throws -> Script {
         try validateScriptData(scriptData)

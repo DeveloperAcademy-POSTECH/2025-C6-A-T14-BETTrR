@@ -22,6 +22,9 @@ final class LocalRateLimiter {
     init(uuid: String = DeviceUUIDProvider.shared.uuid) {
         self.uuid = uuid
     }
+
+    // iOS 26.2의 MainActor deinit 런타임 오류를 우회한다. (swiftlang/swift@29245e4)
+    nonisolated deinit {}
     
     /// 호출 가능 여부를 반환
     func canCall(at now: Date = Date()) -> Bool {
