@@ -15,7 +15,6 @@ final class LocalRateLimiter {
     
     private let uuid: String
 
-//    private var timestamps: [Date] = []
     private var timestamps: [String: [Date]] = [:]
     private let limit = 3           // 1분에 3번까지 허용
     private let window: TimeInterval = 60 // 60초
@@ -26,29 +25,15 @@ final class LocalRateLimiter {
     
     /// 호출 가능 여부를 반환
     func canCall(at now: Date = Date()) -> Bool {
-        // 1분 이내의 호출만 필터링
-//        timestamps = timestamps.filter { now.timeIntervalSince($0) < window }
-//        
-//        if timestamps.count >= limit {
-//            print("🚫 [LocalRateLimiter] 1분 내 \(limit)회 초과 호출 — 차단됨")
-//            return false
-//        }
-//        
-//        timestamps.append(now)
-//        print("✅ [LocalRateLimiter] 호출 허용 (\(timestamps.count)/\(limit))")
-//        return true
-        
         timestamps[uuid, default: []] = timestamps[uuid, default: []].filter {
             now.timeIntervalSince($0) < window
         }
         
         if timestamps[uuid]!.count >= limit {
-            print("🚫 [RateLimiter] \(uuid) — 1분 내 \(limit)회 초과 호출 차단")
             return false
         }
         
         timestamps[uuid]?.append(now)
-        print("✅ [RateLimiter] \(uuid) 호출 허용 (\(timestamps[uuid]!.count)/\(limit))")
         return true
     }
     
