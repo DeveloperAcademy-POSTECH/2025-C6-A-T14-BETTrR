@@ -159,6 +159,45 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(chunks[2].orderIndex, 2)
         XCTAssertEqual(chunks[2].englishText, "today")
     }
+
+    func test_saveWords_whenGeminiWordsProvided_thenPersistsSequentialOrderIndexes() async throws {
+        let script = try await sut.createScript(
+            scriptData: ScriptData(
+                title: "Word test script",
+                sentences: [
+                    SentenceData(
+                        orderIndex: 0,
+                        englishText: "A sentence.",
+                        koreanText: "문장입니다.",
+                        chunks: [
+                            ChunkData(
+                                orderIndex: 0,
+                                englishText: "A sentence.",
+                                koreanText: "문장입니다."
+                            )
+                        ]
+                    )
+                ]
+            )
+        )
+        let scriptManagementService = ScriptManagementService(scriptRepository: scriptRepository)
+        let wordExtractionService = WordExtractionService(
+            dbQueue: dbQueue,
+            scriptRepository: scriptRepository,
+            scriptManagementService: scriptManagementService
+        )
+        let words = [
+            GeminiWord(lemma: "encounter", pos: "동", meaning: "마주치다"),
+            GeminiWord(lemma: "challenge", pos: "명", meaning: "도전")
+        ]
+
+        let scriptId = try XCTUnwrap(script.id)
+        try await wordExtractionService.saveWordsToDatabase(scriptId: scriptId, words: words)
+        let savedWords = try await wordExtractionService.fetchWords(for: scriptId)
+
+        XCTAssertEqual(savedWords.map(\.orderIndex), [0, 1])
+        XCTAssertEqual(savedWords.map(\.lemma), ["encounter", "challenge"])
+    }
     
     func test_createScript_whenComplexDataProvided_thenAllRelationshipsAreCreatedCorrectly() async throws {
         // Given: 복잡한 ScriptData가 존재할 때

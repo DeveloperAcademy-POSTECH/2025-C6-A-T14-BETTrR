@@ -148,7 +148,7 @@ class WordExtractionService {
     }
     
     // MARK: - 💾 GRDB 저장 로직
-    private func saveWordsToDatabase(scriptId: Int64, words: [GeminiWord]) async throws {
+    func saveWordsToDatabase(scriptId: Int64, words: [GeminiWord]) async throws {
         try await dbQueue.write { db in
             try scriptRepository.deleteWords(forScriptId: scriptId, in: db)
             for (index, word) in words.enumerated() {
