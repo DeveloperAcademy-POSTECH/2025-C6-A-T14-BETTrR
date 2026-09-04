@@ -5,11 +5,11 @@
 //  Created by 서세린 on 11/5/25.
 //
 
-import SwiftUI
+import Foundation
 
 
 // MARK: - 에러 분류기 (FirebaseAI / Vertex 기준)
-enum GeminiErrorCategory {
+enum GeminiErrorCategory: Equatable {
     case clientInput    // 400~422 → 입력 오류
     case transient      // 408, 500, 502, 503, timeout → 서버 불안정
     case auth           // 인증오류
@@ -101,4 +101,3 @@ func classifyGeminiCallError(_ error: Error) -> GeminiErrorCategory {
     // ✅ [개선] 마지막 resort로 unknown 반환 (이제 재시도 로직 포함)
     return .unknown
 }
-

@@ -13,41 +13,30 @@ import Foundation
 final class LocalRateLimiter {
     static let shared = LocalRateLimiter()
     
-    private let uuid = DeviceUUIDProvider.shared.uuid //uuid 추가
+    private let uuid: String
 
-//    private var timestamps: [Date] = []
     private var timestamps: [String: [Date]] = [:]
     private let limit = 3           // 1분에 3번까지 허용
     private let window: TimeInterval = 60 // 60초
     
-    private init() {}
+    init(uuid: String = DeviceUUIDProvider.shared.uuid) {
+        self.uuid = uuid
+    }
+
+    // iOS 26.2의 MainActor deinit 런타임 오류를 우회한다. (swiftlang/swift@29245e4)
+    nonisolated deinit {}
     
     /// 호출 가능 여부를 반환
-    func canCall() -> Bool {
-        let now = Date()
-        // 1분 이내의 호출만 필터링
-//        timestamps = timestamps.filter { now.timeIntervalSince($0) < window }
-//        
-//        if timestamps.count >= limit {
-//            print("🚫 [LocalRateLimiter] 1분 내 \(limit)회 초과 호출 — 차단됨")
-//            return false
-//        }
-//        
-//        timestamps.append(now)
-//        print("✅ [LocalRateLimiter] 호출 허용 (\(timestamps.count)/\(limit))")
-//        return true
-        
+    func canCall(at now: Date = Date()) -> Bool {
         timestamps[uuid, default: []] = timestamps[uuid, default: []].filter {
             now.timeIntervalSince($0) < window
         }
         
         if timestamps[uuid]!.count >= limit {
-            print("🚫 [RateLimiter] \(uuid) — 1분 내 \(limit)회 초과 호출 차단")
             return false
         }
         
         timestamps[uuid]?.append(now)
-        print("✅ [RateLimiter] \(uuid) 호출 허용 (\(timestamps[uuid]!.count)/\(limit))")
         return true
     }
     
