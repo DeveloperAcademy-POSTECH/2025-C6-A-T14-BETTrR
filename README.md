@@ -208,6 +208,7 @@ cd 2025-C6-A-T14-BETTrR
 
 - [:globe_with_meridians: 프로젝트 웹사이트](https://developeracademy-postech.github.io/2025-C6-A-T14-BETTrR/)
 - [:iphone: App Store 페이지](https://apps.apple.com/kr/app/bettrr/id6754756492)
+- [아키텍처 결정 기록](docs/decisions/)
 
 ---
 

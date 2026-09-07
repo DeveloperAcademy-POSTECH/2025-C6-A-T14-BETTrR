@@ -22,40 +22,11 @@ class ScriptRepository {
 
     func createScript(with scriptData: ScriptData) async throws -> Script {
         try await dbQueue.write { db in
-            var script = Script(
-                title: scriptData.title,
-                createdAt: Date(),
-                lastViewedAt: Date()
-            )
-            try script.save(db)
+            var script = Script.from(scriptData, createdAt: Date())
+            try script.insert(db)
 
-            guard let scriptId = script.id else {
-                throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Script")
-            }
-
-            for (sentenceOrderIndex, sentenceData) in scriptData.sentences.enumerated() {
-                var sentence = Sentence(
-                    scriptId: scriptId,
-                    orderIndex: sentenceOrderIndex,
-                    englishText: sentenceData.englishText,
-                    koreanText: sentenceData.koreanText
-                )
-                try sentence.save(db)
-
-                guard let sentenceId = sentence.id else {
-                    throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Sentence")
-                }
-
-                for (chunkOrderIndex, chunkData) in sentenceData.chunks.enumerated() {
-                    var chunk = Chunk(
-                        sentenceId: sentenceId,
-                        orderIndex: chunkOrderIndex,
-                        englishText: chunkData.englishText,
-                        koreanText: chunkData.koreanText
-                    )
-                    try chunk.save(db)
-                }
-            }
+            let scriptId = try Self.insertedId(from: script.id, entity: "Script")
+            try Self.insertSentences(scriptData.sentences, scriptId: scriptId, in: db)
 
             return script
         }
@@ -87,7 +58,7 @@ class ScriptRepository {
                 throw ScriptRepositoryError.notFound(message: "Script with ID \(id) not found.")
             }
             script.title = newTitle
-            try script.save(db)
+            try script.update(db)
         }
     }
 
@@ -178,7 +149,7 @@ class ScriptRepository {
                 practiceDuration: practiceDuration,
                 createdAt: Date()
             )
-            try summary.save(db)
+            try summary.insert(db)
             
             guard let summaryId = summary.id else {
                 throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created FeedbackSummary")
@@ -195,7 +166,7 @@ class ScriptRepository {
                     sentenceIndex: info.sentenceIndex,
                     wordIndex: info.wordIndex
                 )
-                try detail.save(db)
+                try detail.insert(db)
             }
             
             return summary
@@ -224,5 +195,39 @@ class ScriptRepository {
 
     nonisolated func deleteWords(forScriptId scriptId: Int64, in db: Database) throws {
         try Word.filter(Column("scriptId") == scriptId).deleteAll(db)
+    }
+
+    // MARK: - Private Methods
+    private static func insertSentences(
+        _ sentenceData: [SentenceData],
+        scriptId: Int64,
+        in db: Database
+    ) throws {
+        for data in sentenceData {
+            var sentence = Sentence.from(data, scriptId: scriptId)
+            try sentence.insert(db)
+
+            let sentenceId = try insertedId(from: sentence.id, entity: "Sentence")
+            try insertChunks(data.chunks, sentenceId: sentenceId, in: db)
+        }
+    }
+
+    private static func insertChunks(
+        _ chunkData: [ChunkData],
+        sentenceId: Int64,
+        in db: Database
+    ) throws {
+        for data in chunkData {
+            var chunk = Chunk.from(data, sentenceId: sentenceId)
+            try chunk.insert(db)
+        }
+    }
+
+    private static func insertedId(from id: Int64?, entity: String) throws -> Int64 {
+        guard let id else {
+            throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created \(entity)")
+        }
+
+        return id
     }
 }

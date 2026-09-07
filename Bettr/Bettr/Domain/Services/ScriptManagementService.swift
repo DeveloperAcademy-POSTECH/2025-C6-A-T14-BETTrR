@@ -56,7 +56,7 @@ class ScriptManagementService {
         guard var script = try await scriptRepository.fetchScript(id: scriptId) else {
             throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
         }
-        script.lastViewedAt = Date()
+        script.markViewed(at: Date())
         _ = try await scriptRepository.save(script: script)
     }
     

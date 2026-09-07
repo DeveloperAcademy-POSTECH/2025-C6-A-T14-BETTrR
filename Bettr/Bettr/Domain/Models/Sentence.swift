@@ -18,3 +18,15 @@ struct Sentence: Identifiable, Codable, FetchableRecord, MutablePersistableRecor
         id = inserted.rowID
     }
 }
+
+extension Sentence {
+    static func from(_ data: SentenceData, scriptId: Int64) -> Sentence {
+        Sentence(
+            id: nil,
+            scriptId: scriptId,
+            orderIndex: data.orderIndex,
+            englishText: data.englishText,
+            koreanText: data.koreanText
+        )
+    }
+}

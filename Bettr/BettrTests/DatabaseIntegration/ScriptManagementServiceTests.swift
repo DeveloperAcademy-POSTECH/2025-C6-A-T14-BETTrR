@@ -84,13 +84,13 @@ final class ScriptManagementServiceTests: XCTestCase {
             title: "Multi Sentence Script",
             sentences: [
                 SentenceData(
-                    orderIndex: 0,
+                    orderIndex: 10,
                     englishText: "First sentence",
                     koreanText: "첫 번째 문장",
                     chunks: [ChunkData(orderIndex: 0, englishText: "Dummy1", koreanText: "더미1")]
                 ),
                 SentenceData(
-                    orderIndex: 1,
+                    orderIndex: 20,
                     englishText: "Second sentence",
                     koreanText: "두 번째 문장",
                     chunks: [ChunkData(orderIndex: 0, englishText: "Dummy2", koreanText: "더미2")]
@@ -110,9 +110,9 @@ final class ScriptManagementServiceTests: XCTestCase {
         }
         
         XCTAssertEqual(sentences.count, 2)
-        XCTAssertEqual(sentences[0].orderIndex, 0)
+        XCTAssertEqual(sentences[0].orderIndex, 10)
         XCTAssertEqual(sentences[0].englishText, "First sentence")
-        XCTAssertEqual(sentences[1].orderIndex, 1)
+        XCTAssertEqual(sentences[1].orderIndex, 20)
         XCTAssertEqual(sentences[1].englishText, "Second sentence")
     }
     
@@ -122,13 +122,13 @@ final class ScriptManagementServiceTests: XCTestCase {
             title: "Chunked Script",
             sentences: [
                 SentenceData(
-                    orderIndex: 0,
+                    orderIndex: 10,
                     englishText: "Hello world today",
                     koreanText: "안녕 세상 오늘",
                     chunks: [
-                        ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕"),
-                        ChunkData(orderIndex: 1, englishText: "world", koreanText: "세상"),
-                        ChunkData(orderIndex: 2, englishText: "today", koreanText: "오늘")
+                        ChunkData(orderIndex: 10, englishText: "Hello", koreanText: "안녕"),
+                        ChunkData(orderIndex: 20, englishText: "world", koreanText: "세상"),
+                        ChunkData(orderIndex: 30, englishText: "today", koreanText: "오늘")
                     ]
                 )
             ]
@@ -152,11 +152,11 @@ final class ScriptManagementServiceTests: XCTestCase {
         }
         
         XCTAssertEqual(chunks.count, 3)
-        XCTAssertEqual(chunks[0].orderIndex, 0)
+        XCTAssertEqual(chunks[0].orderIndex, 10)
         XCTAssertEqual(chunks[0].englishText, "Hello")
-        XCTAssertEqual(chunks[1].orderIndex, 1)
+        XCTAssertEqual(chunks[1].orderIndex, 20)
         XCTAssertEqual(chunks[1].englishText, "world")
-        XCTAssertEqual(chunks[2].orderIndex, 2)
+        XCTAssertEqual(chunks[2].orderIndex, 30)
         XCTAssertEqual(chunks[2].englishText, "today")
     }
 
