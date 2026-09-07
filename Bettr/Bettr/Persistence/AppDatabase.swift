@@ -17,7 +17,7 @@ class AppDatabase {
             let databasePath = defaultDatabasePath()
             let dbQueue = try DatabaseQueue(path: databasePath)
             let appDB = AppDatabase(dbQueue: dbQueue)
-            try DatabaseMigrator.setupDatabase(dbQueue)
+            try AppDatabaseMigrator.migrate(dbQueue)
             print("✅ Database initialized at: \(databasePath)")
 
 //            #if DEBUG
@@ -45,7 +45,7 @@ class AppDatabase {
     // 테스트용 인메모리 데이터베이스
     static func makeInMemory() throws -> AppDatabase {
         let dbQueue = try DatabaseQueue()
-        try DatabaseMigrator.setupDatabase(dbQueue)
+        try AppDatabaseMigrator.migrate(dbQueue)
         return AppDatabase(dbQueue: dbQueue)
     }
     

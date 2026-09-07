@@ -11,7 +11,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         super.setUp()
         
         dbQueue = try! DatabaseQueue()
-        try! DatabaseMigrator.setupDatabase(dbQueue)
+        try! AppDatabaseMigrator.migrate(dbQueue)
         scriptRepository = ScriptRepository(dbQueue: dbQueue)
         sut = ScriptManagementService(scriptRepository: scriptRepository)
     }
