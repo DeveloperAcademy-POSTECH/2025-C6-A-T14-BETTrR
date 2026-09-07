@@ -635,6 +635,32 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         let createdScript = try await sut.createScript(scriptData: scriptData)
         let scriptId = createdScript.id!
+        _ = try await sut.createFeedbackSummary(
+            scriptId: scriptId,
+            accuracy: 1,
+            missingWordCount: 0,
+            addedWordCount: 0,
+            replacedWordCount: 0,
+            practiceDuration: 10,
+            feedbackDetailsData: [
+                (
+                    wordDiff: .matched(word: "Sentence"),
+                    originalText: "Sentence",
+                    sentenceIndex: 0,
+                    wordIndex: 0
+                )
+            ]
+        )
+        try dbQueue.write { db in
+            var word = Word(
+                scriptId: scriptId,
+                lemma: "sentence",
+                pos: "명",
+                meaning: "문장",
+                orderIndex: 0
+            )
+            try word.insert(db)
+        }
 
         // When: Script를 삭제했을 때
         try await sut.deleteScript(id: scriptId)
@@ -652,6 +678,13 @@ final class ScriptManagementServiceTests: XCTestCase {
             try Chunk.fetchCount(db)
         }
         XCTAssertEqual(chunkCount, 0)
+
+        try dbQueue.read { db in
+            XCTAssertEqual(try FeedbackSummary.fetchCount(db), 0)
+            XCTAssertEqual(try FeedbackDetail.fetchCount(db), 0)
+            XCTAssertEqual(try Word.fetchCount(db), 0)
+            XCTAssertNoThrow(try db.checkForeignKeys())
+        }
     }
 
     // MARK: - Feedback Create Tests
@@ -739,5 +772,82 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(replacedDetail?.originalText, "Hello")
         XCTAssertEqual(replacedDetail?.sentenceIndex, 0)
         XCTAssertEqual(replacedDetail?.wordIndex, 0)
+    }
+
+    func test_createFeedbackSummary_whenDetailInsertFails_thenRollsBackSummaryAndDetails() async throws {
+        let script = try await sut.createScript(
+            scriptData: ScriptData(
+                title: "Feedback rollback script",
+                sentences: [
+                    SentenceData(
+                        orderIndex: 0,
+                        englishText: "A sentence.",
+                        koreanText: "문장입니다.",
+                        chunks: [ChunkData(orderIndex: 0, englishText: "A sentence.", koreanText: "문장입니다.")]
+                    )
+                ]
+            )
+        )
+        let scriptId = try XCTUnwrap(script.id)
+
+        try dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE TRIGGER fail_second_feedback_detail
+                BEFORE INSERT ON feedback_detail
+                WHEN NEW.wordIndex = 1
+                BEGIN
+                    SELECT RAISE(ABORT, 'forced feedback detail insert failure');
+                END
+                """)
+        }
+
+        do {
+            _ = try await sut.createFeedbackSummary(
+                scriptId: scriptId,
+                accuracy: 0.8,
+                missingWordCount: 1,
+                addedWordCount: 1,
+                replacedWordCount: 0,
+                practiceDuration: 10,
+                feedbackDetailsData: [
+                    (
+                        wordDiff: .missing(expected: "first"),
+                        originalText: "first",
+                        sentenceIndex: 0,
+                        wordIndex: 0
+                    ),
+                    (
+                        wordDiff: .extra(actual: "second"),
+                        originalText: nil,
+                        sentenceIndex: 0,
+                        wordIndex: 1
+                    )
+                ]
+            )
+            XCTFail("Expected feedback detail insert failure")
+        } catch {
+            // The trigger failure is the expected transaction rollback path.
+        }
+
+        try dbQueue.read { db in
+            XCTAssertEqual(try FeedbackSummary.filter(Column("scriptId") == scriptId).fetchCount(db), 0)
+            XCTAssertEqual(try FeedbackDetail.fetchCount(db), 0)
+        }
+    }
+
+    func test_database_whenChildReferencesMissingParent_thenRejectsForeignKeyViolation() throws {
+        try dbQueue.write { db in
+            XCTAssertThrowsError(
+                try db.execute(
+                    sql: "INSERT INTO sentence (scriptId, orderIndex, englishText, koreanText) VALUES (999, 0, 'Orphan', '고아')"
+                )
+            )
+            XCTAssertThrowsError(
+                try db.execute(
+                    sql: "INSERT INTO feedback_detail (feedbackSummaryId, wordDiffType, sentenceIndex, wordIndex) VALUES (999, 'missing', 0, 0)"
+                )
+            )
+            XCTAssertNoThrow(try db.checkForeignKeys())
+        }
     }
 }
