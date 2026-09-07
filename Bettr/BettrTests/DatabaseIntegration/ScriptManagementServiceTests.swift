@@ -160,6 +160,47 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(chunks[2].englishText, "today")
     }
 
+    func test_createScript_whenChunkInsertFails_thenRollsBackAllRelatedRecords() async throws {
+        try dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE TRIGGER fail_second_chunk
+                BEFORE INSERT ON chunk
+                WHEN NEW.orderIndex = 1
+                BEGIN
+                    SELECT RAISE(ABORT, 'forced chunk insert failure');
+                END
+                """)
+        }
+
+        let scriptData = ScriptData(
+            title: "Rollback script",
+            sentences: [
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "A sentence.",
+                    koreanText: "문장입니다.",
+                    chunks: [
+                        ChunkData(orderIndex: 0, englishText: "A", koreanText: "가"),
+                        ChunkData(orderIndex: 1, englishText: "sentence", koreanText: "문장")
+                    ]
+                )
+            ]
+        )
+
+        do {
+            _ = try await sut.createScript(scriptData: scriptData)
+            XCTFail("Expected chunk insert failure")
+        } catch {
+            // The trigger failure is the expected transaction rollback path.
+        }
+
+        try dbQueue.read { db in
+            XCTAssertEqual(try Script.fetchCount(db), 0)
+            XCTAssertEqual(try Sentence.fetchCount(db), 0)
+            XCTAssertEqual(try Chunk.fetchCount(db), 0)
+        }
+    }
+
     func test_saveWords_whenGeminiWordsProvided_thenPersistsSequentialOrderIndexes() async throws {
         let script = try await sut.createScript(
             scriptData: ScriptData(

@@ -20,6 +20,47 @@ class ScriptRepository {
         }
     }
 
+    func createScript(with scriptData: ScriptData) async throws -> Script {
+        try await dbQueue.write { db in
+            var script = Script(
+                title: scriptData.title,
+                createdAt: Date(),
+                lastViewedAt: Date()
+            )
+            try script.save(db)
+
+            guard let scriptId = script.id else {
+                throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Script")
+            }
+
+            for (sentenceOrderIndex, sentenceData) in scriptData.sentences.enumerated() {
+                var sentence = Sentence(
+                    scriptId: scriptId,
+                    orderIndex: sentenceOrderIndex,
+                    englishText: sentenceData.englishText,
+                    koreanText: sentenceData.koreanText
+                )
+                try sentence.save(db)
+
+                guard let sentenceId = sentence.id else {
+                    throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Sentence")
+                }
+
+                for (chunkOrderIndex, chunkData) in sentenceData.chunks.enumerated() {
+                    var chunk = Chunk(
+                        sentenceId: sentenceId,
+                        orderIndex: chunkOrderIndex,
+                        englishText: chunkData.englishText,
+                        koreanText: chunkData.koreanText
+                    )
+                    try chunk.save(db)
+                }
+            }
+
+            return script
+        }
+    }
+
     func fetchScript(id: Int64) async throws -> Script? {
         try await dbQueue.read { db in
             try Script.fetchOne(db, key: id)
@@ -51,14 +92,6 @@ class ScriptRepository {
     }
 
     // MARK: Sentence
-    func save(sentence: Sentence) async throws -> Sentence {
-        return try await dbQueue.write { db in
-            var sentence = sentence
-            try sentence.save(db)
-            return sentence
-        }
-    }
-
     func fetchSentences(forScriptId scriptId: Int64) async throws -> [Sentence] {
         try await dbQueue.read { db in
             try Sentence
@@ -69,14 +102,6 @@ class ScriptRepository {
     }
 
     // MARK: Chunk
-    func save(chunk: Chunk) async throws -> Chunk {
-        return try await dbQueue.write { db in
-            var chunk = chunk
-            try chunk.save(db)
-            return chunk
-        }
-    }
-
     func fetchChunks(forSentenceId sentenceId: Int64) async throws -> [Chunk] {
         try await dbQueue.read { db in
             try Chunk
