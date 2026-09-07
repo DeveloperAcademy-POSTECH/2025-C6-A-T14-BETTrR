@@ -161,7 +161,7 @@ final class ScriptManagementServiceTests: XCTestCase {
     }
 
     func test_createScript_whenChunkInsertFails_thenRollsBackAllRelatedRecords() async throws {
-        try dbQueue.write { db in
+        try await dbQueue.write { db in
             try db.execute(sql: """
                 CREATE TRIGGER fail_second_chunk
                 BEFORE INSERT ON chunk
@@ -194,7 +194,7 @@ final class ScriptManagementServiceTests: XCTestCase {
             // The trigger failure is the expected transaction rollback path.
         }
 
-        try dbQueue.read { db in
+        try await dbQueue.read { db in
             XCTAssertEqual(try Script.fetchCount(db), 0)
             XCTAssertEqual(try Sentence.fetchCount(db), 0)
             XCTAssertEqual(try Chunk.fetchCount(db), 0)
@@ -651,7 +651,7 @@ final class ScriptManagementServiceTests: XCTestCase {
                 )
             ]
         )
-        try dbQueue.write { db in
+        try await dbQueue.write { db in
             var word = Word(
                 scriptId: scriptId,
                 lemma: "sentence",
@@ -679,7 +679,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         }
         XCTAssertEqual(chunkCount, 0)
 
-        try dbQueue.read { db in
+        try await dbQueue.read { db in
             XCTAssertEqual(try FeedbackSummary.fetchCount(db), 0)
             XCTAssertEqual(try FeedbackDetail.fetchCount(db), 0)
             XCTAssertEqual(try Word.fetchCount(db), 0)
@@ -790,7 +790,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         let scriptId = try XCTUnwrap(script.id)
 
-        try dbQueue.write { db in
+        try await dbQueue.write { db in
             try db.execute(sql: """
                 CREATE TRIGGER fail_second_feedback_detail
                 BEFORE INSERT ON feedback_detail
@@ -829,7 +829,7 @@ final class ScriptManagementServiceTests: XCTestCase {
             // The trigger failure is the expected transaction rollback path.
         }
 
-        try dbQueue.read { db in
+        try await dbQueue.read { db in
             XCTAssertEqual(try FeedbackSummary.filter(Column("scriptId") == scriptId).fetchCount(db), 0)
             XCTAssertEqual(try FeedbackDetail.fetchCount(db), 0)
         }
