@@ -20,6 +20,18 @@ class ScriptRepository {
         }
     }
 
+    func createScript(with scriptData: ScriptData) async throws -> Script {
+        try await dbQueue.write { db in
+            var script = Script.from(scriptData, createdAt: Date())
+            try script.insert(db)
+
+            let scriptId = try Self.insertedId(from: script.id, entity: "Script")
+            try Self.insertSentences(scriptData.sentences, scriptId: scriptId, in: db)
+
+            return script
+        }
+    }
+
     func fetchScript(id: Int64) async throws -> Script? {
         try await dbQueue.read { db in
             try Script.fetchOne(db, key: id)
@@ -46,19 +58,11 @@ class ScriptRepository {
                 throw ScriptRepositoryError.notFound(message: "Script with ID \(id) not found.")
             }
             script.title = newTitle
-            try script.save(db)
+            try script.update(db)
         }
     }
 
     // MARK: Sentence
-    func save(sentence: Sentence) async throws -> Sentence {
-        return try await dbQueue.write { db in
-            var sentence = sentence
-            try sentence.save(db)
-            return sentence
-        }
-    }
-
     func fetchSentences(forScriptId scriptId: Int64) async throws -> [Sentence] {
         try await dbQueue.read { db in
             try Sentence
@@ -69,14 +73,6 @@ class ScriptRepository {
     }
 
     // MARK: Chunk
-    func save(chunk: Chunk) async throws -> Chunk {
-        return try await dbQueue.write { db in
-            var chunk = chunk
-            try chunk.save(db)
-            return chunk
-        }
-    }
-
     func fetchChunks(forSentenceId sentenceId: Int64) async throws -> [Chunk] {
         try await dbQueue.read { db in
             try Chunk
@@ -153,7 +149,7 @@ class ScriptRepository {
                 practiceDuration: practiceDuration,
                 createdAt: Date()
             )
-            try summary.save(db)
+            try summary.insert(db)
             
             guard let summaryId = summary.id else {
                 throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created FeedbackSummary")
@@ -170,7 +166,7 @@ class ScriptRepository {
                     sentenceIndex: info.sentenceIndex,
                     wordIndex: info.wordIndex
                 )
-                try detail.save(db)
+                try detail.insert(db)
             }
             
             return summary
@@ -199,5 +195,39 @@ class ScriptRepository {
 
     nonisolated func deleteWords(forScriptId scriptId: Int64, in db: Database) throws {
         try Word.filter(Column("scriptId") == scriptId).deleteAll(db)
+    }
+
+    // MARK: - Private Methods
+    private static func insertSentences(
+        _ sentenceData: [SentenceData],
+        scriptId: Int64,
+        in db: Database
+    ) throws {
+        for data in sentenceData {
+            var sentence = Sentence.from(data, scriptId: scriptId)
+            try sentence.insert(db)
+
+            let sentenceId = try insertedId(from: sentence.id, entity: "Sentence")
+            try insertChunks(data.chunks, sentenceId: sentenceId, in: db)
+        }
+    }
+
+    private static func insertChunks(
+        _ chunkData: [ChunkData],
+        sentenceId: Int64,
+        in db: Database
+    ) throws {
+        for data in chunkData {
+            var chunk = Chunk.from(data, sentenceId: sentenceId)
+            try chunk.insert(db)
+        }
+    }
+
+    private static func insertedId(from id: Int64?, entity: String) throws -> Int64 {
+        guard let id else {
+            throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created \(entity)")
+        }
+
+        return id
     }
 }

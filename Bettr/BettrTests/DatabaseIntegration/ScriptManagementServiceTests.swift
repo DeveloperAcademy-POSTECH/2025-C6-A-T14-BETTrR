@@ -11,7 +11,7 @@ final class ScriptManagementServiceTests: XCTestCase {
         super.setUp()
         
         dbQueue = try! DatabaseQueue()
-        try! DatabaseMigrator.setupDatabase(dbQueue)
+        try! AppDatabaseMigrator.migrate(dbQueue)
         scriptRepository = ScriptRepository(dbQueue: dbQueue)
         sut = ScriptManagementService(scriptRepository: scriptRepository)
     }
@@ -84,13 +84,13 @@ final class ScriptManagementServiceTests: XCTestCase {
             title: "Multi Sentence Script",
             sentences: [
                 SentenceData(
-                    orderIndex: 0,
+                    orderIndex: 10,
                     englishText: "First sentence",
                     koreanText: "첫 번째 문장",
                     chunks: [ChunkData(orderIndex: 0, englishText: "Dummy1", koreanText: "더미1")]
                 ),
                 SentenceData(
-                    orderIndex: 1,
+                    orderIndex: 20,
                     englishText: "Second sentence",
                     koreanText: "두 번째 문장",
                     chunks: [ChunkData(orderIndex: 0, englishText: "Dummy2", koreanText: "더미2")]
@@ -110,9 +110,9 @@ final class ScriptManagementServiceTests: XCTestCase {
         }
         
         XCTAssertEqual(sentences.count, 2)
-        XCTAssertEqual(sentences[0].orderIndex, 0)
+        XCTAssertEqual(sentences[0].orderIndex, 10)
         XCTAssertEqual(sentences[0].englishText, "First sentence")
-        XCTAssertEqual(sentences[1].orderIndex, 1)
+        XCTAssertEqual(sentences[1].orderIndex, 20)
         XCTAssertEqual(sentences[1].englishText, "Second sentence")
     }
     
@@ -122,13 +122,13 @@ final class ScriptManagementServiceTests: XCTestCase {
             title: "Chunked Script",
             sentences: [
                 SentenceData(
-                    orderIndex: 0,
+                    orderIndex: 10,
                     englishText: "Hello world today",
                     koreanText: "안녕 세상 오늘",
                     chunks: [
-                        ChunkData(orderIndex: 0, englishText: "Hello", koreanText: "안녕"),
-                        ChunkData(orderIndex: 1, englishText: "world", koreanText: "세상"),
-                        ChunkData(orderIndex: 2, englishText: "today", koreanText: "오늘")
+                        ChunkData(orderIndex: 10, englishText: "Hello", koreanText: "안녕"),
+                        ChunkData(orderIndex: 20, englishText: "world", koreanText: "세상"),
+                        ChunkData(orderIndex: 30, englishText: "today", koreanText: "오늘")
                     ]
                 )
             ]
@@ -152,12 +152,53 @@ final class ScriptManagementServiceTests: XCTestCase {
         }
         
         XCTAssertEqual(chunks.count, 3)
-        XCTAssertEqual(chunks[0].orderIndex, 0)
+        XCTAssertEqual(chunks[0].orderIndex, 10)
         XCTAssertEqual(chunks[0].englishText, "Hello")
-        XCTAssertEqual(chunks[1].orderIndex, 1)
+        XCTAssertEqual(chunks[1].orderIndex, 20)
         XCTAssertEqual(chunks[1].englishText, "world")
-        XCTAssertEqual(chunks[2].orderIndex, 2)
+        XCTAssertEqual(chunks[2].orderIndex, 30)
         XCTAssertEqual(chunks[2].englishText, "today")
+    }
+
+    func test_createScript_whenChunkInsertFails_thenRollsBackAllRelatedRecords() async throws {
+        try await dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE TRIGGER fail_second_chunk
+                BEFORE INSERT ON chunk
+                WHEN NEW.orderIndex = 1
+                BEGIN
+                    SELECT RAISE(ABORT, 'forced chunk insert failure');
+                END
+                """)
+        }
+
+        let scriptData = ScriptData(
+            title: "Rollback script",
+            sentences: [
+                SentenceData(
+                    orderIndex: 0,
+                    englishText: "A sentence.",
+                    koreanText: "문장입니다.",
+                    chunks: [
+                        ChunkData(orderIndex: 0, englishText: "A", koreanText: "가"),
+                        ChunkData(orderIndex: 1, englishText: "sentence", koreanText: "문장")
+                    ]
+                )
+            ]
+        )
+
+        do {
+            _ = try await sut.createScript(scriptData: scriptData)
+            XCTFail("Expected chunk insert failure")
+        } catch {
+            // The trigger failure is the expected transaction rollback path.
+        }
+
+        try await dbQueue.read { db in
+            XCTAssertEqual(try Script.fetchCount(db), 0)
+            XCTAssertEqual(try Sentence.fetchCount(db), 0)
+            XCTAssertEqual(try Chunk.fetchCount(db), 0)
+        }
     }
 
     func test_saveWords_whenGeminiWordsProvided_thenPersistsSequentialOrderIndexes() async throws {
@@ -594,6 +635,32 @@ final class ScriptManagementServiceTests: XCTestCase {
         )
         let createdScript = try await sut.createScript(scriptData: scriptData)
         let scriptId = createdScript.id!
+        _ = try await sut.createFeedbackSummary(
+            scriptId: scriptId,
+            accuracy: 1,
+            missingWordCount: 0,
+            addedWordCount: 0,
+            replacedWordCount: 0,
+            practiceDuration: 10,
+            feedbackDetailsData: [
+                (
+                    wordDiff: .matched(word: "Sentence"),
+                    originalText: "Sentence",
+                    sentenceIndex: 0,
+                    wordIndex: 0
+                )
+            ]
+        )
+        try await dbQueue.write { db in
+            var word = Word(
+                scriptId: scriptId,
+                lemma: "sentence",
+                pos: "명",
+                meaning: "문장",
+                orderIndex: 0
+            )
+            try word.insert(db)
+        }
 
         // When: Script를 삭제했을 때
         try await sut.deleteScript(id: scriptId)
@@ -611,6 +678,13 @@ final class ScriptManagementServiceTests: XCTestCase {
             try Chunk.fetchCount(db)
         }
         XCTAssertEqual(chunkCount, 0)
+
+        try await dbQueue.read { db in
+            XCTAssertEqual(try FeedbackSummary.fetchCount(db), 0)
+            XCTAssertEqual(try FeedbackDetail.fetchCount(db), 0)
+            XCTAssertEqual(try Word.fetchCount(db), 0)
+            XCTAssertNoThrow(try db.checkForeignKeys())
+        }
     }
 
     // MARK: - Feedback Create Tests
@@ -698,5 +772,82 @@ final class ScriptManagementServiceTests: XCTestCase {
         XCTAssertEqual(replacedDetail?.originalText, "Hello")
         XCTAssertEqual(replacedDetail?.sentenceIndex, 0)
         XCTAssertEqual(replacedDetail?.wordIndex, 0)
+    }
+
+    func test_createFeedbackSummary_whenDetailInsertFails_thenRollsBackSummaryAndDetails() async throws {
+        let script = try await sut.createScript(
+            scriptData: ScriptData(
+                title: "Feedback rollback script",
+                sentences: [
+                    SentenceData(
+                        orderIndex: 0,
+                        englishText: "A sentence.",
+                        koreanText: "문장입니다.",
+                        chunks: [ChunkData(orderIndex: 0, englishText: "A sentence.", koreanText: "문장입니다.")]
+                    )
+                ]
+            )
+        )
+        let scriptId = try XCTUnwrap(script.id)
+
+        try await dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE TRIGGER fail_second_feedback_detail
+                BEFORE INSERT ON feedback_detail
+                WHEN NEW.wordIndex = 1
+                BEGIN
+                    SELECT RAISE(ABORT, 'forced feedback detail insert failure');
+                END
+                """)
+        }
+
+        do {
+            _ = try await sut.createFeedbackSummary(
+                scriptId: scriptId,
+                accuracy: 0.8,
+                missingWordCount: 1,
+                addedWordCount: 1,
+                replacedWordCount: 0,
+                practiceDuration: 10,
+                feedbackDetailsData: [
+                    (
+                        wordDiff: .missing(expected: "first"),
+                        originalText: "first",
+                        sentenceIndex: 0,
+                        wordIndex: 0
+                    ),
+                    (
+                        wordDiff: .extra(actual: "second"),
+                        originalText: nil,
+                        sentenceIndex: 0,
+                        wordIndex: 1
+                    )
+                ]
+            )
+            XCTFail("Expected feedback detail insert failure")
+        } catch {
+            // The trigger failure is the expected transaction rollback path.
+        }
+
+        try await dbQueue.read { db in
+            XCTAssertEqual(try FeedbackSummary.filter(Column("scriptId") == scriptId).fetchCount(db), 0)
+            XCTAssertEqual(try FeedbackDetail.fetchCount(db), 0)
+        }
+    }
+
+    func test_database_whenChildReferencesMissingParent_thenRejectsForeignKeyViolation() throws {
+        try dbQueue.write { db in
+            XCTAssertThrowsError(
+                try db.execute(
+                    sql: "INSERT INTO sentence (scriptId, orderIndex, englishText, koreanText) VALUES (999, 0, 'Orphan', '고아')"
+                )
+            )
+            XCTAssertThrowsError(
+                try db.execute(
+                    sql: "INSERT INTO feedback_detail (feedbackSummaryId, wordDiffType, sentenceIndex, wordIndex) VALUES (999, 'missing', 0, 0)"
+                )
+            )
+            XCTAssertNoThrow(try db.checkForeignKeys())
+        }
     }
 }
