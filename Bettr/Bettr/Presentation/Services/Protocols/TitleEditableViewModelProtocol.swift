@@ -34,9 +34,9 @@ extension TitleEditableViewModelProtocol {
         Task(priority: .background) {
             do {
                 try await scriptService.updateScriptTitle(scriptId: scriptId, newTitle: newTitle)
-                print("✅ 제목 DB 저장 성공: \(newTitle)")
+                AppLog.database.debug("스크립트 제목 저장 완료")
             } catch {
-                print("🔥 제목 DB 저장 실패: \(error.localizedDescription)")
+                AppLog.database.error("스크립트 제목 저장 실패")
             }
         }
     }

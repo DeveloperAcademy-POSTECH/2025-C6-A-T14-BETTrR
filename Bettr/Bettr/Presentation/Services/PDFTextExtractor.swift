@@ -6,7 +6,7 @@ struct PDFTextExtractor {
     func extractText(from url: URL) -> String? {
         // URL에 대한 접근 권한을 얻기 위해 security-scoped access를 시작합니다.
         guard url.startAccessingSecurityScopedResource() else {
-            print("Failed to access security scoped resource.")
+            AppLog.document.error("PDF 리소스 접근 실패")
             return nil
         }
         
@@ -16,7 +16,7 @@ struct PDFTextExtractor {
         }
         
         guard let pdfDocument = PDFDocument(url: url) else {
-            print("Failed to load PDF document.")
+            AppLog.document.error("PDF 문서 불러오기 실패")
             return nil
         }
         
@@ -32,4 +32,3 @@ struct PDFTextExtractor {
         return fullText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
-

@@ -143,7 +143,6 @@ class SpeechAnalyzer {
         let safeEnd = max(safeStart, min(end, referenceWords.count))
         
         #if DEBUG
-        print("🟢 Local region:", safeStart, "→", safeEnd)
         #endif
         
         guard safeEnd > safeStart else {

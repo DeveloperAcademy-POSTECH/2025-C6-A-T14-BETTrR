@@ -61,7 +61,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
         } catch {
-            print("Failed to activate playback session: \(error.localizedDescription)")
+            AppLog.audio.error("재생 오디오 세션 활성화 실패")
         }
     }
     
@@ -70,7 +70,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         do {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         } catch {
-            print("Failed to deactivate audio session: \(error.localizedDescription)")
+            AppLog.audio.error("재생 오디오 세션 비활성화 실패")
         }
     }
     
@@ -115,8 +115,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         self.utteranceQueue = sortedSentences
             .map { (index: $0.orderIndex, utterance: createUtterance(text: $0.englishText, language: language)) }
         
-        print("--- PLAY ALL START ---")
-        print("Total Sentences in Queue: \(self.utteranceQueue.count)")
+        AppLog.audio.debug("대기열 재생 시작")
         
         playNextInQueue()
     }
@@ -181,9 +180,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         DispatchQueue.main.async {
             guard self.currentUtterance == utterance else { return }
             
-            print("--- DID FINISH ---")
-            print("Finished Utterance: \(utterance.speechString.prefix(20))...")
-            print("Queue Count Before Check: \(self.utteranceQueue.count)")
+            AppLog.audio.debug("대기열 음성 재생 완료")
             
             if !self.utteranceQueue.isEmpty {
                 DispatchQueue.main.asyncAfter(deadline: .now() + self.interSentenceDelay) { [weak self] in
@@ -234,11 +231,9 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     
     // utteranceQueue를 순서대로 처리
     private func playNextInQueue() {
-        print("--- PLAY NEXT IN QUEUE ---")
-        print("Queue Count at Start: \(utteranceQueue.count)")
         
         guard !utteranceQueue.isEmpty else {
-            print("Error: playNextInQueue called with empty queue. Stopping.")
+            AppLog.audio.debug("대기열이 비어 재생 중지")
             self.currentPlaybackMode = .stopped
             self.isPlaybackActive = false
             self.currentMultiSentenceIndex = nil
@@ -247,8 +242,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         }
         
         let (index, utterance) = utteranceQueue.removeFirst()
-        print("Action: Starting index \(index) - Text: \(utterance.speechString.prefix(20))...")
-        print("Queue Count After Removal: \(utteranceQueue.count)") // 큐에서 제거된 후 크기 확인
+        AppLog.audio.debug("대기열 음성 재생 시작")
         
         self.currentMultiSentenceIndex = index
         self.currentSpokenTextID = utterance.speechString

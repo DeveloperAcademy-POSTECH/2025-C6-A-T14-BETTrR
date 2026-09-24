@@ -47,7 +47,7 @@ struct AsyncPreview<Value, Content: View>: View {
             self.value = try await operation()
         } catch {
             self.error = error
-            print("AsyncPreview failed to load: \(error.localizedDescription)")
+            AppLog.ui.debug("미리보기 불러오기 실패")
         }
     }
 }
