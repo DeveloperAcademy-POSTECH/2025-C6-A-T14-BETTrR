@@ -127,7 +127,6 @@ final class ScriptGeminiCall {
                     throw URLError(.badServerResponse) // 에러 전달
                 }
                 
-                print("Gemini 응답:\n\(text)")
                 
 //                //    ↓ JSON 디코딩 전용 함수로 교체
 //                if let jsonParsed = parseGeminiJSONToScriptData(text, fallbackTitle: "사용자 입력 스크립트") {
@@ -138,7 +137,7 @@ final class ScriptGeminiCall {
 //                }
                 // 🔹 JSON 파싱 시도
                 if let parsed = parseGeminiJSONToScriptData(text, fallbackTitle: "사용자 입력 스크립트") {
-                    print("✅ JSON 파싱 성공 → ScriptData 생성 완료")
+                    AppLog.ai.debug("스크립트 응답 파싱 완료")
                     return parsed
                 } else {
                     throw URLError(.cannotParseResponse)

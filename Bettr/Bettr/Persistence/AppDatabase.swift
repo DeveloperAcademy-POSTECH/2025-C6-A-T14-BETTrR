@@ -18,21 +18,12 @@ class AppDatabase {
             let dbQueue = try DatabaseQueue(path: databasePath)
             let appDB = AppDatabase(dbQueue: dbQueue)
             try AppDatabaseMigrator.migrate(dbQueue)
-            print("✅ Database initialized at: \(databasePath)")
-
-//            #if DEBUG
-//            // 개발 모드에서만 데모 데이터 생성
-//            do {
-//                try DemoDataGenerator.generate(into: appDB)
-//                print("✅ Demo data creation attempted.")
-//            } catch {
-//                print("🔥 Failed to create demo data: \(error.localizedDescription)")
-//            }
-//            #endif
+            AppLog.database.debug("데이터베이스 초기화 완료")
 
             return appDB
         } catch {
-            fatalError("Failed to initialize database: \(error)")
+            AppLog.database.fault("데이터베이스 초기화 실패")
+            fatalError("Failed to initialize database")
         }
     }()
     

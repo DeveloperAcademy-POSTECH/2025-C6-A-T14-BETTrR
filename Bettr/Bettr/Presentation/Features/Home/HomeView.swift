@@ -34,7 +34,7 @@ struct HomeView: View {
             do {
                 try await container.refreshScripts()
             } catch {
-                print("Failed to refresh scripts: \(error)")
+                AppLog.database.error("스크립트 목록 새로고침 실패")
             }
         }
         .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhoto, matching: .images)
@@ -100,7 +100,7 @@ struct HomeView: View {
                 try await container.scriptManagementService.deleteScript(id: id)
                 try await container.refreshScripts()
             } catch {
-                print("Failed to delete script: \(error)")
+                AppLog.database.error("스크립트 삭제 실패")
             }
         }
     }

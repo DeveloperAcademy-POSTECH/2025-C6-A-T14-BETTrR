@@ -200,7 +200,7 @@ struct ScriptConfirmView: View {
         if didTimeout { return }
         
         do {
-            print("🚀 [1/2] Gemini 스크립트 분석 시작")
+            AppLog.ai.debug("스크립트 분석 시작")
             //ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
             if let result = try await geminiCaller.analyzeScript(scriptContent) {
                 
@@ -210,7 +210,7 @@ struct ScriptConfirmView: View {
                 await MainActor.run {
                     self.parsedScript = result
                 }
-                print("✅ [1/2] Gemini 스크립트 분석 완료 → ScriptData 생성됨")
+                AppLog.ai.debug("스크립트 분석 완료")
             } else {
                 throw URLError(.cannotParseResponse)
             }
@@ -239,7 +239,7 @@ struct ScriptConfirmView: View {
                 let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
                 
                 let script = try await databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
-                print("✅ 스크립트가 성공적으로 저장되었습니다.")
+                AppLog.database.debug("스크립트 저장 완료")
                 
                 if let scriptId = script.id {
                     // MainActor를 사용하여 UI 업데이트 (화면 이동)
@@ -249,7 +249,7 @@ struct ScriptConfirmView: View {
                     }
                 }
             } catch {
-                print("🔥 스크립트 저장 오류:", error.localizedDescription)
+            AppLog.database.error("스크립트 저장 실패")
                 await MainActor.run {
                     showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
                 }

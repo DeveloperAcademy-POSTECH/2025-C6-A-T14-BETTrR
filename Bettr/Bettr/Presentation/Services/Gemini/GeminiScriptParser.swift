@@ -32,7 +32,7 @@ func parseGeminiJSONToScriptData(_ jsonText: String, fallbackTitle: String) -> S
         return ScriptData(title: finalTitle, sentences: decoded.sentences)
         
     } catch {
-        print("⚠️ JSON 디코딩 실패: \(error)")
+        AppLog.ai.error("스크립트 응답 디코딩 실패")
         return nil
     }
 }

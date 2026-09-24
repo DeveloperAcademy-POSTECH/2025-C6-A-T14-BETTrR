@@ -107,7 +107,7 @@ class FeedbackHistoryViewModel: TitleEditableViewModelProtocol{
                 
             } catch {
                 let appError = error.toAppError()
-                print("피드백 데이터 로드 실패 (시도 \(attempt + 1)): \(appError.userFriendlyMessage)")
+                AppLog.database.error("피드백 기록 불러오기 실패")
                 
                 if !appError.isRetryable || attempt == maxRetries {
                     if case .dataNotFound = appError {

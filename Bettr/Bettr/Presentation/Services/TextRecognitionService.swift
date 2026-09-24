@@ -27,7 +27,7 @@ struct TextRecognitionService {
         do {
             try requestHandler.perform([request])
         } catch {
-            print("Failed to perform text recognition: \(error)")
+            AppLog.document.error("텍스트 인식 실패")
             DispatchQueue.main.async {
                 completion("")
             }

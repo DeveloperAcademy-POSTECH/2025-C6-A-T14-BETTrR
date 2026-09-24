@@ -31,7 +31,7 @@ class WordExtractionService {
         // 이미 단어가 존재하면 바로 리턴
         let existingWords = try await fetchWords(for: scriptId)
         if !existingWords.isEmpty {
-            print("🟢 이미 단어 \(existingWords.count)개 존재 — Gemini 호출 생략")
+            AppLog.ai.debug("기존 단어가 있어 추출 생략")
             return
         }
         
@@ -104,7 +104,6 @@ class WordExtractionService {
                         throw URLError(.badServerResponse)
                     }
                     
-                    print("🧠 Gemini 단어 추출 응답:\n\(text)")
                     
                     // 코드펜스 제거 및 문자열 정리
                     let cleanedText = text
@@ -126,7 +125,7 @@ class WordExtractionService {
                     
                     // GRDB 저장
                     try await saveWordsToDatabase(scriptId: scriptId, words: words)
-                    print("✅ Gemini 기반 단어 \(words.count)개 저장 완료")
+                    AppLog.database.debug("추출한 단어 저장 완료")
                 return true
             }
 
@@ -134,7 +133,7 @@ class WordExtractionService {
                 return
             }
         } catch {
-            print("❌ WordExtractionService 오류: \(error.localizedDescription)")
+            AppLog.ai.error("단어 추출 실패")
         }
     }
     // MARK: - 🔹 단어 조회 (스크립트별)
@@ -254,7 +253,6 @@ class WordExtractionService {
 //            wordsToInsert: wordsToInsert
 //        )
 //        
-//        print("✅ 단어 \(savedCount)개가 저장되었습니다.")
 //    }
 //    
 //    // 동기 헬퍼 함수: DB 저장 로직을 분리

@@ -40,7 +40,7 @@ final class WordListViewModel {
             self.words = try await wordExtractionService.fetchWords(for: scriptId)
             
         } catch {
-            print("🔥 단어 추출 중 오류 발생:", error.localizedDescription)
+            AppLog.ai.error("단어 목록 불러오기 실패")
             self.errorMessage = error.localizedDescription
         }
     }

@@ -54,7 +54,6 @@ struct ErrorView: View {
 #Preview("1. 재시도 가능 에러 (네트워크)") {
     ErrorView(error: .networkError("인터넷 연결을 확인해주세요.")) {
         // '다시 시도' 버튼 액션 (프리뷰에서는 비어있어도 됨)
-        print("재시도 버튼 클릭됨")
     }
 }
 
