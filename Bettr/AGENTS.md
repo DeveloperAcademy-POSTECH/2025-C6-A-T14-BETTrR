@@ -19,5 +19,8 @@
   호출은 명시적인 GeminiContract 테스트 계층에만 둡니다.
 - Firebase 설정 파일, App Check 토큰, Gemini 인증 정보 등 비밀값을 커밋하거나
   로그로 출력하지 않습니다.
+- 제품 로그를 추가하거나 수정할 때는 `docs/logging.md`를 따릅니다. `AppLog`만
+  사용하며 토큰, 프롬프트, AI 응답, 사용자 데이터, 파일 경로, 오류 원문을
+  기록하지 않습니다.
 - 이슈에서 명시하지 않으면 signing, bundle identifier, deployment target, SDK root,
   버전 설정을 변경하지 않습니다.
