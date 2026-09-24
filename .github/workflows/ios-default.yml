@@ -33,6 +33,21 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      - name: Verify logging policy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if rg -n --pcre2 --glob '*.swift' '^\s*(?!//).*\b(print|debugPrint|NSLog|dump|os_log)\s*\(' Bettr/Bettr; then
+            echo "Use AppLog instead of raw output APIs."
+            exit 1
+          fi
+
+          if rg -n --pcre2 --glob '*.swift' --glob '!**/Utils/AppLog.swift' '^\s*(import OSLog\b|.*\b(Logger|OSLog)\s*\()' Bettr/Bettr; then
+            echo "Use AppLog instead of creating a direct OSLog logger."
+            exit 1
+          fi
+
       - name: Restore SPM cache
         uses: actions/cache@v4
         with:
