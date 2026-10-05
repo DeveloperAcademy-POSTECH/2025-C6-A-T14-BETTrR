@@ -30,6 +30,49 @@ Firebase SDK는 Adapter 구현에 필요한 의존성으로 내부에 격리한�
 - 패키지의 SDK 버전·지원 환경·실제 의존성을 기록한다. 기존 로거가 앱 내부에
   의존하면 내부 구현이나 좁은 주입 경계로 대체하여 앱 역의존을 제거한다.
 
+## #294에서 확정한 호출 계약
+
+물리적 패키지 추출 전에는 앱 타깃의 `Domain/AI`와 기존 DTO 파일이 계약을
+소유한다. `ScriptAnalyzing.analyzeScript(_:)`는 `ScriptData`,
+`WordExtracting.extractWords(from:)`는 `[WordData]`를 반환하는 one-shot
+`async throws` API다. 현재 타깃 내부 접근 수준을 사용하며, #301에서 패키지
+공개 API로 승격한다. `ScriptData`·`SentenceData`·`ChunkData`·`WordData`는
+`nonisolated` 값 타입이자 `Sendable`이다. GRDB 모델을 받는 생성자는 앱의
+`Persistence/AIDataConversions.swift` extension이 소유한다.
+
+두 프로토콜과 Firebase Adapter는 `@MainActor`다. 순수 프롬프트·파서는
+actor에 격리되지 않으며, SDK 응답은 Adapter 안에서 앱 DTO로 변환한다.
+SDK 오류도 Adapter 안에서 `AIError`로 바꾼다. 취소, 인증/권한, 호출 제한,
+일시 장애, 입력 오류, 응답 계약 오류, 알 수 없는 실패를 구분하며, SDK 타입과
+오류 원문은 호출 계약에 노출하지 않는다. DB 조회·저장 오류는 AI 오류로
+변환하지 않고 앱 저장 계층의 오류로 전달한다.
+
+Firebase Adapter는 기존 `gemini-2.5-flash-lite` 프롬프트를 공유하고, Firebase
+12.6.0의 공개 `GenerateContentError`와 내부 BackendError가 제공하는 NSError
+도메인·HTTP 코드를 경계 안에서 분류한다. SDK 변경 시 이 매핑과 Adapter
+테스트를 검토한다. 공개적으로 식별할 수 없는 SDK 내부 오류는 `unknown`이다.
+
+파서는 JSON 구조뿐 아니라 필수 텍스트, 0부터 시작하는 연속 인덱스, 문장별
+청크 coverage와 입력 전체 coverage를 검증한다. coverage는 공백을 정규화하고
+단어·구두점·순서를 보존하여 비교한다. 단어 결과는 비어 있지 않은 배열과 필수
+필드·품사를 검증한다. 불량 응답은 `responseContract`로 전달하며 인덱스나
+원문을 임의 보정하지 않는다.
+
+재시도는 Adapter의 AI 호출·파싱에만 적용한다. 일시 장애와 응답 계약 오류에
+한해 최대 두 번 시도하며, 대기는 취소를 전파한다. 인증/권한·호출 제한·입력
+오류·알 수 없는 실패는 자동 재시도하지 않는다. 단어 DB 저장은 검증된 AI
+결과를 받은 뒤 한 번 시작하므로 저장 실패가 AI 재시도로 이어지지 않는다.
+
+SDK는 URLSession 기반 요청의 취소 오류를 감싸며 서버 처리가 중단되었다는
+보장은 제공하지 않는다. Adapter와 기능 호출부는 호출 전후 취소를 확인하고,
+취소 후 도착한 응답을 버린다. 취소 후 새 대기·시도·저장을 시작하지 않는다.
+이미 시작된 DB 트랜잭션은 완료될 수 있으며 UI 취소가 롤백을 보장하지 않는다.
+ScriptConfirm은 요청 수명과 분석 타이머를 취소하고 이전 결과·화면 이동을
+억제한다. 전체 단계 상태·저장 초안 재시도는 #306에서 다룬다.
+
+현재 계약은 스트리밍을 지원하지 않는다. SDK의 스트리밍 API를 선행 노출하지
+않으며 제품 요구가 생기면 별도로 설계한다.
+
 마일스톤 3에서 계약·Adapter·Composition Root·ScriptConfirm 흐름을 안정화한
 후 #301에서 물리적으로 추출한다. 순수 단위 테스트는 Firebase 설정이나 앱
 호스트 없이 실행한다. 실제 스크립트 분석·단어 추출 계약 테스트는 별도 경로로
