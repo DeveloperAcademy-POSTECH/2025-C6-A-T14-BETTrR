@@ -71,9 +71,9 @@ Milestone 4 이후 녹음부터 시작한다. 독립적인 쓰기 경계는 병�
 기능만 추출한다. 새로운 경계의 근거·비용은 ADR, 작업 단위·검증·롤백은
 이슈에 남긴다. 근거가 부족하면 보류하고 빈 Core/Domain/Data/Presentation
 모듈이나 범용 Shared 저장소를 선행 생성하지 않는다.
-[#300](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/300)·
-[#302](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/302)의
-포괄적 경계 설계와 Tuist 보류는 실제 필요가 확인될 때만 재검토한다.
+포괄적 UI 경계 설계는
+[#300](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/300)의
+디자인 근거가 확정된 뒤 재검토한다.
 
 ## Milestone 7. iPhone 디자인 확정 후 UI 적용 — 조건부
 

@@ -43,8 +43,8 @@ Firebase SDK는 Adapter 구현에 필요한 의존성으로 내부에 격리한�
 - 모든 Domain·DB 모델 이중화: 첫 AI 경계에 필요한 변환 분리부터 수행한다.
   전체 모델 재설계는 [0001](0001-script-persistence-boundary.md)의 보류 결정을 유지한다.
 - 추가 Feature 모듈 일괄 추출: 독립성이 확인된 기능에 한해 후속 단계에서 판단한다.
-- Tuist 전환: 닫힌 [#302](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/302)의
-  범위를 다시 열지 않는다. 빌드 관리 필요가 확인되면 별도 결정으로 검토한다.
+- Tuist 전환: AI 경계 추출의 선행 조건으로 두지 않는다. 프로젝트 생성·의존성
+  관리의 이점과 이행 비용을 별도로 평가한다.
 - iPhone UI 구조 확정: [#300](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/300)의
   디자인 근거가 확정되기 전까지 화면·내비게이션 설계를 앞서 고정하지 않는다.
 
