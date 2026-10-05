@@ -7,32 +7,86 @@
 
 import Foundation
 
-// MARK: - Gemini가 생성한 json 처리로직
-// JSON 응답을 Swift 구조체로 매핑하는 함수
-// 기존의 'parseGeminiOutputToScriptData' 대신 새롭게 추가됨
-func parseGeminiJSONToScriptData(_ jsonText: String, fallbackTitle: String) -> ScriptData? {
-    // 코드펜스 제거 (Gemini가 ```json 으로 감싸는 경우 대비)
-    let trimmed = jsonText
-//        .replacingOccurrences(of: "```json", with: "")
-//        .replacingOccurrences(of: "```", with: "")
-        .replacingOccurrences(of: "```json", with: "")
-        .replacingOccurrences(of: "```", with: "")
-        .trimmingCharacters(in: .whitespacesAndNewlines)
-    
-    guard let data = trimmed.data(using: .utf8) else { return nil }
-    
-    do {
-        // Gemini가 orderIndex를 주므로, 별도 enumerated() 보정 불필요
-        let decoded = try JSONDecoder().decode(ScriptData.self, from: data)
+nonisolated enum GeminiScriptParser {
+    static func parse(_ text: String, sourceText: String, fallbackTitle: String) throws -> ScriptData {
+        let normalizedSource = normalizeWhitespace(sourceText)
+        guard !normalizedSource.isEmpty else {
+            throw AIError.invalidInput
+        }
 
-        // title이 비어 있을 경우 대비
-        let finalTitle = decoded.title.isEmpty ? fallbackTitle : decoded.title
+        let cleanedText = stripCodeFence(text)
+        guard let data = cleanedText.data(using: .utf8) else {
+            throw AIError.responseContract
+        }
 
-        // 그대로 반환 (orderIndex는 Gemini가 부여한 값 사용)
-        return ScriptData(title: finalTitle, sentences: decoded.sentences)
-        
-    } catch {
-        AppLog.ai.error("스크립트 응답 디코딩 실패")
-        return nil
+        let decoded: ScriptData
+        do {
+            decoded = try JSONDecoder().decode(ScriptData.self, from: data)
+        } catch {
+            throw AIError.responseContract
+        }
+
+        let finalTitle = decoded.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? fallbackTitle
+            : decoded.title
+        let scriptData = ScriptData(title: finalTitle, sentences: decoded.sentences)
+
+        try validate(scriptData, normalizedSource: normalizedSource)
+        return scriptData
+    }
+
+    private static func validate(_ scriptData: ScriptData, normalizedSource: String) throws {
+        guard !scriptData.sentences.isEmpty else {
+            throw AIError.responseContract
+        }
+
+        try validateOrderIndexes(scriptData.sentences.map(\.orderIndex))
+
+        for sentence in scriptData.sentences {
+            guard !normalizeWhitespace(sentence.englishText).isEmpty,
+                  !normalizeWhitespace(sentence.koreanText).isEmpty,
+                  !sentence.chunks.isEmpty else {
+                throw AIError.responseContract
+            }
+
+            try validateOrderIndexes(sentence.chunks.map(\.orderIndex))
+
+            for chunk in sentence.chunks {
+                guard !normalizeWhitespace(chunk.englishText).isEmpty,
+                      !normalizeWhitespace(chunk.koreanText).isEmpty else {
+                    throw AIError.responseContract
+                }
+            }
+
+            let chunkText = sentence.chunks.map(\.englishText).joined(separator: " ")
+            guard normalizeWhitespace(chunkText) == normalizeWhitespace(sentence.englishText) else {
+                throw AIError.responseContract
+            }
+        }
+
+        let sentenceText = scriptData.sentences.map(\.englishText).joined(separator: " ")
+        guard normalizeWhitespace(sentenceText) == normalizedSource else {
+            throw AIError.responseContract
+        }
+    }
+
+    private static func validateOrderIndexes(_ indexes: [Int]) throws {
+        guard indexes == Array(0..<indexes.count) else {
+            throw AIError.responseContract
+        }
+    }
+
+    private static func stripCodeFence(_ text: String) -> String {
+        text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: #"^```(?:json)?\s*"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"\s*```$"#, with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func normalizeWhitespace(_ text: String) -> String {
+        text
+            .split(whereSeparator: \.isWhitespace)
+            .joined(separator: " ")
     }
 }

@@ -1,6 +1,7 @@
 import SwiftUI
 
 // MARK: - 화면 UI
+@MainActor
 struct ScriptConfirmView: View {
     @Environment(DatabaseContainer.self) var databaseContainer
     @Environment(NavigationRouter.self) var router
@@ -32,7 +33,7 @@ struct ScriptConfirmView: View {
     private static let maxCharacterCount = 2000
     
     //Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
-    private let geminiCaller = ScriptGeminiCall()
+    private let geminiCaller = ScriptGeminiCall(analyzer: FirebaseGeminiAdapter())
     
     //Local Rate Limiter(사용자의 호출 제한)
     private let rateLimiter = LocalRateLimiter.shared
@@ -202,18 +203,14 @@ struct ScriptConfirmView: View {
         do {
             AppLog.ai.debug("스크립트 분석 시작")
             //ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
-            if let result = try await geminiCaller.analyzeScript(scriptContent) {
-                
-                // 🔹 추가됨: 타임아웃 상황에서 결과 반영 금지
-                if didTimeout { return }
-                
-                await MainActor.run {
-                    self.parsedScript = result
-                }
-                AppLog.ai.debug("스크립트 분석 완료")
-            } else {
-                throw URLError(.cannotParseResponse)
+            let result = try await geminiCaller.analyzeScript(scriptContent)
+            // 타임아웃 상황에서 결과 반영 금지
+            if didTimeout { return }
+
+            await MainActor.run {
+                self.parsedScript = result
             }
+            AppLog.ai.debug("스크립트 분석 완료")
         } catch {
             // 🔹 추가됨: 타임아웃일 경우 에러 메시지 중복 출력 방지
             if didTimeout { return }

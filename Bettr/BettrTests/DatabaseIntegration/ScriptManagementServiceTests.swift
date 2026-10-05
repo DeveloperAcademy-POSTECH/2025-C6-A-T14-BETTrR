@@ -201,7 +201,8 @@ final class ScriptManagementServiceTests: XCTestCase {
         }
     }
 
-    func test_saveWords_whenGeminiWordsProvided_thenPersistsSequentialOrderIndexes() async throws {
+    @MainActor
+    func test_extractAndSaveWords_whenWordDataProvided_thenPersistsSequentialOrderIndexes() async throws {
         let script = try await sut.createScript(
             scriptData: ScriptData(
                 title: "Word test script",
@@ -225,15 +226,17 @@ final class ScriptManagementServiceTests: XCTestCase {
         let wordExtractionService = WordExtractionService(
             dbQueue: dbQueue,
             scriptRepository: scriptRepository,
-            scriptManagementService: scriptManagementService
+            scriptManagementService: scriptManagementService,
+            wordExtractor: ScriptManagementFakeWordExtractor(
+                words: [
+                    WordData(lemma: "encounter", pos: "동", meaning: "마주치다"),
+                    WordData(lemma: "challenge", pos: "명", meaning: "도전")
+                ]
+            )
         )
-        let words = [
-            GeminiWord(lemma: "encounter", pos: "동", meaning: "마주치다"),
-            GeminiWord(lemma: "challenge", pos: "명", meaning: "도전")
-        ]
 
         let scriptId = try XCTUnwrap(script.id)
-        try await wordExtractionService.saveWordsToDatabase(scriptId: scriptId, words: words)
+        try await wordExtractionService.extractAndSaveWords(for: scriptId)
         let savedWords = try await wordExtractionService.fetchWords(for: scriptId)
 
         XCTAssertEqual(savedWords.map(\.orderIndex), [0, 1])
@@ -849,5 +852,14 @@ final class ScriptManagementServiceTests: XCTestCase {
             )
             XCTAssertNoThrow(try db.checkForeignKeys())
         }
+    }
+}
+
+@MainActor
+private struct ScriptManagementFakeWordExtractor: WordExtracting {
+    let words: [WordData]
+
+    func extractWords(from content: String) async throws -> [WordData] {
+        words
     }
 }
