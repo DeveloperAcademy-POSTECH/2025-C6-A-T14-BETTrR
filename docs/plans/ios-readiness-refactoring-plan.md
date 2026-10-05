@@ -41,15 +41,18 @@
 | [#304](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/304) | Composition Root와 화면 상태 분리 |
 | [#306](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/306) | ScriptConfirm 업무 흐름과 요청 수명 분리 |
 | [#297](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/297) | 실제 AI 계약 검증과 별도 CI |
+| [#323](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/323) | 로컬·CI 공통 빌드 및 테스트 실행 명령 |
 
 `#294 → #304 → #306`을 기본 순서로 한다. #297은 #294의 운영 계약/Adapter가
 준비되면 #304·#306과 병렬 진행할 수 있다.
+#323은 기존 CI/SPM 구성을 기반으로 Milestone 3 작업과 병렬 진행한다.
 
 ## Milestone 4. 검증된 AI 경계의 물리적 모듈화
 
 [#301](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/301)에서
 BettrAI를 local Swift Package 또는 별도 target으로 추출한다. Milestone 3의
 계약·조립·기능 흐름·실제 연동 검증이 추출의 선행 조건이다.
+첫 추출 전 Tuist 파일럿으로 구성 방식을 비교하며, 검증 범위와 선택은 #301에서 관리한다.
 모듈 경계는 ADR 0003을 따르고, 독립 실행과 앱 통합 검증의 완료 기준은 #301에서 관리한다.
 실제 공개 API·설정·빌드/테스트 방법은 추출된 모듈 README에 남긴다.
 
