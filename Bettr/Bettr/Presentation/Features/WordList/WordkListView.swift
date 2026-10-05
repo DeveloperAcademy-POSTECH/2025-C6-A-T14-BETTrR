@@ -11,13 +11,24 @@ struct WordkListView: View {
     @Environment(DatabaseContainer.self) var container
     let scriptId: Int64
     @Binding var words: [Word]
+    var errorMessage: String?
+    var onRetry: (() -> Void)?
     @Binding var isLoading: Bool
-    
+
     var body: some View {
         VStack {
-            
+
             if isLoading {
                 WordLoadingView()
+            } else if let errorMessage {
+                VStack(spacing: 16) {
+                    Text(errorMessage)
+                        .multilineTextAlignment(.center)
+                    if let onRetry {
+                        Button("다시 시도", action: onRetry)
+                    }
+                }
+                .padding()
             } else if words.isEmpty {
                 EmptyWordListView()
             } else {
@@ -40,10 +51,9 @@ struct WordkListView: View {
         Word(id: 3, scriptId: 1, lemma: "beautiful", pos: "형", meaning: "아름다운", orderIndex: 2),
         Word(id: 6, scriptId: 1, lemma: "untranslated", pos: "명", meaning: "번역되지 않은", orderIndex: 3)
     ]
-    
 
     let mockContainer = DatabaseContainer(database: AppDatabase.shared)
-    
+
     WordkListView(
         scriptId: 1,
         words: .constant(localMockWords), // 로컬 목업 데이터 주입

@@ -11,6 +11,7 @@ struct MemorizationView: View {
     @State var viewModel: MemorizationViewModel
     @State var wordListViewModel: WordListViewModel
     @State private var modalRouter = NavigationRouter()
+    @State private var wordLoadRequest = 0
     
     @Environment(AudioPlaybackService.self) private var audioService
     @Environment(DatabaseContainer.self) private var container
@@ -28,7 +29,8 @@ struct MemorizationView: View {
             if viewModel.uiState.showWordList {
                 WordListOverlay(
                     showWordList: $viewModel.uiState.showWordList,
-                    viewModel: wordListViewModel
+                    viewModel: wordListViewModel,
+                    onRetry: { wordLoadRequest += 1 }
                 )
             }
             
@@ -53,12 +55,13 @@ struct MemorizationView: View {
         }
         .onAppear {
             viewModel.onAppear()
-            
-            Task {
-                await wordListViewModel.loadWords()
-            }
+
+        }
+        .task(id: wordLoadRequest) {
+            await wordListViewModel.loadWords()
         }
         .onDisappear {
+            wordListViewModel.cancelLoading()
             viewModel.onDisappear()
         }
         .onChange(of: audioService.isPlaybackActive) { _, serviceIsActive in
