@@ -54,7 +54,7 @@
 ### Development
 - **Language**: Swift 5.0
 - **Framework**: SwiftUI
-- **Architecture**: MVVM
+- **Architecture**: 기능별 MVVM (복잡한 상태 전이는 상태 머신/리듀서 적용 가능)
 - **Minimum iOS**: 26.0+
 
 ### AI & Speech
@@ -139,12 +139,12 @@
 
 **Domain Layer (도메인 계층)**
 - 비즈니스 로직과 데이터 모델의 핵심
-- UI나 데이터베이스에 독립적인 순수한 로직
+- 현재 일부 모델은 GRDB Record를 준수하며, AI SDK 경계와 타입 소유권은 단계적으로 분리 중
 
 **Presentation Layer (프레젠테이션 계층)**
 - SwiftUI 기반의 사용자 인터페이스
 - MVVM 패턴으로 뷰와 비즈니스 로직 분리
-- 기능별로 독립적인 모듈 구성
+- 기능별 폴더 구성. 물리적 모듈화는 검증된 AI 경계부터 진행 예정
 
 **Persistence Layer (영속성 계층)**
 - GRDB를 활용한 로컬 데이터 저장
@@ -208,7 +208,9 @@ cd 2025-C6-A-T14-BETTrR
 
 - [:globe_with_meridians: 프로젝트 웹사이트](https://developeracademy-postech.github.io/2025-C6-A-T14-BETTrR/)
 - [:iphone: App Store 페이지](https://apps.apple.com/kr/app/bettrr/id6754756492)
-- [아키텍처 결정 기록](docs/decisions/)
+- [iPhone 지원 기반 리팩터링 계획](docs/plans/ios-readiness-refactoring-plan.md)
+- [진행 상태와 하위 이슈 (#292)](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/292)
+- [아키텍처 결정 기록](docs/decisions/README.md)
 
 ---
 
