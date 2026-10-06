@@ -155,19 +155,21 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     // --- AVSpeechSynthesizerDelegate Callbacks ---
     
     /// 발화가 시작될 때
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+        let utteranceID = ObjectIdentifier(utterance)
+        let speechString = utterance.speechString
         // 콜백이 서브 스레드에서 올 수 있으므로 메인 스레드로 전달
         DispatchQueue.main.async {
-            guard self.currentUtterance == utterance else { return }
+            guard self.currentUtterance.map(ObjectIdentifier.init) == utteranceID else { return }
             
             self.isPlaybackActive = true
-            self.currentSpokenTextID = utterance.speechString
+            self.currentSpokenTextID = speechString
             self.currentSpokenRange = NSRange(location: 0, length: 0)
         }
     }
     
     /// 특정 범위의 발화를 "시작할 예정"일 때 (핵심)
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString range: NSRange, utterance: AVSpeechUtterance) {
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString range: NSRange, utterance: AVSpeechUtterance) {
         DispatchQueue.main.async {
             // "지금까지 말한 범위" = 시작점(0)부터 방금 말한 범위의 끝까지
             let newLength = range.location + range.length
@@ -176,9 +178,10 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
     }
     
     /// 한 문장의 재생이 완료되었을 때 호출됩니다.
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        DispatchQueue.main.async {
-            guard self.currentUtterance == utterance else { return }
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        let utteranceID = ObjectIdentifier(utterance)
+        DispatchQueue.main.async { [self] in
+            guard self.currentUtterance.map(ObjectIdentifier.init) == utteranceID else { return }
             
             AppLog.audio.debug("대기열 음성 재생 완료")
             
@@ -192,16 +195,21 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
         }
     }
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didPause utterance: AVSpeechUtterance) {
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didPause utterance: AVSpeechUtterance) {
     }
     
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didContinue utterance: AVSpeechUtterance) {
-        isPlaybackActive = true
-    }
-    
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didContinue utterance: AVSpeechUtterance) {
+        let utteranceID = ObjectIdentifier(utterance)
         DispatchQueue.main.async {
-            if self.currentUtterance == utterance {
+            guard self.currentUtterance.map(ObjectIdentifier.init) == utteranceID else { return }
+            self.isPlaybackActive = true
+        }
+    }
+    
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        let utteranceID = ObjectIdentifier(utterance)
+        DispatchQueue.main.async {
+            if self.currentUtterance.map(ObjectIdentifier.init) == utteranceID {
                 self.resetState()
             }
         }
