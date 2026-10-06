@@ -10,19 +10,24 @@ import SwiftUI
 struct ContentView: View {
     
     @Environment(DatabaseContainer.self) private var container
-    @Environment(NavigationRouter.self) private var router
+    @State private var router = NavigationRouter()
+    @State private var homeModel: HomeListModel
     @Environment(AudioPlaybackService.self) private var audioService
     
+    init(scriptService: any ScriptManagementServiceProtocol) {
+        _homeModel = State(initialValue: HomeListModel(scriptService: scriptService))
+    }
+
     var body: some View {
         
         @Bindable var router = router
         
         NavigationStack(path: $router.path) {
-            HomeView()
+            HomeView(model: homeModel)
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .home:
-                        HomeView()
+                        HomeView(model: homeModel)
                         
                     case .scriptConfirm(let initialText, let initialTitle):
                         ScriptConfirmView(initialText: initialText, initialTitle: initialTitle)
@@ -47,6 +52,7 @@ struct ContentView: View {
                     }
                 }
         }
+        .environment(router)
     }
 }
 
@@ -54,9 +60,8 @@ struct ContentView: View {
     AsyncPreview(operation: {
         try await DatabaseContainer.getForPreview(withMockData: true)
     }) { container in
-        ContentView()
+        ContentView(scriptService: container.scriptManagementService)
             .environment(container)
-            .environment(NavigationRouter())
             .environment(AudioPlaybackService())
     }
 }

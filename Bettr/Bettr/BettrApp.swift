@@ -34,7 +34,6 @@ struct BettrApp: App {
     
     private let database = AppDatabase.shared
     
-    @State private var router = NavigationRouter()
     @State private var audioService = AudioPlaybackService()
     
     @State private var databaseContainer: DatabaseContainer
@@ -45,10 +44,9 @@ struct BettrApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(scriptService: databaseContainer.scriptManagementService)
                 .environment(databaseContainer)
             //    .environment(DatabaseContainer(database: database))
-                .environment(router)
                 .environment(audioService)
         }
     }
