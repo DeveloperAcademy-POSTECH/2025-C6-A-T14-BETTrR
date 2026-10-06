@@ -1,20 +1,9 @@
 import Foundation
 
-struct ChunkData: Codable, Hashable, Sendable {
+/// AI Adapter와 호출부 사이에서 특정 actor에 격리되지 않은 값으로 전달하는 청크 데이터입니다.
+/// `nonisolated`와 `Sendable`을 유지해 actor 경계를 안전하게 오갈 수 있도록 합니다.
+nonisolated struct ChunkData: Codable, Hashable, Sendable {
     var orderIndex: Int
     var englishText: String
     var koreanText: String
-    
-    init(chunk: Chunk) {
-        self.orderIndex = chunk.orderIndex
-        self.englishText = chunk.englishText
-        self.koreanText = chunk.koreanText
-    }
-    
-    // 데모 데이터 생성용 생성자
-    init(orderIndex: Int, englishText: String, koreanText: String) {
-        self.orderIndex = orderIndex
-        self.englishText = englishText
-        self.koreanText = koreanText
-    }
 }

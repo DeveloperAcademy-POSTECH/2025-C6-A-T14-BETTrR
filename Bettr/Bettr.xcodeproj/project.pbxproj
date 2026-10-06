@@ -379,7 +379,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.Bettr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = developmentBettrrfinal;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = betterProvision2026_1;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -427,7 +427,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.Bettr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = developmentBettrrfinal;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = betterProvision2026_1;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;

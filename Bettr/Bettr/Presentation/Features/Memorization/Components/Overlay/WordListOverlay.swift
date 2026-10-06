@@ -9,9 +9,10 @@ import SwiftUI
 
 struct WordListOverlay: View {
     @Binding var showWordList: Bool
-    
+
     @State var viewModel: WordListViewModel
-    
+    var onRetry: () -> Void
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Color.black.opacity(0.001)
@@ -21,10 +22,12 @@ struct WordListOverlay: View {
                         showWordList = false
                     }
                 }
-            
+
             WordkListView(
                 scriptId: viewModel.scriptId,
                 words: $viewModel.words,
+                errorMessage: viewModel.errorMessage,
+                onRetry: onRetry,
                 isLoading: $viewModel.isLoading
             )
             .padding(.trailing, 10)

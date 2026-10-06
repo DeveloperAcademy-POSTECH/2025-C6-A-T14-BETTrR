@@ -15,16 +15,19 @@ class DatabaseContainer {
     let wordExtractionService: WordExtractionService
     var scripts: [Script]? = nil
     
-    init(database: AppDatabase) {
+    @MainActor
+    init(database: AppDatabase, wordExtractor: (any WordExtracting)? = nil) {
         let scriptRepository = ScriptRepository(dbQueue: database.dbQueue)
         let scriptManagementService = ScriptManagementService(scriptRepository: scriptRepository)
+        let wordExtractor = wordExtractor ?? FirebaseGeminiAdapter()
         
         self.scriptRepository = scriptRepository
         self.scriptManagementService = scriptManagementService
         self.wordExtractionService = WordExtractionService(
             dbQueue: database.dbQueue,
             scriptRepository: scriptRepository,
-            scriptManagementService: scriptManagementService
+            scriptManagementService: scriptManagementService,
+            wordExtractor: wordExtractor
         )
     }
     
@@ -35,11 +38,21 @@ class DatabaseContainer {
     
     static func getForPreview(withMockData: Bool = true) async throws -> DatabaseContainer {
         let db = try AppDatabase.makeInMemory()
-        let container = DatabaseContainer(database: db)
+        let container = DatabaseContainer(database: db, wordExtractor: PreviewWordExtractor())
         if withMockData {
             try await DemoDataGenerator.generate(into: db)
         }
         try await container.refreshScripts()
         return container
+    }
+}
+
+@MainActor
+private struct PreviewWordExtractor: WordExtracting {
+    func extractWords(from content: String) async throws -> [WordData] {
+        [
+            WordData(lemma: "encounter", pos: "동", meaning: "마주치다"),
+            WordData(lemma: "challenge", pos: "명", meaning: "도전")
+        ]
     }
 }

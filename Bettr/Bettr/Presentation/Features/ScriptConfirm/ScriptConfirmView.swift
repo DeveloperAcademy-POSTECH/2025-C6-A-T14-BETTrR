@@ -1,45 +1,47 @@
 import SwiftUI
 
 // MARK: - 화면 UI
+@MainActor
 struct ScriptConfirmView: View {
     @Environment(DatabaseContainer.self) var databaseContainer
     @Environment(NavigationRouter.self) var router
     @Environment(\.dismiss) private var dismiss
-    
+
     @State var scriptTitle: String
     @State var scriptContent: String
     @State var isLoading: Bool = false
     @State private var isEditingContent = false
     @State private var isTitleEditing: Bool = false
-    
+
     // TextEditor 포커스 상태 감지용 (버튼 제어)
     @FocusState private var isFocusedContentEditor: Bool
-    
-    // Gemini 분석 결과 임시 저장
-    @State var parsedScript: ScriptData?
-    
+
     @State var showErrorAlert: Bool = false
     @State var errorMessage: String = ""
-    
+
     // 뒤로가기 확인 알림
     @State private var showBackAlert: Bool = false
-    @State private var isPendingDismiss: Bool = false
-    
-    // 🔹 추가됨: 30초 타임아웃 감지용 상태
-    @State private var didTimeout: Bool = false
-    
+
+    @State private var analysisTask: Task<Void, Never>?
+    @State private var timeoutTask: Task<Void, Never>?
+    @State private var activeRequestID: UUID?
+
     // 글자 수 제한
     private static let maxCharacterCount = 2000
-    
-    //Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
-    private let geminiCaller = ScriptGeminiCall()
-    
-    //Local Rate Limiter(사용자의 호출 제한)
+
+    private let geminiCaller: ScriptGeminiCall
+
+    // Local Rate Limiter(사용자의 호출 제한)
     private let rateLimiter = LocalRateLimiter.shared
-    
-    init(initialText: String?, initialTitle: String?) {
+
+    init(
+        initialText: String?,
+        initialTitle: String?,
+        analyzer: (any ScriptAnalyzing)? = nil
+    ) {
+        geminiCaller = ScriptGeminiCall(analyzer: analyzer ?? FirebaseGeminiAdapter())
         let content = initialText ?? ""
-        
+
         // 처음부터 영어/숫자/기호만 남김 (OCR에서 한국어 들어와도 여기서 제거됨)
         let asciiFiltered = content.unicodeScalars.filter { $0.isASCII }
         let cleaned = String(String.UnicodeScalarView(asciiFiltered))
@@ -47,28 +49,13 @@ struct ScriptConfirmView: View {
         //        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
         _scriptTitle = State(initialValue: initialTitle ?? "")
     }
-    
+
     var body: some View {
         VStack {
             // 스크립트 내용
             VStack(alignment: .trailing, spacing: 8) {
                 if isEditingContent {
-                    ZStack(alignment: .topLeading) {
-                        TextEditor(text: $scriptContent)
-                            .padding(4)
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.primaryBlue200, lineWidth: 3)
-                            }
-                            .focused($isFocusedContentEditor)
-                        //placeholder
-                        if scriptContent.isEmpty {
-                            Text("스크립트를 입력하세요.")
-                                .foregroundStyle(.gray.opacity(0.5))
-                                .padding(.vertical, 12)
-                                .padding(.horizontal, 8)
-                        }
-                    }
+                    scriptContentEditor
                 } else {
                     ScrollView {
                         Text(scriptContent)
@@ -85,7 +72,7 @@ struct ScriptConfirmView: View {
                         isFocusedContentEditor = true
                     }
                 }
-                
+
                 // 글자 수 표시
                 Text("\(scriptContent.count) / \(Self.maxCharacterCount)")
                     .font(.caption)
@@ -100,27 +87,9 @@ struct ScriptConfirmView: View {
                 isFocusedContentEditor = false
             }
         }
-        .safeAreaInset(edge: .bottom){
+        .safeAreaInset(edge: .bottom) {
             // 분석 및 저장 버튼
-            Button(action: {
-                Task {
-                    isTitleEditing = false
-                    // 🔹 추가됨: 타임아웃 플래그 초기화
-                    didTimeout = false
-                    
-                    // 🔹 추가됨: 30초 뒤 타임아웃 트리거
-                    startTimeoutTimer()
-                    
-                    // LocalRateLimiter 검사 추가
-                    guard rateLimiter.canCall() else {
-                        await MainActor.run {
-                            showErrorAlert("시스템 처리량이 초과되어 요청을 잠시 제한합니다.\n1분 후 다시 시도해 주세요.")
-                        }
-                        return
-                    }
-                    await callGemini()
-                }
-            }) {
+            Button(action: startAnalysis) {
                 Text("분석 및 암기 시작")
                     .bold()
             }
@@ -128,7 +97,7 @@ struct ScriptConfirmView: View {
             .frame(width: 404, height: 48)
             .padding(.bottom, 10)
             .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            
+
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
@@ -140,7 +109,7 @@ struct ScriptConfirmView: View {
                     Image(systemName: "chevron.left")
                 }
             }
-            
+
             ToolbarItem(placement: .principal) {
                 EditableTitle(
                     title: $scriptTitle,
@@ -152,6 +121,7 @@ struct ScriptConfirmView: View {
         .alert("저장하지 않고 나가시겠어요?", isPresented: $showBackAlert) {
             Button("취소", role: .cancel) {}
             Button("나가기", role: .destructive) {
+                cancelAnalysis()
                 dismiss()
             }
         } message: {
@@ -162,100 +132,123 @@ struct ScriptConfirmView: View {
         } message: {
             Text(errorMessage)
         }
-        .onChange(of: scriptContent) { oldValue, newValue in
+        .onChange(of: scriptContent) { _, newValue in
             if newValue.count > Self.maxCharacterCount {
                 scriptContent = String(newValue.prefix(Self.maxCharacterCount))
             }
         }
-        .onChange(of: parsedScript) { oldValue, newValue in
-            guard let scriptData = newValue else { return }
-            saveAndNavigate(with: scriptData)
-        }
-        .fullScreenCover(isPresented: $isLoading) {
+        .onChange(of: router.path) { _, _ in cancelAnalysis() }
+        .fullScreenCover(isPresented: $isLoading, onDismiss: loadingDismissed, content: {
             ScriptConfirmLoadingView()
-        }
+        })
     }
-    
-    // MARK: - 🔹 추가됨: 30초 동안 로딩 시 자동 타임아웃
-    private func startTimeoutTimer() {
-        Task {
-            try? await Task.sleep(nanoseconds: 30 * 1_000_000_000)
-            
-            // 이미 종료되었으면 아무 동작 X
-            if !isLoading { return }
-            
-            await MainActor.run {
-                didTimeout = true
-                isLoading = false
-                showErrorAlert("네트워크 연결 상태를 확인해 주세요.\n연결에 문제가 없다면 잠시 후 다시 시도해 주세요.")
-            }
-        }
-    }
-    
-    // MARK: -Gemini 두 번 호출: 스크립트 분석 → 단어 추출
-    private func callGemini() async {
-        isLoading = true
-        
-        // 🔹 추가됨: 이미 타임아웃되었으면 호출 중단
-        if didTimeout { return }
-        
-        do {
-            AppLog.ai.debug("스크립트 분석 시작")
-            //ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
-            if let result = try await geminiCaller.analyzeScript(scriptContent) {
-                
-                // 🔹 추가됨: 타임아웃 상황에서 결과 반영 금지
-                if didTimeout { return }
-                
-                await MainActor.run {
-                    self.parsedScript = result
+
+    private var scriptContentEditor: some View {
+        ZStack(alignment: .topLeading) {
+            TextEditor(text: $scriptContent)
+                .padding(4)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.primaryBlue200, lineWidth: 3)
                 }
-                AppLog.ai.debug("스크립트 분석 완료")
-            } else {
-                throw URLError(.cannotParseResponse)
+                .focused($isFocusedContentEditor)
+
+            if scriptContent.isEmpty {
+                Text("스크립트를 입력하세요.")
+                    .foregroundStyle(.gray.opacity(0.5))
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 8)
             }
-        } catch {
-            // 🔹 추가됨: 타임아웃일 경우 에러 메시지 중복 출력 방지
-            if didTimeout { return }
-            
-            await MainActor.run {
-                self.showErrorAlert("스크립트 분석 실패: \(error.localizedDescription)")
-            }
-            isLoading = false // Ensure isLoading is reset on error
+        }
+    }
+
+    private func startAnalysis() {
+        guard !isLoading else { return }
+        guard rateLimiter.canCall() else {
+            showErrorAlert("시스템 처리량이 초과되어 요청을 잠시 제한합니다.\n1분 후 다시 시도해 주세요.")
             return
         }
-    }
-    
-    // MARK: - 저장 및 화면 이동
-    private func saveAndNavigate(with scriptData: ScriptData) {
-        Task {
-            // 🔹 추가됨: 타임아웃이라면 저장/네비게이션 수행 금지
-            if didTimeout { return }
-            
-            defer { isLoading = false }
+
+        isTitleEditing = false
+        isLoading = true
+        let requestID = UUID()
+        let content = scriptContent
+        let title = scriptTitle
+        activeRequestID = requestID
+        timeoutTask = Task {
             do {
-                // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
-                let finalTitle = scriptTitle.isEmpty ? scriptData.title : scriptTitle
-                let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
-                
-                let script = try await databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
-                AppLog.database.debug("스크립트 저장 완료")
-                
-                if let scriptId = script.id {
-                    // MainActor를 사용하여 UI 업데이트 (화면 이동)
-                    await MainActor.run {
-                        router.reset() // Go back to HomeView
-                        router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle))
-                    }
-                }
+                try await Task.sleep(for: .seconds(30))
             } catch {
-            AppLog.database.error("스크립트 저장 실패")
-                await MainActor.run {
-                    showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
-                }
+                return
             }
+            guard activeRequestID == requestID else { return }
+            cancelAnalysis()
+            showErrorAlert("네트워크 연결 상태를 확인해 주세요.\n연결에 문제가 없다면 잠시 후 다시 시도해 주세요.")
+        }
+        analysisTask = Task {
+            await analyzeAndSave(content: content, title: title, requestID: requestID)
         }
     }
+
+    private func loadingDismissed() {
+        // An older cover dismissal must not cancel a newly accepted request.
+        guard !isLoading else { return }
+        cancelAnalysis()
+    }
+
+    private func cancelAnalysis() {
+        activeRequestID = nil
+        timeoutTask?.cancel()
+        analysisTask?.cancel()
+        timeoutTask = nil
+        analysisTask = nil
+        isLoading = false
+    }
+
+    private func analyzeAndSave(content: String, title: String, requestID: UUID) async {
+        defer {
+            if activeRequestID == requestID {
+                activeRequestID = nil
+                timeoutTask?.cancel()
+                timeoutTask = nil
+                analysisTask = nil
+                isLoading = false
+            }
+        }
+
+        let result: ScriptData
+        do {
+            result = try await geminiCaller.analyzeScript(content)
+            guard activeRequestID == requestID, !Task.isCancelled else { return }
+            timeoutTask?.cancel()
+            timeoutTask = nil
+        } catch {
+            guard activeRequestID == requestID, !Task.isCancelled else { return }
+            if (error as? AIError) != .cancelled {
+                showErrorAlert(error.localizedDescription)
+            }
+            return
+        }
+
+        // AI retries have completed. A persistence failure never calls the analyzer again.
+        let finalTitle = title.isEmpty ? result.title : title
+        let scriptToSave = ScriptData(title: finalTitle, sentences: result.sentences)
+        do {
+            guard activeRequestID == requestID, !Task.isCancelled else { return }
+            let script = try await databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
+            // An already-started transaction may commit after UI cancellation.
+            guard activeRequestID == requestID, !Task.isCancelled else { return }
+            if let scriptID = script.id {
+                router.reset()
+                router.push(Route.memorization(scriptId: scriptID, scriptTitle: finalTitle))
+            }
+        } catch {
+            guard activeRequestID == requestID, !Task.isCancelled else { return }
+            AppLog.database.error("스크립트 저장 실패")
+            showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
+        }
+    }
+
     // MARK: - 사용자 알림 (UI Thread 전환)
     @MainActor
     func showErrorAlert(_ message: String) {
