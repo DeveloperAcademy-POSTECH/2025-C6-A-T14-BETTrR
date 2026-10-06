@@ -164,7 +164,9 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate, AudioPl
     
     /// 특정 범위의 발화를 "시작할 예정"일 때 (핵심)
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString range: NSRange, utterance: AVSpeechUtterance) {
+        let utteranceID = ObjectIdentifier(utterance)
         DispatchQueue.main.async {
+            guard self.currentUtterance.map(ObjectIdentifier.init) == utteranceID else { return }
             // "지금까지 말한 범위" = 시작점(0)부터 방금 말한 범위의 끝까지
             let newLength = range.location + range.length
             self.currentSpokenRange = NSRange(location: 0, length: newLength)
