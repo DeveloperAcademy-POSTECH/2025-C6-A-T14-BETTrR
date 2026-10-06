@@ -55,6 +55,9 @@ private struct PreviewAI: ScriptAnalyzing, WordExtracting {
 @MainActor
 @Observable
 private final class PreviewAudioPlayback: AudioPlaybackServiceProtocol {
+    // iOS 26.2의 MainActor deinit 런타임 오류를 우회한다. (swiftlang/swift@29245e4)
+    nonisolated deinit {}
+
     var isPlaybackActive = false
     var isPaused = false
     var currentPlaybackMode = PlaybackMode.stopped

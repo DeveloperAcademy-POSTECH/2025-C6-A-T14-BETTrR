@@ -14,6 +14,9 @@ final class WordExtractionService: WordExtractionServicing {
     private let scriptManagementService: ScriptManagementServiceProtocol
     private let wordExtractor: any WordExtracting
 
+    // iOS 26.2의 MainActor deinit 런타임 오류를 우회한다. (swiftlang/swift@29245e4)
+    nonisolated deinit {}
+
     init(
         dbQueue: DatabaseQueue,
         scriptRepository: ScriptRepository,
