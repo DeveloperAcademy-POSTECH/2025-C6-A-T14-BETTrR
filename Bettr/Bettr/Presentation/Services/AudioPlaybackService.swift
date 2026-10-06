@@ -8,14 +8,8 @@
 import AVFoundation
 
 @MainActor
-enum PlaybackMode {
-    case stopped
-    case single // 부분 재생 (문장/청크 하나 재생)
-    case multi  // 전체 재생
-}
-
 @Observable
-final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate {
+final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate, AudioPlaybackServiceProtocol {
     var isPlaybackActive: Bool = false
     
     var isPaused: Bool {

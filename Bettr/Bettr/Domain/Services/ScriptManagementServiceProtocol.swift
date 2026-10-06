@@ -6,16 +6,22 @@
 //
 
 import Foundation
-import GRDB
 
-protocol ScriptManagementServiceProtocol {
+/// 홈 목록은 조회와 삭제 계약만 사용합니다.
+@MainActor
+protocol HomeScriptServicing {
+    func fetchAllScripts() async throws -> [Script]
+    func deleteScript(id: Int64) async throws
+}
+
+/// UI 호출은 MainActor에서 시작하며, DB 작업은 GRDB queue에 위임합니다.
+@MainActor
+protocol ScriptManagementServiceProtocol: HomeScriptServicing {
     // MARK: - Script Create
     func createScript(scriptData: ScriptData) async throws -> Script
 
     // MARK: - Script Read
     func fetchScript(id: Int64) async throws -> Script?
-    func fetchAllScripts() async throws -> [Script]
-    
     // MARK: - Script Read with Relations
     func fetchScriptWithSentences(id: Int64) async throws -> (script: Script, sentences: [Sentence])
     func fetchScriptWithSentencesAndChunks(id: Int64) async throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])])
@@ -23,9 +29,6 @@ protocol ScriptManagementServiceProtocol {
     // MARK: - Script Update
     func updateLastViewedAt(forScriptId scriptId: Int64) async throws
     func updateScriptTitle(scriptId: Int64, newTitle: String) async throws
-
-    // MARK: - Script Delete
-    func deleteScript(id: Int64) async throws
 
     // MARK: - Feedback Read
     func fetchAllFeedbackSummaries() async throws -> [FeedbackSummary]
@@ -48,5 +51,3 @@ protocol ScriptManagementServiceProtocol {
         )]
     ) async throws -> FeedbackSummary
 }
-
-extension ScriptManagementService: ScriptManagementServiceProtocol { }

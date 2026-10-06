@@ -1,7 +1,7 @@
 import Vision
 import UIKit
 
-struct TextRecognitionService {
+struct TextRecognitionService: TextRecognizing {
     func recognizeText(from image: UIImage, completion: @escaping (String) -> Void) {
         guard let cgImage = image.cgImage else {
             completion("")

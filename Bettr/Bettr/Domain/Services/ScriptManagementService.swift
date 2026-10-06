@@ -1,7 +1,8 @@
 import Foundation
 import GRDB
 
-class ScriptManagementService {
+@MainActor
+class ScriptManagementService: ScriptManagementServiceProtocol {
     private let scriptRepository: ScriptRepository
 
     init(scriptRepository: ScriptRepository) {
