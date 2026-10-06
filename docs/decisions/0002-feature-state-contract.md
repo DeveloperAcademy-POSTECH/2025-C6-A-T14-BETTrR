@@ -33,7 +33,14 @@
 테스트, 변경 영향, 코드 소유권, 빌드 비용 등 관찰된 필요를 근거로 선택한다.
 모든 기능을 일괄 추출하거나 동일한 패턴으로 다시 작성하지 않는다.
 
-## #304의 홈 상태와 서비스 계약
+## #304의 조립과 홈 상태 수명
+
+`Application/AppComposition`은 앱 시작점에서 repository·service·AI Adapter와
+오디오·문서 가져오기 구현을 조립한다. 운영 DB singleton 접근은 `live()`에만
+둔다. 앱 delegate의 Firebase bootstrap은 명시적으로 유지하며, 테스트 호스트와
+Preview는 bootstrap과 운영 조립을 모두 건너뛰고 in-memory DB·Fake AI·무음
+오디오·별도 호출 제한기를 조립한다. Preview 호출 제한기는 운영 기기 식별자를
+읽지 않는다. 조립 객체는 화면 데이터나 기능 ViewModel을 캐시하지 않는다.
 
 `ContentView`가 scene마다 `@State`로 하나의 `HomeListModel`과 router를 소유한다.
 같은 scene의 홈 진입점은 그 목록 소유자를 공유하고, 홈 표시 시마다 새로고침한다.
@@ -43,6 +50,11 @@
 진행 중 외부 새로고침·중복 삭제를 시작하지 않는다. DB 삭제 성공을 캐시에 먼저
 반영한 후 다시 조회하므로 새로고침 실패가 삭제한 카드를 복원하지 않는다.
 
+루트·모달 진입점은 조립 객체의 화면 생성 함수를 사용한다. 기능에는 필요한
+계약 또는 다음 화면의 생성 함수만 전달하며, 범용 컨테이너를 Environment에
+넣지 않는다. 암기·피드백·녹음 모델의 수명은 기존처럼 해당 화면의 `@State`가
+관리한다. 오디오 제어와 문장·청크 강조는 동일한 Observable 계약 인스턴스를 읽는다.
+
 UI 상태 소유자와 UI 호출 서비스 계약은 `@MainActor`다. 스크립트 서비스는
 호출·결과 반영을 MainActor에서 수행하고 DB 읽기·쓰기는 GRDB queue에 위임한다.
 AI 계약의 actor·Sendable·취소 조건은 ADR 0003을 따른다. 오디오 계약은
@@ -51,7 +63,8 @@ Domain 경계가 소유하고 protocol 채택은 구현에 둔다. 로컬 UI 모
 편집 계약은 Presentation에 유지한다. 녹음 장치·권한과 전체 ScriptConfirm
 단계 상태의 추가 분리는 각각 후속 기능 작업과 #306의 범위다.
 
-검증 근거는 `HomeListRegressionTests`, `HomeListModelTests`와 앱 Simulator 빌드다.
+검증 근거는 `HomeListRegressionTests`, `HomeListModelTests`,
+`AppCompositionTests`와 앱 Simulator 빌드다.
 
 ## 대안과 보류 이유
 

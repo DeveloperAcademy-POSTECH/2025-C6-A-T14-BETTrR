@@ -4,7 +4,7 @@ import SwiftUI
 ///
 /// This view displays a loading indicator, then either the content view with the loaded data
 /// or an error message if the async operation fails. This is useful for setting up
-/// previews that depend on async initializers (e.g., for a `DatabaseContainer`).
+/// previews that depend on async initializers (e.g., for a `AppComposition`).
 struct AsyncPreview<Value, Content: View>: View {
     @State private var value: Value?
     @State private var error: Error?

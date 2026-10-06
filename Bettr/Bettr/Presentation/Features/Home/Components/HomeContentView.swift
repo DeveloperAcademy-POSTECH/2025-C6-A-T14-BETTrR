@@ -73,8 +73,8 @@ struct HomeContentView: View {
 
 #Preview("With Scripts") {
     AsyncPreview(operation: {
-        let container = try await DatabaseContainer.getForPreview(withMockData: true)
-        let model = HomeListModel(scriptService: container.scriptManagementService)
+        let composition = try await PreviewComposition.withDemoData()
+        let model = composition.makeHomeListModel()
         await model.refresh()
         return model
     }) { model in

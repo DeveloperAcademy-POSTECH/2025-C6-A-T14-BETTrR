@@ -14,8 +14,8 @@ struct HomeView: View {
     @State private var showingFileErrorAlert = false
     @State private var fileErrorMessage = ""
     
-    private let textRecognitionService = TextRecognitionService()
-    private let pdfTextExtractor = PDFTextExtractor()
+    let textRecognitionService: any TextRecognizing
+    let pdfTextExtractor: any PDFTextExtracting
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -109,15 +109,15 @@ struct HomeView: View {
 }
 
 #Preview("Empty Scripts") {
-    AsyncPreview(operation: { try await DatabaseContainer.getForPreview(withMockData: false) }) { container in
-        HomeView(model: HomeListModel(scriptService: container.scriptManagementService))
+    AsyncPreview(operation: { try PreviewComposition.make() }) { composition in
+        composition.makeHomeView(model: composition.makeHomeListModel())
             .environment(NavigationRouter())
     }
 }
 
 #Preview("With Scripts") {
-    AsyncPreview(operation: { try await DatabaseContainer.getForPreview(withMockData: true) }) { container in
-        HomeView(model: HomeListModel(scriptService: container.scriptManagementService))
+    AsyncPreview(operation: { try await PreviewComposition.withDemoData() }) { composition in
+        composition.makeHomeView(model: composition.makeHomeListModel())
             .environment(NavigationRouter())
     }
 }
