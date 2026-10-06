@@ -1,12 +1,12 @@
 import Foundation
 
-/// One-shot analysis. Implementations must discard responses after task cancellation.
+/// 단일 분석 요청을 처리하며, 구현체는 작업 취소 이후 도착한 응답을 폐기해야 합니다.
 @MainActor
 protocol ScriptAnalyzing {
     func analyzeScript(_ content: String) async throws -> ScriptData
 }
 
-/// AI extraction only; persistence and its failures belong to the caller.
+/// AI 단어 추출만 담당하며, 영속화와 영속화 실패는 호출부가 책임집니다.
 @MainActor
 protocol WordExtracting {
     func extractWords(from content: String) async throws -> [WordData]
@@ -18,7 +18,7 @@ nonisolated struct WordData: Codable, Hashable, Sendable {
     let meaning: String
 }
 
-/// No provider errors or user content cross this boundary.
+/// 제공자 오류와 사용자 콘텐츠가 이 경계를 넘어 노출되지 않도록 합니다.
 nonisolated enum AIError: Error, Equatable, Sendable, LocalizedError {
     case cancelled
     case authentication
