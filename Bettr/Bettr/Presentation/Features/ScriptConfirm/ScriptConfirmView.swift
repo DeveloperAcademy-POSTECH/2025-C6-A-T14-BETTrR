@@ -55,22 +55,7 @@ struct ScriptConfirmView: View {
             // 스크립트 내용
             VStack(alignment: .trailing, spacing: 8) {
                 if isEditingContent {
-                    ZStack(alignment: .topLeading) {
-                        TextEditor(text: $scriptContent)
-                            .padding(4)
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.primaryBlue200, lineWidth: 3)
-                            }
-                            .focused($isFocusedContentEditor)
-                        // placeholder
-                        if scriptContent.isEmpty {
-                            Text("스크립트를 입력하세요.")
-                                .foregroundStyle(.gray.opacity(0.5))
-                                .padding(.vertical, 12)
-                                .padding(.horizontal, 8)
-                        }
-                    }
+                    scriptContentEditor
                 } else {
                     ScrollView {
                         Text(scriptContent)
@@ -156,6 +141,25 @@ struct ScriptConfirmView: View {
         .fullScreenCover(isPresented: $isLoading, onDismiss: loadingDismissed, content: {
             ScriptConfirmLoadingView()
         })
+    }
+
+    private var scriptContentEditor: some View {
+        ZStack(alignment: .topLeading) {
+            TextEditor(text: $scriptContent)
+                .padding(4)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.primaryBlue200, lineWidth: 3)
+                }
+                .focused($isFocusedContentEditor)
+
+            if scriptContent.isEmpty {
+                Text("스크립트를 입력하세요.")
+                    .foregroundStyle(.gray.opacity(0.5))
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 8)
+            }
+        }
     }
 
     private func startAnalysis() {

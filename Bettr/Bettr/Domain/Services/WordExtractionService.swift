@@ -59,7 +59,7 @@ final class WordExtractionService: WordExtractionServicing {
     private func saveWordsToDatabase(scriptId: Int64, words: [WordData]) async throws {
         try Task.checkCancellation()
 
-        // Once enqueued, this transaction may commit even if the UI is cancelled.
+        // 큐에 등록된 트랜잭션은 UI에서 요청을 취소해도 커밋될 수 있습니다.
         try await dbQueue.write { db in
             try scriptRepository.deleteWords(forScriptId: scriptId, in: db)
 

@@ -25,7 +25,7 @@ final class WordListViewModel {
         self.wordExtractionService = wordExtractionService
     }
     
-    /// Ends UI ownership; the view also cancels its structured task on disappearance.
+    /// UI의 요청 소유권을 종료합니다. 화면이 사라질 때 뷰의 구조화된 작업도 함께 취소됩니다.
     func cancelLoading() {
         activeLoadID = nil
         isLoading = false
@@ -46,36 +46,37 @@ final class WordListViewModel {
         }
         
         do {
-            try Task.checkCancellation()
+            try validateActiveLoad(loadID)
             let existing = try await wordExtractionService.fetchWords(for: scriptId)
-            try Task.checkCancellation()
-            guard activeLoadID == loadID else { return }
+            try validateActiveLoad(loadID)
             if !existing.isEmpty {
                 self.words = existing
                 return
             }
             try await wordExtractionService.extractAndSaveWords(for: scriptId)
-            try Task.checkCancellation()
-            guard activeLoadID == loadID else { return }
+            try validateActiveLoad(loadID)
             let extracted = try await wordExtractionService.fetchWords(for: scriptId)
-            try Task.checkCancellation()
-            guard activeLoadID == loadID else { return }
+            try validateActiveLoad(loadID)
             self.words = extracted
-            
-        } catch is CancellationError {
-            guard activeLoadID == loadID else { return }
-            errorMessage = nil
-        } catch AIError.cancelled {
-            guard activeLoadID == loadID else { return }
-            errorMessage = nil
-        } catch let error as AIError {
-            guard activeLoadID == loadID else { return }
-            AppLog.ai.error("단어 목록 불러오기 실패")
-            errorMessage = Task.isCancelled ? nil : error.errorDescription
         } catch {
             guard activeLoadID == loadID else { return }
-            AppLog.ai.error("단어 목록 불러오기 실패")
-            errorMessage = Task.isCancelled ? nil : "단어 목록을 불러오지 못했습니다. 다시 시도해 주세요."
+            handleLoadFailure(error)
         }
+    }
+
+    private func validateActiveLoad(_ loadID: UUID) throws {
+        try Task.checkCancellation()
+        guard activeLoadID == loadID else { throw CancellationError() }
+    }
+
+    private func handleLoadFailure(_ error: Error) {
+        if Task.isCancelled || error is CancellationError || error as? AIError == .cancelled {
+            errorMessage = nil
+            return
+        }
+
+        AppLog.ai.error("단어 목록 불러오기 실패")
+        errorMessage = (error as? AIError)?.errorDescription
+            ?? "단어 목록을 불러오지 못했습니다. 다시 시도해 주세요."
     }
 }
