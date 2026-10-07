@@ -43,6 +43,14 @@ nonisolated enum GeminiPromptBuilder {
                        4) 호흡/리듬 고려
                        5) 커버리지 100% (단어/구두점 누락 금지, 순서 보존)
 
+                       # OCR 입력의 원문 보존 (필수)
+                       - 제목, 소제목, 번호, 문장 조각도 입력의 일부입니다. 문장이 아니어도 원문 그대로 별도의 sentences 항목에 포함합니다.
+                       - 입력의 제목을 title에만 옮기거나 본문에서 제외하지 않습니다.
+                       - englishText에서는 철자, 문법, 대소문자, 축약형, 하이픈, 구두점을 교정하거나 추가하지 않습니다.
+                       - OCR 줄바꿈은 공백으로 연결할 수 있지만 단어를 합치거나 누락하지 않습니다. 마지막 문장이 미완성이면 그대로 두고 완성하지 않습니다.
+                       - 모든 sentences[].englishText를 공백으로 연결한 결과는 입력 전체와 공백 차이를 제외하고 정확히 같아야 합니다.
+                       - 각 문장의 chunks[].englishText를 공백으로 연결한 결과도 해당 문장의 englishText와 공백 차이를 제외하고 정확히 같아야 합니다.
+
                        **# 청크 번역 스타일 (강화)**
                        - 청크 번역(`chunks[].koreanText`)은 영어 구조와 의미에 **직접적으로 대응**하는 **직역 기반**으로 생성하여 영어 학습에 도움이 되도록 합니다.
                        - 전체 문장 번역(`koreanText`)은 **가장 자연스러운 한국어**로 완성합니다.
@@ -98,6 +106,23 @@ nonisolated enum GeminiPromptBuilder {
                                { "orderIndex": 0, "englishText": "Their dedication", "koreanText": "그들의 헌신은" },
                                { "orderIndex": 1, "englishText": "was truly remarkable.", "koreanText": "진정으로 놀라웠다." }
                              ]
+                           }
+                         ]
+                       }
+                       \u{20}
+                       # OCR 원문 보존 예시
+                       입력: "LEARNING ENGLISH\nWhen I started learning"
+                       출력:
+                       {
+                         "title": "title",
+                         "sentences": [
+                           {
+                             "orderIndex": 0, "englishText": "LEARNING ENGLISH", "koreanText": "영어 학습",
+                             "chunks": [{ "orderIndex": 0, "englishText": "LEARNING ENGLISH", "koreanText": "영어 학습" }]
+                           },
+                           {
+                             "orderIndex": 1, "englishText": "When I started learning", "koreanText": "내가 배우기 시작했을 때",
+                             "chunks": [{ "orderIndex": 0, "englishText": "When I started learning", "koreanText": "내가 배우기 시작했을 때" }]
                            }
                          ]
                        }
