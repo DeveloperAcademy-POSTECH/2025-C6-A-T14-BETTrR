@@ -72,6 +72,8 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate, AudioPl
     
     /// 특정 텍스트 하나만 재생합니다. (청크 또는 문장 탭 시 사용)
     func play(text: String, id: PlaybackTargetID, language: String = "en-US") {
+        utteranceQueue.removeAll()
+        self.currentUtterance = nil
         self.currentPlaybackMode = .single
         self.currentMultiSentenceIndex = nil
         self.currentSpokenTextID = text
@@ -90,6 +92,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate, AudioPl
     
     /// 스크립트 전체 문장을 순서대로 재생합니다. (전체 재생 버튼용)
     func playAll(sentences: [SentenceData], language: String = "en-US") {
+        self.currentUtterance = nil
         if synthesizer.isSpeaking || synthesizer.isPaused {
             synthesizer.stopSpeaking(at: .immediate)
         }
@@ -99,7 +102,6 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate, AudioPl
         self.currentSpokenTextID = nil
         self.currentPlaybackID = nil
         self.currentSpokenRange = nil
-        self.currentUtterance = nil
         
         activatePlaybackSession()
         
@@ -132,6 +134,7 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate, AudioPl
     
     /// 재생을 완전히 중지하고 큐를 비웁니다.
     func stop() {
+        self.currentUtterance = nil
         synthesizer.stopSpeaking(at: .immediate)
         utteranceQueue.removeAll()
         
@@ -141,7 +144,6 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate, AudioPl
         self.currentMultiSentenceIndex = nil
         self.currentSpokenTextID = nil
         self.currentSpokenRange = nil
-        self.currentUtterance = nil
         
         deactivateSession()
     }
@@ -181,9 +183,12 @@ final class AudioPlaybackService: NSObject, AVSpeechSynthesizerDelegate, AudioPl
             
             AppLog.audio.debug("대기열 음성 재생 완료")
             
-            if !self.utteranceQueue.isEmpty {
+            if self.currentPlaybackMode == .multi && !self.utteranceQueue.isEmpty {
+                let completedUtterance = self.currentUtterance
                 DispatchQueue.main.asyncAfter(deadline: .now() + self.interSentenceDelay) { [weak self] in
-                    self?.playNextInQueue()
+                    guard let self, self.currentPlaybackMode == .multi,
+                          self.currentUtterance === completedUtterance else { return }
+                    self.playNextInQueue()
                 }
             } else {
                 self.resetState()
