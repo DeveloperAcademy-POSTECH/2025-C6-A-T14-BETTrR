@@ -6,51 +6,35 @@ struct ScriptConfirmView: View {
     @Environment(NavigationRouter.self) var router
     @Environment(\.dismiss) private var dismiss
 
+    private static let maxCharacterCount = 2000
+
+    @State private var viewModel: ScriptConfirmViewModel
     @State var scriptTitle: String
     @State var scriptContent: String
-    @State var isLoading: Bool = false
     @State private var isEditingContent = false
     @State private var isTitleEditing: Bool = false
 
     // TextEditor 포커스 상태 감지용 (버튼 제어)
     @FocusState private var isFocusedContentEditor: Bool
 
-    @State var showErrorAlert: Bool = false
-    @State var errorMessage: String = ""
+    @State private var showErrorAlert = false
 
     // 뒤로가기 확인 알림
     @State private var showBackAlert: Bool = false
-
-    @State private var analysisTask: Task<Void, Never>?
-    @State private var timeoutTask: Task<Void, Never>?
-    @State private var activeRequestID: UUID?
-
-    // 글자 수 제한
-    private static let maxCharacterCount = 2000
-
-    private let geminiCaller: ScriptGeminiCall
-
-    // Local Rate Limiter(사용자의 호출 제한)
-    private let rateLimiter: any AnalysisRateLimiting
-    private let scriptService: any ScriptManagementServiceProtocol
+    @State private var isVisible = false
 
     init(
         initialText: String?,
         initialTitle: String?,
-        analyzer: any ScriptAnalyzing,
-        scriptService: any ScriptManagementServiceProtocol,
-        rateLimiter: any AnalysisRateLimiting
+        viewModel: ScriptConfirmViewModel
     ) {
-        geminiCaller = ScriptGeminiCall(analyzer: analyzer)
-        self.scriptService = scriptService
-        self.rateLimiter = rateLimiter
+        _viewModel = State(initialValue: viewModel)
         let content = initialText ?? ""
 
         // 처음부터 영어/숫자/기호만 남김 (OCR에서 한국어 들어와도 여기서 제거됨)
         let asciiFiltered = content.unicodeScalars.filter { $0.isASCII }
         let cleaned = String(String.UnicodeScalarView(asciiFiltered))
         _scriptContent = State(initialValue: String(cleaned.prefix(Self.maxCharacterCount)))
-        //        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
         _scriptTitle = State(initialValue: initialTitle ?? "")
     }
 
@@ -90,18 +74,34 @@ struct ScriptConfirmView: View {
                 isEditingContent = false
                 isFocusedContentEditor = false
             }
+            .disabled(!viewModel.canEdit)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .safeAreaInset(edge: .bottom) {
-            // 분석 및 저장 버튼
-            Button(action: startAnalysis) {
-                Text("분석 및 암기 시작")
-                    .bold()
-            }
-            .buttonStyle(GeneralButtonStyle(width: 404))
-            .frame(width: 404, height: 48)
-            .padding(.bottom, 10)
-            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            VStack(spacing: 8) {
+                Button(action: startAnalysis) {
+                    Text(viewModel.canRetrySaving ? "저장 다시 시도" : "분석 및 암기 시작")
+                        .bold()
+                }
+                .buttonStyle(GeneralButtonStyle(width: 404))
+                .frame(width: 404, height: 48)
+                .disabled(!viewModel.canRetrySaving && (
+                    !viewModel.canStartAnalysis || scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ))
 
+                if viewModel.canRetrySaving {
+                    Button("내용 다시 편집", action: viewModel.resumeEditing)
+                }
+            }
+            .padding(.bottom, 10)
+        }
+        .allowsHitTesting(!viewModel.isLoading)
+        .accessibilityHidden(viewModel.isLoading)
+        .overlay {
+            if viewModel.isLoading {
+                ScriptConfirmLoadingView(isSaving: viewModel.isSaving)
+                    .ignoresSafeArea()
+            }
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
@@ -120,31 +120,37 @@ struct ScriptConfirmView: View {
                     showEditIcon: true,
                     isEditing: $isTitleEditing
                 )
+                .disabled(!viewModel.canEdit)
             }
         }
+        .toolbar(viewModel.isLoading ? .hidden : .visible, for: .navigationBar)
         .alert("저장하지 않고 나가시겠어요?", isPresented: $showBackAlert) {
             Button("취소", role: .cancel) {}
             Button("나가기", role: .destructive) {
-                cancelAnalysis()
+                viewModel.cancel()
                 dismiss()
             }
         } message: {
-            Text("편집 중인 스크립트는 저장되지 않고 삭제됩니다.")
+            Text("이 화면의 편집 내용은 유지되지 않습니다. 이미 시작된 저장은 완료될 수 있습니다.")
         }
         .alert("오류", isPresented: $showErrorAlert) {
             Button("확인", role: .cancel) {}
         } message: {
-            Text(errorMessage)
+            Text(viewModel.errorMessage ?? "")
         }
         .onChange(of: scriptContent) { _, newValue in
             if newValue.count > Self.maxCharacterCount {
                 scriptContent = String(newValue.prefix(Self.maxCharacterCount))
             }
         }
-        .onChange(of: router.path) { _, _ in cancelAnalysis() }
-        .fullScreenCover(isPresented: $isLoading, onDismiss: loadingDismissed, content: {
-            ScriptConfirmLoadingView()
-        })
+        .onChange(of: viewModel.errorMessage) { _, message in showErrorAlert = message != nil }
+        .onChange(of: viewModel.completion) { _, _ in showSavedScript() }
+        .onChange(of: router.path) { _, _ in viewModel.cancel() }
+        .onAppear { isVisible = true }
+        .onDisappear {
+            isVisible = false
+            viewModel.cancel()
+        }
     }
 
     private var scriptContentEditor: some View {
@@ -167,98 +173,26 @@ struct ScriptConfirmView: View {
     }
 
     private func startAnalysis() {
-        guard !isLoading else { return }
-        guard rateLimiter.canCall() else {
-            showErrorAlert("시스템 처리량이 초과되어 요청을 잠시 제한합니다.\n1분 후 다시 시도해 주세요.")
-            return
-        }
-
         isTitleEditing = false
-        isLoading = true
-        let requestID = UUID()
+        isFocusedContentEditor = false
         let content = scriptContent
         let title = scriptTitle
-        activeRequestID = requestID
-        timeoutTask = Task {
-            do {
-                try await Task.sleep(for: .seconds(30))
-            } catch {
-                return
-            }
-            guard activeRequestID == requestID else { return }
-            cancelAnalysis()
-            showErrorAlert("네트워크 연결 상태를 확인해 주세요.\n연결에 문제가 없다면 잠시 후 다시 시도해 주세요.")
-        }
-        analysisTask = Task {
-            await analyzeAndSave(content: content, title: title, requestID: requestID)
-        }
-    }
-
-    private func loadingDismissed() {
-        // An older cover dismissal must not cancel a newly accepted request.
-        guard !isLoading else { return }
-        cancelAnalysis()
-    }
-
-    private func cancelAnalysis() {
-        activeRequestID = nil
-        timeoutTask?.cancel()
-        analysisTask?.cancel()
-        timeoutTask = nil
-        analysisTask = nil
-        isLoading = false
-    }
-
-    private func analyzeAndSave(content: String, title: String, requestID: UUID) async {
-        defer {
-            if activeRequestID == requestID {
-                activeRequestID = nil
-                timeoutTask?.cancel()
-                timeoutTask = nil
-                analysisTask = nil
-                isLoading = false
+        Task {
+            guard isVisible else { return }
+            if viewModel.canRetrySaving {
+                await viewModel.retrySaving()
+            } else {
+                await viewModel.start(content: content, title: title)
             }
         }
-
-        let result: ScriptData
-        do {
-            result = try await geminiCaller.analyzeScript(content)
-            guard activeRequestID == requestID, !Task.isCancelled else { return }
-            timeoutTask?.cancel()
-            timeoutTask = nil
-        } catch {
-            guard activeRequestID == requestID, !Task.isCancelled else { return }
-            if (error as? AIError) != .cancelled {
-                showErrorAlert(error.localizedDescription)
-            }
-            return
-        }
-
-        // AI retries have completed. A persistence failure never calls the analyzer again.
-        let finalTitle = title.isEmpty ? result.title : title
-        let scriptToSave = ScriptData(title: finalTitle, sentences: result.sentences)
-        do {
-            guard activeRequestID == requestID, !Task.isCancelled else { return }
-            let script = try await scriptService.createScript(scriptData: scriptToSave)
-            // An already-started transaction may commit after UI cancellation.
-            guard activeRequestID == requestID, !Task.isCancelled else { return }
-            if let scriptID = script.id {
-                router.reset()
-                router.push(Route.memorization(scriptId: scriptID, scriptTitle: finalTitle))
-            }
-        } catch {
-            guard activeRequestID == requestID, !Task.isCancelled else { return }
-            AppLog.database.error("스크립트 저장 실패")
-            showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
-        }
     }
 
-    // MARK: - 사용자 알림 (UI Thread 전환)
-    @MainActor
-    func showErrorAlert(_ message: String) {
-        self.errorMessage = message
-        self.showErrorAlert = true
+    private func showSavedScript() {
+        guard let result = viewModel.consumeCompletion() else { return }
+        router.reset()
+        router.push(Route.memorization(scriptId: result.savedID, scriptTitle: result.title))
     }
+
 }
 
 #Preview {
