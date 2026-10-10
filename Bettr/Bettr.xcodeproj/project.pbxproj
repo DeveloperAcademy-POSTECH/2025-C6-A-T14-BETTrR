@@ -22,11 +22,19 @@
 			remoteGlobalIDString = 129A71752EB0AD3D001CE8EB;
 			remoteInfo = Bettr;
 		};
+		B73060082F0A306000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 129A716E2EB0AD3D001CE8EB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 129A71752EB0AD3D001CE8EB;
+			remoteInfo = Bettr;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		129A71762EB0AD3D001CE8EB /* Bettr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bettr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A7CF26062EB2440300CEA916 /* BettrTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B73060012F0A306000000001 /* BettrUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -38,6 +46,11 @@
 		A7CF26072EB2440300CEA916 /* BettrTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = BettrTests;
+			sourceTree = "<group>";
+		};
+		B73060022F0A306000000001 /* BettrUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BettrUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -62,6 +75,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B73060032F0A306000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -70,6 +90,7 @@
 			children = (
 				129A71782EB0AD3D001CE8EB /* Bettr */,
 				A7CF26072EB2440300CEA916 /* BettrTests */,
+				B73060022F0A306000000001 /* BettrUITests */,
 				129A71772EB0AD3D001CE8EB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -79,6 +100,7 @@
 			children = (
 				129A71762EB0AD3D001CE8EB /* Bettr.app */,
 				A7CF26062EB2440300CEA916 /* BettrTests.xctest */,
+				B73060012F0A306000000001 /* BettrUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -136,6 +158,29 @@
 			productReference = A7CF26062EB2440300CEA916 /* BettrTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		B73060062F0A306000000001 /* BettrUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B730600B2F0A306000000001 /* Build configuration list for PBXNativeTarget "BettrUITests" */;
+			buildPhases = (
+				B73060042F0A306000000001 /* Sources */,
+				B73060032F0A306000000001 /* Frameworks */,
+				B73060052F0A306000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B73060092F0A306000000001 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B73060022F0A306000000001 /* BettrUITests */,
+			);
+			name = BettrUITests;
+			packageProductDependencies = (
+			);
+			productName = BettrUITests;
+			productReference = B73060012F0A306000000001 /* BettrUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -151,6 +196,10 @@
 					};
 					A7CF26052EB2440300CEA916 = {
 						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 129A71752EB0AD3D001CE8EB;
+					};
+					B73060062F0A306000000001 = {
+						CreatedOnToolsVersion = 27.0;
 						TestTargetID = 129A71752EB0AD3D001CE8EB;
 					};
 				};
@@ -176,6 +225,7 @@
 			targets = (
 				129A71752EB0AD3D001CE8EB /* Bettr */,
 				A7CF26052EB2440300CEA916 /* BettrTests */,
+				B73060062F0A306000000001 /* BettrUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -189,6 +239,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A7CF26042EB2440300CEA916 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B73060052F0A306000000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -212,6 +269,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B73060042F0A306000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -219,6 +283,11 @@
 			isa = PBXTargetDependency;
 			target = 129A71752EB0AD3D001CE8EB /* Bettr */;
 			targetProxy = A7CF260A2EB2440300CEA916 /* PBXContainerItemProxy */;
+		};
+		B73060092F0A306000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 129A71752EB0AD3D001CE8EB /* Bettr */;
+			targetProxy = B73060082F0A306000000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -510,6 +579,62 @@
 			};
 			name = Release;
 		};
+		B730600C2F0A306000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = BETTrR;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.BettrUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 2;
+				TEST_TARGET_NAME = Bettr;
+			};
+			name = Debug;
+		};
+		B730600D2F0A306000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = BETTrR;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.BettrUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 2;
+				TEST_TARGET_NAME = Bettr;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -536,6 +661,15 @@
 			buildConfigurations = (
 				A7CF260D2EB2440300CEA916 /* Debug */,
 				A7CF260E2EB2440300CEA916 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B730600B2F0A306000000001 /* Build configuration list for PBXNativeTarget "BettrUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B730600C2F0A306000000001 /* Debug */,
+				B730600D2F0A306000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

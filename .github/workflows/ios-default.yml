@@ -123,6 +123,18 @@ jobs:
             -resultBundlePath "$RUNNER_TEMP/BettrTest.xcresult" \
             CODE_SIGNING_ALLOWED=NO
 
+      - name: Run ScriptConfirm UI regression
+        run: |
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme BettrUI \
+            -testPlan ScriptConfirmUI \
+            -destination "${{ steps.simulator.outputs.destination }}" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/SourcePackages" \
+            -derivedDataPath "$RUNNER_TEMP/BettrDerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/BettrUI.xcresult" \
+            CODE_SIGNING_ALLOWED=NO
+
       - name: Upload Xcode results
         if: failure()
         uses: actions/upload-artifact@v4
@@ -131,5 +143,6 @@ jobs:
           path: |
             ${{ runner.temp }}/BettrBuild.xcresult
             ${{ runner.temp }}/BettrTest.xcresult
+            ${{ runner.temp }}/BettrUI.xcresult
           if-no-files-found: ignore
           retention-days: 7

@@ -104,7 +104,6 @@ struct ScriptConfirmView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: {
@@ -112,6 +111,7 @@ struct ScriptConfirmView: View {
                 }) {
                     Image(systemName: "chevron.left")
                 }
+                .accessibilityIdentifier("script-confirm.back")
             }
 
             ToolbarItem(placement: .principal) {
@@ -123,7 +123,8 @@ struct ScriptConfirmView: View {
                 .disabled(!viewModel.canEdit)
             }
         }
-        .toolbar(viewModel.isLoading ? .hidden : .visible, for: .navigationBar)
+        .toolbar(viewModel.isLoading ? .hidden : .automatic, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
         .alert("저장하지 않고 나가시겠어요?", isPresented: $showBackAlert) {
             Button("취소", role: .cancel) {}
             Button("나가기", role: .destructive) {
@@ -156,6 +157,7 @@ struct ScriptConfirmView: View {
     private var scriptContentEditor: some View {
         ZStack(alignment: .topLeading) {
             TextEditor(text: $scriptContent)
+                .accessibilityIdentifier("script-confirm.editor")
                 .padding(4)
                 .overlay {
                     RoundedRectangle(cornerRadius: 10)
