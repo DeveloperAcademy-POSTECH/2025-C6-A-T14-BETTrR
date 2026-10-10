@@ -65,9 +65,18 @@ final class AppComposition {
         ScriptConfirmView(
             initialText: initialText,
             initialTitle: initialTitle,
+            viewModel: makeScriptConfirmViewModel()
+        )
+    }
+
+    func makeScriptConfirmViewModel(
+        clock: any ScriptConfirmClock = ContinuousScriptConfirmClock()
+    ) -> ScriptConfirmViewModel {
+        ScriptConfirmViewModel(
             analyzer: analyzer,
             scriptService: scriptService,
-            rateLimiter: rateLimiter
+            rateLimiter: rateLimiter,
+            clock: clock
         )
     }
 

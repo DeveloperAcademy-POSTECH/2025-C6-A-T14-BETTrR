@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "8C1E62E0-5DF1-4B3A-9C64-000000000306",
+      "name" : "ScriptConfirmUI",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Bettr.xcodeproj",
+        "identifier" : "B73060062F0A306000000001",
+        "name" : "BettrUITests"
+      }
+    }
+  ],
+  "version" : 1
+}

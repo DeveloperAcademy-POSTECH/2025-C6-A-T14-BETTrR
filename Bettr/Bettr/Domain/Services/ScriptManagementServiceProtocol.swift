@@ -18,6 +18,9 @@ protocol HomeScriptServicing {
 @MainActor
 protocol ScriptManagementServiceProtocol: HomeScriptServicing {
     // MARK: - Script Create
+    /// 단일 transaction의 commit 결과를 반환합니다. 일반 저장 오류는 rollback을 뜻합니다.
+    /// 호출 Task의 취소는 rollback의 증거가 아니므로, 결과를 조정해야 하는 호출부는
+    /// 저장 Task를 취소하지 않고 실제 반환/오류를 관찰해야 합니다.
     func createScript(scriptData: ScriptData) async throws -> Script
 
     // MARK: - Script Read

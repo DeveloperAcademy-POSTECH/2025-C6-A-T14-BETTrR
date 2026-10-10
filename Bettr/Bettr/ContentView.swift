@@ -28,6 +28,18 @@ struct ContentView: View {
                 }
         }
         .environment(router)
+#if DEBUG
+        .overlay(alignment: .bottomTrailing) {
+            if AppLaunchContext.usesIsolatedDependencies,
+               ProcessInfo.processInfo.arguments.contains("--script-confirm-ui-test"),
+               router.path.isEmpty {
+                Button("Open script confirm fixture") {
+                    router.push(Route.scriptConfirm(initialText: "Hello world.", initialTitle: "UI regression"))
+                }
+                .accessibilityIdentifier("ui-test.open-script-confirm")
+            }
+        }
+#endif
     }
 }
 
