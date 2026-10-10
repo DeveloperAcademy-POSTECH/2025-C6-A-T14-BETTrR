@@ -1,7 +1,10 @@
 import SwiftUI
 
 struct HomeContentView: View {
-    @Environment(DatabaseContainer.self) var container
+    let scripts: [Script]?
+    let isLoading: Bool
+    let errorMessage: String?
+    let onRetry: () -> Void
     
     let onSelectPhoto: () -> Void
     let onTakePhoto: () -> Void
@@ -9,7 +12,14 @@ struct HomeContentView: View {
     let requestDelete: (Script) -> Void
     
     var body: some View {
-        if let scripts = container.scripts {
+        if let scripts {
+            if let errorMessage {
+                HStack {
+                    Text(errorMessage)
+                    Button("다시 시도", action: onRetry)
+                }
+                .padding(.horizontal, 84)
+            }
             if scripts.isEmpty {
                 VStack {
                     Spacer()
@@ -39,38 +49,39 @@ struct HomeContentView: View {
             }
         } else {
             Spacer()
-            ProgressView()
+            if isLoading {
+                ProgressView()
+            } else if let errorMessage {
+                VStack(spacing: 16) {
+                    Text(errorMessage)
+                    Button("다시 시도", action: onRetry)
+                }
+            } else {
+                Button("목록 불러오기", action: onRetry)
+            }
             Spacer()
         }
     }
 }
 
 #Preview("Empty Scripts") {
-    AsyncPreview(operation: {
-        try await DatabaseContainer.getForPreview(withMockData: false)
-    }) { container in
-        HomeContentView(
-            onSelectPhoto: {},
-            onTakePhoto: {},
-            onSelectFile: {},
-            requestDelete: { _ in }
-        )
-        .environment(container)
-        .environment(NavigationRouter())
-    }
+    HomeContentView(
+        scripts: [], isLoading: false, errorMessage: nil, onRetry: {},
+        onSelectPhoto: {}, onTakePhoto: {}, onSelectFile: {}, requestDelete: { _ in }
+    )
 }
 
 #Preview("With Scripts") {
     AsyncPreview(operation: {
-        try await DatabaseContainer.getForPreview(withMockData: true)
-    }) { container in
+        let composition = try await PreviewComposition.withDemoData()
+        let model = composition.makeHomeListModel()
+        await model.refresh()
+        return model
+    }) { model in
         HomeContentView(
-            onSelectPhoto: {},
-            onTakePhoto: {},
-            onSelectFile: {},
-            requestDelete: { _ in }
+            scripts: model.scripts, isLoading: false, errorMessage: nil, onRetry: {},
+            onSelectPhoto: {}, onTakePhoto: {}, onSelectFile: {}, requestDelete: { _ in }
         )
-        .environment(container)
         .environment(NavigationRouter())
     }
 }

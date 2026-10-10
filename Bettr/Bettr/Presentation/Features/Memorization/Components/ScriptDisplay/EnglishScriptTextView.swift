@@ -13,10 +13,9 @@ struct EnglishScriptTextView: View {
     let onTap: () -> Void
     let sentenceIndex: Int?
     let viewID: PlaybackTargetID
+    let audioService: any AudioPlaybackServiceProtocol
     
     var chunkOffset: Int? = nil
-    
-    @Environment(AudioPlaybackService.self) private var audioService
     
     private let unspokenColor = Color.normalGray600
     private let spokenColor = Color.normalBlack900

@@ -10,6 +10,9 @@ import GRDB
 
 class AppDatabase {
     let dbQueue: DatabaseQueue
+
+    // iOS 26.2의 MainActor deinit 런타임 오류를 우회한다. (swiftlang/swift@29245e4)
+    nonisolated deinit {}
     
     // 싱글톤 인스턴스
     static let shared: AppDatabase = {

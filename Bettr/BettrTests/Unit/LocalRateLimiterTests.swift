@@ -2,6 +2,7 @@ import Foundation
 import XCTest
 @testable import Bettr
 
+@MainActor
 final class LocalRateLimiterTests: XCTestCase {
     func test_canCall_whenLimitIsReached_thenBlocksUntilWindowExpires() {
         let start = Date(timeIntervalSince1970: 0)

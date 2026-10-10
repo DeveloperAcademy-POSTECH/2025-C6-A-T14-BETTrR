@@ -15,16 +15,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // 테스트 호스트로 실행될 때는 Firebase를 초기화하지 않는다.
         // GoogleService-Info.plist 없이도 Unit/DatabaseIntegration 테스트가 실행되어야 하며,
         // 실제 Gemini 호출 테스트(GeminiContract)는 테스트 쪽에서 직접 초기화한다.
-        if !ProcessInfo.isRunningTests {
+        if !AppLaunchContext.usesIsolatedDependencies {
             firebaseBootstrap.configure()
         }
         return true
-    }
-}
-
-private extension ProcessInfo {
-    static var isRunningTests: Bool {
-        NSClassFromString("XCTestCase") != nil
     }
 }
 
@@ -32,24 +26,19 @@ private extension ProcessInfo {
 struct BettrApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
-    private let database = AppDatabase.shared
-    
-    @State private var router = NavigationRouter()
-    @State private var audioService = AudioPlaybackService()
-    
-    @State private var databaseContainer: DatabaseContainer
+    private let composition: AppComposition
     
     init() {
-        _databaseContainer = State(initialValue: DatabaseContainer(database: AppDatabase.shared))
+        do {
+            composition = try AppLaunchContext.makeComposition()
+        } catch {
+            fatalError("Failed to initialize isolated app dependencies")
+        }
     }
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(databaseContainer)
-            //    .environment(DatabaseContainer(database: database))
-                .environment(router)
-                .environment(audioService)
+            ContentView(composition: composition)
         }
     }
 }

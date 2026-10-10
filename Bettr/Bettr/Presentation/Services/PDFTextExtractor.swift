@@ -2,7 +2,7 @@
 import Foundation
 import PDFKit
 
-struct PDFTextExtractor {
+struct PDFTextExtractor: PDFTextExtracting {
     func extractText(from url: URL) -> String? {
         // URL에 대한 접근 권한을 얻기 위해 security-scoped access를 시작합니다.
         guard url.startAccessingSecurityScopedResource() else {

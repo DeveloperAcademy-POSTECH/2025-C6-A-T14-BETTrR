@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct WordkListView: View {
-    @Environment(DatabaseContainer.self) var container
     let scriptId: Int64
     @Binding var words: [Word]
     var errorMessage: String?
@@ -52,12 +51,9 @@ struct WordkListView: View {
         Word(id: 6, scriptId: 1, lemma: "untranslated", pos: "명", meaning: "번역되지 않은", orderIndex: 3)
     ]
 
-    let mockContainer = DatabaseContainer(database: AppDatabase.shared)
-
     WordkListView(
         scriptId: 1,
         words: .constant(localMockWords), // 로컬 목업 데이터 주입
         isLoading: .constant(false)
     )
-    .environment(mockContainer) // 로컬 목업 컨테이너 제공
 }

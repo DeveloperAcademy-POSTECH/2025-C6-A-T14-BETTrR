@@ -7,13 +7,13 @@ final class ScriptManagementServiceTests: XCTestCase {
     var scriptRepository: ScriptRepository!
     var dbQueue: DatabaseQueue!
     
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         
-        dbQueue = try! DatabaseQueue()
-        try! AppDatabaseMigrator.migrate(dbQueue)
-        scriptRepository = ScriptRepository(dbQueue: dbQueue)
-        sut = ScriptManagementService(scriptRepository: scriptRepository)
+        dbQueue = try DatabaseQueue()
+        try await AppDatabaseMigrator.migrate(dbQueue)
+        scriptRepository = await ScriptRepository(dbQueue: dbQueue)
+        sut = await ScriptManagementService(scriptRepository: scriptRepository)
     }
     
     override func tearDown() {

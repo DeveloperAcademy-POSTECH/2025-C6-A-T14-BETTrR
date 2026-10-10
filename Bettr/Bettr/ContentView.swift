@@ -1,62 +1,38 @@
-//
-//  ContentView.swift
-//  Bettr
-//
-//  Created by 서세린 on 10/30/25.
-//
-
 import SwiftUI
 
+@MainActor
 struct ContentView: View {
-    
-    @Environment(DatabaseContainer.self) private var container
-    @Environment(NavigationRouter.self) private var router
-    @Environment(AudioPlaybackService.self) private var audioService
-    
+    private let composition: AppComposition
+    @State private var homeModel: HomeListModel
+    @State private var router = NavigationRouter()
+
+    init(composition: AppComposition) {
+        self.composition = composition
+        _homeModel = State(initialValue: composition.makeHomeListModel())
+    }
+
     var body: some View {
-        
         @Bindable var router = router
-        
+
         NavigationStack(path: $router.path) {
-            HomeView()
+            composition.makeHomeView(model: homeModel)
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .home:
-                        HomeView()
-                        
-                    case .scriptConfirm(let initialText, let initialTitle):
-                        ScriptConfirmView(initialText: initialText, initialTitle: initialTitle)
-
-                    case .memorization(let scriptId, let scriptTitle):
-                        let mainViewModel = MemorizationViewModel(
-                            scriptId: scriptId,
-                            scriptTitle: scriptTitle,
-                            scriptService: container.scriptManagementService,
-                            audioService: audioService,
-                        )
-                        
-                        let wordViewModel = WordListViewModel(
-                            scriptId: scriptId,
-                            wordExtractionService: container.wordExtractionService
-                        )
-                        
-                        MemorizationView(
-                            viewModel: mainViewModel,
-                            wordListViewModel: wordViewModel
-                        )
+                        composition.makeHomeView(model: homeModel)
+                    case .scriptConfirm(let text, let title):
+                        composition.makeScriptConfirmView(initialText: text, initialTitle: title)
+                    case .memorization(let scriptId, let title):
+                        composition.makeMemorizationView(scriptId: scriptId, scriptTitle: title)
                     }
                 }
         }
+        .environment(router)
     }
 }
 
 #Preview {
-    AsyncPreview(operation: {
-        try await DatabaseContainer.getForPreview(withMockData: true)
-    }) { container in
-        ContentView()
-            .environment(container)
-            .environment(NavigationRouter())
-            .environment(AudioPlaybackService())
+    AsyncPreview(operation: { try await PreviewComposition.withDemoData() }) { composition in
+        ContentView(composition: composition)
     }
 }

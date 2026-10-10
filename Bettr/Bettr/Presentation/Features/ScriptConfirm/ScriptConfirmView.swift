@@ -3,7 +3,6 @@ import SwiftUI
 // MARK: - 화면 UI
 @MainActor
 struct ScriptConfirmView: View {
-    @Environment(DatabaseContainer.self) var databaseContainer
     @Environment(NavigationRouter.self) var router
     @Environment(\.dismiss) private var dismiss
 
@@ -32,14 +31,19 @@ struct ScriptConfirmView: View {
     private let geminiCaller: ScriptGeminiCall
 
     // Local Rate Limiter(사용자의 호출 제한)
-    private let rateLimiter = LocalRateLimiter.shared
+    private let rateLimiter: any AnalysisRateLimiting
+    private let scriptService: any ScriptManagementServiceProtocol
 
     init(
         initialText: String?,
         initialTitle: String?,
-        analyzer: (any ScriptAnalyzing)? = nil
+        analyzer: any ScriptAnalyzing,
+        scriptService: any ScriptManagementServiceProtocol,
+        rateLimiter: any AnalysisRateLimiting
     ) {
-        geminiCaller = ScriptGeminiCall(analyzer: analyzer ?? FirebaseGeminiAdapter())
+        geminiCaller = ScriptGeminiCall(analyzer: analyzer)
+        self.scriptService = scriptService
+        self.rateLimiter = rateLimiter
         let content = initialText ?? ""
 
         // 처음부터 영어/숫자/기호만 남김 (OCR에서 한국어 들어와도 여기서 제거됨)
@@ -235,7 +239,7 @@ struct ScriptConfirmView: View {
         let scriptToSave = ScriptData(title: finalTitle, sentences: result.sentences)
         do {
             guard activeRequestID == requestID, !Task.isCancelled else { return }
-            let script = try await databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
+            let script = try await scriptService.createScript(scriptData: scriptToSave)
             // An already-started transaction may commit after UI cancellation.
             guard activeRequestID == requestID, !Task.isCancelled else { return }
             if let scriptID = script.id {
@@ -259,10 +263,10 @@ struct ScriptConfirmView: View {
 
 #Preview {
     AsyncPreview(operation: {
-        try await DatabaseContainer.getForPreview(withMockData: true)
-    }) { container in
+        try await PreviewComposition.withDemoData()
+    }) { composition in
         NavigationStack {
-            ScriptConfirmView(initialText: """
+            composition.makeScriptConfirmView(initialText: """
                 Hello everyone, my name is Dewy.
                 Today, I want to talk about the power of challenge.
                 I used to be afraid of speaking English in front of others.
@@ -274,7 +278,6 @@ struct ScriptConfirmView: View {
                 Now I know every challenge helps me grow.
                 Thank you for listening.
                 """, initialTitle: "Dewy's Speech")
-            .environment(container)
             .environment(NavigationRouter())
         }
     }

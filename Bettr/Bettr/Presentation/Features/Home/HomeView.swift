@@ -3,7 +3,7 @@ import PhotosUI
 
 struct HomeView: View {
     @Environment(NavigationRouter.self) var router
-    @Environment(DatabaseContainer.self) var container
+    let model: HomeListModel
     
     @State private var selectedPhoto: PhotosPickerItem? = nil
     @State private var showingPhotoPicker = false
@@ -14,8 +14,8 @@ struct HomeView: View {
     @State private var showingFileErrorAlert = false
     @State private var fileErrorMessage = ""
     
-    private let textRecognitionService = TextRecognitionService()
-    private let pdfTextExtractor = PDFTextExtractor()
+    let textRecognitionService: any TextRecognizing
+    let pdfTextExtractor: any PDFTextExtracting
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -24,6 +24,10 @@ struct HomeView: View {
                 .padding(.horizontal, 84)
             
             HomeContentView(
+                scripts: model.scripts,
+                isLoading: model.isLoading,
+                errorMessage: model.errorMessage,
+                onRetry: { Task { await model.refresh() } },
                 onSelectPhoto: { showingPhotoPicker = true },
                 onTakePhoto: { isShowingCamera = true },
                 onSelectFile: { isShowingDocumentPicker = true },
@@ -31,11 +35,7 @@ struct HomeView: View {
             )
         }
         .task {
-            do {
-                try await container.refreshScripts()
-            } catch {
-                AppLog.database.error("스크립트 목록 새로고침 실패")
-            }
+            await model.refresh()
         }
         .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhoto, matching: .images)
         .fullScreenCover(isPresented: $isShowingCamera) {
@@ -72,6 +72,7 @@ struct HomeView: View {
             Button("삭제", role: .destructive) {
                 deleteScript(script: script)
             }
+            .disabled(model.isDeleting)
             Button("취소", role: .cancel) {}
         } message: { script in
             Text("선택하신 스크립트 '\(script.title)'과 학습 기록은 복구할 수 없습니다.")
@@ -96,12 +97,7 @@ struct HomeView: View {
     private func deleteScript(script: Script) {
         guard let id = script.id else { return }
         Task {
-            do {
-                try await container.scriptManagementService.deleteScript(id: id)
-                try await container.refreshScripts()
-            } catch {
-                AppLog.database.error("스크립트 삭제 실패")
-            }
+            await model.deleteScript(id: id)
         }
     }
     
@@ -113,21 +109,15 @@ struct HomeView: View {
 }
 
 #Preview("Empty Scripts") {
-    AsyncPreview(operation: {
-        try await DatabaseContainer.getForPreview(withMockData: false)
-    }) { container in
-        HomeView()
-            .environment(container)
+    AsyncPreview(operation: { try PreviewComposition.make() }) { composition in
+        composition.makeHomeView(model: composition.makeHomeListModel())
             .environment(NavigationRouter())
     }
 }
 
 #Preview("With Scripts") {
-    AsyncPreview(operation: {
-        try await DatabaseContainer.getForPreview(withMockData: true)
-    }) { container in
-        HomeView()
-            .environment(container)
+    AsyncPreview(operation: { try await PreviewComposition.withDemoData() }) { composition in
+        composition.makeHomeView(model: composition.makeHomeListModel())
             .environment(NavigationRouter())
     }
 }

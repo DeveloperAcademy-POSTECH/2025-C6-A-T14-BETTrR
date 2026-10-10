@@ -72,6 +72,32 @@ final class GeminiScriptParserTests: XCTestCase {
         assertContractFailure(try modified { $0.sentences[0].chunks[1].englishText = "world" })
     }
 
+    func test_parse_whenOCRContainsHeadingAndUnfinishedSentence_thenPreservesBothVerbatim() throws {
+        let texts = ["LEARNING ENGLISH", "Hello world.", "When I started learning"]
+        let response = ScriptData(title: "Learning English", sentences: texts.enumerated().map { index, text in
+            SentenceData(orderIndex: index, englishText: text, koreanText: "번역", chunks: [
+                ChunkData(orderIndex: 0, englishText: text, koreanText: "번역")
+            ])
+        })
+        let json = String(decoding: try JSONEncoder().encode(response), as: UTF8.self)
+
+        let result = try GeminiScriptParser.parse(
+            json, sourceText: texts.joined(separator: "\n"), fallbackTitle: "Fallback"
+        )
+
+        XCTAssertEqual(result.sentences.map(\.englishText), texts)
+    }
+
+    func test_parse_whenOCRHeadingAppearsOnlyInTitle_thenRejectsOmittedSource() throws {
+        let json = try modified { $0.title = "LEARNING ENGLISH" }
+
+        XCTAssertThrowsError(try GeminiScriptParser.parse(
+            json, sourceText: "LEARNING ENGLISH\nHello world.\nGoodbye.", fallbackTitle: "Fallback"
+        )) {
+            XCTAssertEqual($0 as? AIError, .responseContract)
+        }
+    }
+
     private func parse(_ json: String) throws -> ScriptData {
         try GeminiScriptParser.parse(json, sourceText: "Hello world. Goodbye.", fallbackTitle: "Fallback")
     }

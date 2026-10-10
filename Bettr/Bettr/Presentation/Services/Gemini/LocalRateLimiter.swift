@@ -10,8 +10,9 @@ import Foundation
 /// 로컬 호출 제한 유틸리티
 /// - 1분(60초) 동안 3회 초과 호출 시 차단
 /// - 기기 단위에서만 동작 (서버와 무관)
-final class LocalRateLimiter {
-    static let shared = LocalRateLimiter()
+@MainActor
+final class LocalRateLimiter: AnalysisRateLimiting {
+    static let shared = LocalRateLimiter(uuid: DeviceUUIDProvider.shared.uuid)
     
     private let uuid: String
 
@@ -19,7 +20,7 @@ final class LocalRateLimiter {
     private let limit = 3           // 1분에 3번까지 허용
     private let window: TimeInterval = 60 // 60초
     
-    init(uuid: String = DeviceUUIDProvider.shared.uuid) {
+    init(uuid: String) {
         self.uuid = uuid
     }
 

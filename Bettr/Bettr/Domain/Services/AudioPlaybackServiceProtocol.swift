@@ -6,8 +6,17 @@
 //
 
 import Foundation
+import Observation
 
-protocol AudioPlaybackServiceProtocol {
+nonisolated enum PlaybackMode {
+    case stopped
+    case single
+    case multi
+}
+
+/// 같은 Observable 인스턴스를 재생 제어와 텍스트 강조에 전달합니다.
+@MainActor
+protocol AudioPlaybackServiceProtocol: AnyObject, Observable {
     
     var isPlaybackActive: Bool { get }
     var isPaused: Bool { get }
@@ -35,5 +44,3 @@ extension AudioPlaybackServiceProtocol {
         self.playAll(sentences: sentences, language: "en-US")
     }
 }
-
-extension AudioPlaybackService: AudioPlaybackServiceProtocol { }
