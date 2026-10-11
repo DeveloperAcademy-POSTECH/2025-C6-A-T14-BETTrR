@@ -13,6 +13,9 @@
   },
   "testTargets" : [
     {
+      "skippedTests" : [
+        "GeminiContractTests"
+      ],
       "target" : {
         "containerPath" : "container:Bettr.xcodeproj",
         "identifier" : "A7CF26052EB2440300CEA916",
