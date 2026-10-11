@@ -138,3 +138,6 @@ skip만 있는 결과는 실제 Gemini 성공 증거가 아니다. 실패한 실
 
 경로 선택·설정 실패·종료 코드·빈 결과/skip 거부는
 `scripts/tests/gemini-contract-ci.sh`로 외부 호출 없이 검증한다.
+
+실제 호출 성공 기록: [2026-10-11 로컬 검증](evidence/gemini-contract-2026-10-11.json).
+고정된 실행 정보와 성공 건수만 포함하며 인증 정보·입력·응답은 기록하지 않는다.

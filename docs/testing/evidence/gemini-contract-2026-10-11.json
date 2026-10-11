@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-10-11T06:39:43.508628+00:00",
+  "testPlan": "GeminiContract",
+  "scenarios": [
+    "test_scriptAnalysis_preservesStructuralContract",
+    "test_wordExtraction_preservesStructuralContract"
+  ],
+  "xcodebuildExitCode": 0,
+  "xcodebuildTestSucceeded": true,
+  "summary": {
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "passedTests": 2,
+    "result": "Passed",
+    "skippedTests": 0,
+    "totalTestCount": 2
+  },
+  "xcodeVersion": "Xcode 27.0\nBuild version 27A266a",
+  "simulator": "iPad Pro 11-inch (M4), iOS 26.5",
+  "firebaseSDKVersion": "12.6.0",
+  "model": "gemini-2.5-flash-lite"
+}

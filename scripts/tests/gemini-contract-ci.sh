@@ -149,8 +149,8 @@ assert_success "Pre-existing user build manifests are preserved" \
 assert_success "xcodebuild disables parallel contract execution" \
   grep -F -- "-parallel-testing-enabled NO" "$tmpdir/xcodebuild.log"
 
-assert_success "xcodebuild limits test iterations to one" \
-  grep -F -- "-test-iterations 1" "$tmpdir/xcodebuild.log"
+assert_failure "xcodebuild uses the default single test execution" \
+  grep -F -- "-test-iterations" "$tmpdir/xcodebuild.log"
 
 assert_success "xcodebuild enables per-test timeout safety" \
   grep -F -- "-test-timeouts-enabled YES" "$tmpdir/xcodebuild.log"
