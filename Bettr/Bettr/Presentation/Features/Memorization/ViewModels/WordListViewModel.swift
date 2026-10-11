@@ -5,6 +5,7 @@
 //  Created by 길정수 on 11/13/25.
 //
 
+import BettrAI
 import Foundation
 
 @Observable

@@ -111,7 +111,6 @@
 ┣ 📂 Bettr/                          # 주 애플리케이션 및 테스트 코드
 ┃ ┣ 📂 Bettr/                        # Bettr 애플리케이션 소스 코드
 ┃ ┃ ┣ 📂 Domain/                     # 도메인 계층 (비즈니스 로직 및 데이터 모델)
-┃ ┃ ┃ ┣ 📂 DTOs/                     # 데이터 전송 객체
 ┃ ┃ ┃ ┣ 📂 Models/                   # 핵심 데이터 모델
 ┃ ┃ ┃ ┣ 📂 Repositories/             # 데이터 저장소 인터페이스
 ┃ ┃ ┃ └ 📂 Services/                 # 도메인 서비스 (비즈니스 로직)
@@ -130,6 +129,7 @@
 ┃ ┃ ┃ └ 📂 Services/                 # UI 계층 서비스 (오디오 재생, 텍스트 분석)
 ┃ ┃ ┣ 📂 Resources/                  # 앱 리소스 (폰트, 이미지, Lottie 애니메이션)
 ┃ ┃ └ 📂 Utils/                      # 유틸리티 함수 및 헬퍼 클래스
+┃ ┣ 📂 BettrAI/                      # AI 계약·Firebase 구현·독립 테스트 (로컬 Swift Package)
 ┃ ┣ 📂 Bettr.xcodeproj/              # Xcode 프로젝트 설정 파일
 ┃ └ 📂 BettrTests/                   # 유닛 및 통합 테스트 코드
 ...
@@ -139,12 +139,12 @@
 
 **Domain Layer (도메인 계층)**
 - 비즈니스 로직과 데이터 모델의 핵심
-- 현재 일부 모델은 GRDB Record를 준수하며, AI SDK 경계와 타입 소유권은 단계적으로 분리 중
+- 일부 앱 모델은 GRDB Record를 준수하며, AI 계약과 결과 DTO는 BettrAI가 소유
 
 **Presentation Layer (프레젠테이션 계층)**
 - SwiftUI 기반의 사용자 인터페이스
 - MVVM 패턴으로 뷰와 비즈니스 로직 분리
-- 기능별 폴더 구성. 물리적 모듈화는 검증된 AI 경계부터 진행 예정
+- 기능별 폴더 구성. AI 구현은 [BettrAI 로컬 패키지](Bettr/BettrAI/README.md)로 분리
 
 **Persistence Layer (영속성 계층)**
 - GRDB를 활용한 로컬 데이터 저장
@@ -226,6 +226,9 @@ scripts/ios-default.sh \
 - Xcode 실행 실패나 로그 저장 실패는 non-zero로 종료합니다. 빌드·테스트는
   종료 코드 `0`과 각각 `BUILD SUCCEEDED`·`TEST SUCCEEDED` 표시가 있어야 통과합니다.
   성공 증거가 없으면 검증 미완료로 실패 처리합니다.
+
+앱 호스트 없이 실행하는 AI 순수 테스트와 공개 API는
+[BettrAI 실행 문서](Bettr/BettrAI/README.md)를 따릅니다. Default Plan에도 패키지 테스트가 포함됩니다.
 
 실제 Xcode 호출 없이 실행 스크립트의 실패 전파를 검증하려면
 `bash scripts/tests/ios-default-test.sh`를 실행합니다.

@@ -1,3 +1,4 @@
+import BettrAI
 import Foundation
 @testable import Bettr
 

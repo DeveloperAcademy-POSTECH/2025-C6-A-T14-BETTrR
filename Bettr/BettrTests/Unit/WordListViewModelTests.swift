@@ -1,3 +1,4 @@
+import BettrAI
 import XCTest
 @testable import Bettr
 

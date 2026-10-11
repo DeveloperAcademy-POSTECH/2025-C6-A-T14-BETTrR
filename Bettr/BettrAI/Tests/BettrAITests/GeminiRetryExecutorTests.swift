@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import Bettr
+@testable import BettrAI
 
 @MainActor
 final class GeminiRetryExecutorTests: XCTestCase {

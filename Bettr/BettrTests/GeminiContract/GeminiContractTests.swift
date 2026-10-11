@@ -2,6 +2,7 @@ import FirebaseAppCheck
 import FirebaseCore
 import XCTest
 @testable import Bettr
+@testable import BettrAI
 
 @MainActor
 final class GeminiContractTests: XCTestCase {
