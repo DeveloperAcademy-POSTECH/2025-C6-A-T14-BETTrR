@@ -36,7 +36,7 @@ tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
 assert_success "Gemini adapter changes run contract CI" \
-  python3 scripts/gemini-contract/impact.py Bettr/Bettr/Presentation/Services/Gemini/FirebaseGeminiAdapter.swift
+  python3 scripts/gemini-contract/impact.py Bettr/BettrAI/Sources/BettrAI/FirebaseGeminiAdapter.swift
 
 assert_success "Package resolution changes run contract CI" \
   python3 scripts/gemini-contract/impact.py Bettr/Bettr.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
@@ -45,7 +45,31 @@ assert_success ".github workflow changes keep leading dot and run contract CI" \
   python3 scripts/gemini-contract/impact.py .github/workflows/ios-gemini-contract.yml
 
 assert_success "AI domain contract changes run contract CI" \
+  python3 scripts/gemini-contract/impact.py Bettr/BettrAI/Sources/BettrAI/AIContracts.swift
+
+assert_success "AI package resolution changes run contract CI" \
+  python3 scripts/gemini-contract/impact.py Bettr/BettrAI/Package.resolved
+
+assert_success "Local usage limiting changes run contract CI" \
+  python3 scripts/gemini-contract/impact.py Bettr/Bettr/Presentation/Services/Gemini/LocalRateLimiter.swift
+
+assert_success "Device identity changes run contract CI" \
+  python3 scripts/gemini-contract/impact.py Bettr/Bettr/Presentation/Services/Gemini/DeviceUUIDProvider.swift
+
+assert_success "Bootstrap changes run contract CI" \
+  python3 scripts/gemini-contract/impact.py Bettr/Bettr/Application/FirebaseBootstrap.swift
+
+assert_success "App-side contract configuration helper changes run contract CI" \
+  python3 scripts/gemini-contract/impact.py Bettr/BettrTests/Unit/GeminiContractSupport.swift
+
+assert_success "Contract configuration helper regression tests run contract CI" \
+  python3 scripts/gemini-contract/impact.py Bettr/BettrTests/Unit/GeminiContractSupportTests.swift
+
+assert_failure "Removed AI source paths no longer trigger contract CI" \
   python3 scripts/gemini-contract/impact.py Bettr/Bettr/Domain/AI/AIContracts.swift
+
+assert_failure "Unrelated domain DTOs do not trigger contract CI" \
+  python3 scripts/gemini-contract/impact.py Bettr/Bettr/Domain/DTOs/NewDatabaseDTO.swift
 
 assert_failure "Pure GRDB integration changes do not run contract CI" \
   python3 scripts/gemini-contract/impact.py Bettr/BettrTests/DatabaseIntegration/WordRepositoryTests.swift
