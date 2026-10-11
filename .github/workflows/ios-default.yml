@@ -17,6 +17,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  bettr-ai:
+    name: BettrAI Independent Tests
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify independent test runner failure handling
+        run: bash scripts/tests/bettr-ai-test.sh
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Restore BettrAI package cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/BettrAIBuild
+          key: bettr-ai-${{ runner.os }}-${{ runner.arch }}-xcode-26.6-${{ hashFiles('Bettr/BettrAI/Package.swift', 'Bettr/BettrAI/Package.resolved', 'Bettr/Bettr.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+
+      - name: Run credential-free BettrAI tests without the app host
+        run: |
+          scripts/bettr-ai-test.sh \
+            --scratch-path "$RUNNER_TEMP/BettrAIBuild" \
+            --results "$RUNNER_TEMP/BettrAIResults"
+
+      - name: Upload independent test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bettr-ai-results
+          path: ${{ runner.temp }}/BettrAIResults
+          if-no-files-found: ignore
+          retention-days: 7
+
   ios-default:
     name: iOS Default
     runs-on: macos-26
@@ -39,12 +76,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          if rg -n --pcre2 --glob '*.swift' '^\s*(?!//).*\b(print|debugPrint|NSLog|dump|os_log)\s*\(' Bettr/Bettr; then
+          if rg -n --pcre2 --glob '*.swift' '^\s*(?!//).*\b(print|debugPrint|NSLog|dump|os_log)\s*\(' Bettr/Bettr Bettr/BettrAI/Sources; then
             echo "Use AppLog instead of raw output APIs."
             exit 1
           fi
 
-          if rg -n --pcre2 --glob '*.swift' --glob '!**/Utils/AppLog.swift' '^\s*(import OSLog\b|.*\b(Logger|OSLog)\s*\()' Bettr/Bettr; then
+          if rg -n --pcre2 --glob '*.swift' --glob '!**/Utils/AppLog.swift' '^\s*(import OSLog\b|.*\b(Logger|OSLog)\s*\()' Bettr/Bettr Bettr/BettrAI/Sources; then
             echo "Use AppLog instead of creating a direct OSLog logger."
             exit 1
           fi
@@ -53,7 +90,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/SourcePackages
-          key: spm-${{ runner.os }}-${{ runner.arch }}-xcode-26.6-${{ hashFiles('Bettr/Bettr.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          key: spm-${{ runner.os }}-${{ runner.arch }}-xcode-26.6-${{ hashFiles('Bettr/Bettr.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'Bettr/BettrAI/Package.resolved') }}
 
       - name: Create iPad Simulator
         id: simulator

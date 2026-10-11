@@ -1,5 +1,5 @@
 import XCTest
-@testable import Bettr
+@testable import BettrAI
 
 final class GeminiScriptParserTests: XCTestCase {
     func test_parse_whenValidJSON_thenPreservesTitleAndOrderIndexes() throws {

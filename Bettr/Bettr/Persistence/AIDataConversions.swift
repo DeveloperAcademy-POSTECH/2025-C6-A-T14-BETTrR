@@ -1,18 +1,23 @@
+import BettrAI
 import Foundation
 
 extension SentenceData {
     init(sentence: Sentence, chunks: [ChunkData]) {
-        self.orderIndex = sentence.orderIndex
-        self.englishText = sentence.englishText
-        self.koreanText = sentence.koreanText
-        self.chunks = chunks
+        self.init(
+            orderIndex: sentence.orderIndex,
+            englishText: sentence.englishText,
+            koreanText: sentence.koreanText,
+            chunks: chunks
+        )
     }
 }
 
 extension ChunkData {
     init(chunk: Chunk) {
-        self.orderIndex = chunk.orderIndex
-        self.englishText = chunk.englishText
-        self.koreanText = chunk.koreanText
+        self.init(
+            orderIndex: chunk.orderIndex,
+            englishText: chunk.englishText,
+            koreanText: chunk.koreanText
+        )
     }
 }

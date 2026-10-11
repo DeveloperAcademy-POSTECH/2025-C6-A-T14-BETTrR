@@ -1,5 +1,5 @@
 import XCTest
-@testable import Bettr
+@testable import BettrAI
 
 final class GeminiWordTests: XCTestCase {
     func test_decode_whenAllRequiredFieldsExist_thenCreatesWordData() throws {

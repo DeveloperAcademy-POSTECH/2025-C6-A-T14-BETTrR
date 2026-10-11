@@ -1,3 +1,4 @@
+import BettrAI
 import GRDB
 import XCTest
 @testable import Bettr

@@ -5,6 +5,7 @@
 //  Created by 길정수 on 11/3/25.
 //
 
+import BettrAI
 import Foundation
 
 /// 홈 목록은 조회와 삭제 계약만 사용합니다.

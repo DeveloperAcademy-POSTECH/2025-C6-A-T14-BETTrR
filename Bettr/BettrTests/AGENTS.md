@@ -4,7 +4,8 @@
 
 ## 테스트 계층
 
-테스트는 외부 의존성에 따라 세 계층으로 구분합니다.
+앱 테스트는 외부 의존성에 따라 세 계층으로 구분합니다. AI 순수 테스트는
+[BettrAI 패키지](../BettrAI/README.md)의 `Tests/BettrAITests/`에 둡니다.
 
 | 계층 | 디렉터리 | 허용 의존성 | Firebase 설정 필요 | 실행 시점 |
 | --- | --- | --- | --- | --- |
@@ -20,7 +21,7 @@
 
 ## Test Plan
 
-- `../TestPlans/Default.xctestplan`은 Unit과 DatabaseIntegration 테스트를
+- `../TestPlans/Default.xctestplan`은 Unit, DatabaseIntegration과 BettrAITests를
   실행합니다. `GoogleService-Info.plist` 없이 동작해야 합니다.
 - `../TestPlans/GeminiContract.xctestplan`은 실제 Firebase와 Gemini 호출을 위한
   명시적 Contract Test Plan입니다. 인증 정보와 비용 발생이 의도된 경우에만
@@ -31,11 +32,11 @@
 
 - `.github/workflows/ios-default.yml`의 `iOS Default` workflow는 `dev`와 `main`
   대상 PR 및 `dev` push에서 Default Plan을 실행합니다.
-- CI는 iPad Simulator 빌드와 Unit/DatabaseIntegration 테스트만 수행합니다.
+- CI는 독립 BettrAI 테스트와 iPad Simulator의 Default/UI 테스트를 수행합니다.
   GeminiContract Test Plan, Firebase plist, App Check token, Gemini 호출은 포함하지
   않습니다.
-- workflow의 SPM cache는 `Package.resolved`로 무효화됩니다. DerivedData와 simulator
-  data는 cache하지 않습니다.
+- 앱 SPM cache는 앱과 BettrAI의 `Package.resolved`로 무효화됩니다. 앱 DerivedData와
+  simulator data는 cache하지 않습니다. 독립 패키지 job은 SwiftPM scratch 경로를 cache합니다.
 
 Xcode에서는 `Cmd+U`로 기본 Plan(Default)을 실행합니다. 다른 Plan은 Product >
 Test Plan에서 선택합니다. 터미널과 CI에서는 다음 명령을 사용합니다.

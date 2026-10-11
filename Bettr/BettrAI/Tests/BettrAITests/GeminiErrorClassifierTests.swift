@@ -1,7 +1,7 @@
 import Foundation
 import FirebaseAILogic
 import XCTest
-@testable import Bettr
+@testable import BettrAI
 
 @MainActor
 final class GeminiErrorClassifierTests: XCTestCase {

@@ -2,21 +2,25 @@ import Foundation
 import FirebaseAILogic
 
 @MainActor
-final class FirebaseGeminiAdapter: ScriptAnalyzing, WordExtracting {
+public final class FirebaseGeminiAdapter: ScriptAnalyzing, WordExtracting {
     typealias GenerateText = @MainActor (String) async throws -> String
 
     private let generateText: GenerateText
     private let retryExecutor: GeminiRetryExecutor
 
+    public convenience init() {
+        self.init(generateText: nil)
+    }
+
     init(
-        generateText: GenerateText? = nil,
+        generateText: GenerateText?,
         retryExecutor: GeminiRetryExecutor? = nil
     ) {
         self.generateText = generateText ?? FirebaseGeminiTextGenerator().generateText
         self.retryExecutor = retryExecutor ?? GeminiRetryExecutor()
     }
 
-    func analyzeScript(_ content: String) async throws -> ScriptData {
+    public func analyzeScript(_ content: String) async throws -> ScriptData {
         guard !Task.isCancelled else { throw AIError.cancelled }
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw AIError.invalidInput
@@ -34,7 +38,7 @@ final class FirebaseGeminiAdapter: ScriptAnalyzing, WordExtracting {
         }
     }
 
-    func extractWords(from content: String) async throws -> [WordData] {
+    public func extractWords(from content: String) async throws -> [WordData] {
         guard !Task.isCancelled else { throw AIError.cancelled }
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw AIError.invalidInput

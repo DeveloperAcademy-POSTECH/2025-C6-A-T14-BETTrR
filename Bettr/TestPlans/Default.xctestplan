@@ -21,6 +21,13 @@
         "identifier" : "A7CF26052EB2440300CEA916",
         "name" : "BettrTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:BettrAI",
+        "identifier" : "BettrAITests",
+        "name" : "BettrAITests"
+      }
     }
   ],
   "version" : 1

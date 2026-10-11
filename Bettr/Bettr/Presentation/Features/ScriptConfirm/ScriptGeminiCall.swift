@@ -1,3 +1,4 @@
+import BettrAI
 import Foundation
 
 /// Feature boundary: a provider that finishes late must not publish a cancelled result.

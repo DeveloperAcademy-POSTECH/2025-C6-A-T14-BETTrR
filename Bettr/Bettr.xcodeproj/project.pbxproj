@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		10F1140A2ECFB8FA006DBF4B /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 10F114092ECFB8FA006DBF4B /* Lottie */; };
-		1243719C2ECC42150001FECB /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 1243719B2ECC42150001FECB /* FirebaseAILogic */; };
+		1243719C2ECC42150001FECB /* BettrAI in Frameworks */ = {isa = PBXBuildFile; productRef = 1243719B2ECC42150001FECB /* BettrAI */; };
 		129A718A2EB0B038001CE8EB /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71892EB0B038001CE8EB /* FirebaseAppCheck */; };
 		129A718C2EB0B038001CE8EB /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 129A718B2EB0B038001CE8EB /* FirebaseCore */; };
 		129A71B32EB0EEA8001CE8EB /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71B22EB0EEA8001CE8EB /* GRDB */; };
@@ -35,6 +35,7 @@
 		129A71762EB0AD3D001CE8EB /* Bettr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bettr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A7CF26062EB2440300CEA916 /* BettrTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B73060012F0A306000000001 /* BettrUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B30100000000000000000004 /* BettrAI */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BettrAI; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -64,7 +65,7 @@
 				129A718A2EB0B038001CE8EB /* FirebaseAppCheck in Frameworks */,
 				129A718C2EB0B038001CE8EB /* FirebaseCore in Frameworks */,
 				129A71B32EB0EEA8001CE8EB /* GRDB in Frameworks */,
-				1243719C2ECC42150001FECB /* FirebaseAILogic in Frameworks */,
+				1243719C2ECC42150001FECB /* BettrAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,6 +90,7 @@
 			isa = PBXGroup;
 			children = (
 				129A71782EB0AD3D001CE8EB /* Bettr */,
+				B30100000000000000000004 /* BettrAI */,
 				A7CF26072EB2440300CEA916 /* BettrTests */,
 				B73060022F0A306000000001 /* BettrUITests */,
 				129A71772EB0AD3D001CE8EB /* Products */,
@@ -128,7 +130,7 @@
 				129A71892EB0B038001CE8EB /* FirebaseAppCheck */,
 				129A718B2EB0B038001CE8EB /* FirebaseCore */,
 				129A71B22EB0EEA8001CE8EB /* GRDB */,
-				1243719B2ECC42150001FECB /* FirebaseAILogic */,
+				1243719B2ECC42150001FECB /* BettrAI */,
 				10F114092ECFB8FA006DBF4B /* Lottie */,
 			);
 			productName = Bettr;
@@ -214,6 +216,7 @@
 			mainGroup = 129A716D2EB0AD3D001CE8EB;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				B30100000000000000000001 /* XCLocalSwiftPackageReference "BettrAI" */,
 				129A71862EB0B038001CE8EB /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				129A71B12EB0EEA8001CE8EB /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 				10F114082ECFB8FA006DBF4B /* XCRemoteSwiftPackageReference "lottie-ios" */,
@@ -676,6 +679,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		B30100000000000000000001 /* XCLocalSwiftPackageReference "BettrAI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = BettrAI;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		10F114082ECFB8FA006DBF4B /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -709,10 +719,10 @@
 			package = 10F114082ECFB8FA006DBF4B /* XCRemoteSwiftPackageReference "lottie-ios" */;
 			productName = Lottie;
 		};
-		1243719B2ECC42150001FECB /* FirebaseAILogic */ = {
+		1243719B2ECC42150001FECB /* BettrAI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 129A71862EB0B038001CE8EB /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAILogic;
+			package = B30100000000000000000001 /* XCLocalSwiftPackageReference "BettrAI" */;
+			productName = BettrAI;
 		};
 		129A71892EB0B038001CE8EB /* FirebaseAppCheck */ = {
 			isa = XCSwiftPackageProductDependency;

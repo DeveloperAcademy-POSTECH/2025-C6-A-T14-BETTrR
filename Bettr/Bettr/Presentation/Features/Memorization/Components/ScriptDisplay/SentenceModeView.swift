@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import BettrAI
 
 struct SentenceModeView: View {
     @Bindable var viewModel: MemorizationViewModel

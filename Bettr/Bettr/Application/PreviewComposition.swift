@@ -1,3 +1,4 @@
+import BettrAI
 import Foundation
 import Observation
 import UIKit

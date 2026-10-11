@@ -1,3 +1,4 @@
+import BettrAI
 import SwiftUI
 
 /// 앱 시작점의 조립 경계입니다. 기능에는 계약 또는 해당 화면의 생성 함수만 전달합니다.
