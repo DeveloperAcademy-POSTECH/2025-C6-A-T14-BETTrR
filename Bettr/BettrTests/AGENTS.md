@@ -56,9 +56,11 @@ xcodebuild test \
 - GeminiContract 테스트는 테스트 코드에서 Firebase를 직접 초기화하며, 로컬에서는
   커밋하지 않는 `GoogleService-Info.plist`를 사용합니다.
 
-## GeminiContract CI
+## GeminiContract 실행과 CI
 
-- `GoogleService-Info.plist`는 계속 Git에 커밋하지 않습니다.
-- GeminiContract workflow에서는 `GOOGLE_SERVICE_INFO_PLIST_BASE64` secret을
-  `Bettr/Bettr/GoogleService-Info.plist`로 복원합니다.
-- Secret 값이나 복원한 plist 내용은 workflow 로그에 출력하지 않습니다.
+- 실제 호출의 환경·초기화·호출 예산·실패 분류·증거 기준은
+  [GeminiContract 실행 문서](../../docs/testing/gemini-contract.md)를 따릅니다.
+- Default Plan은 `GeminiContractTests`를 제외합니다. 실제 호출 테스트 클래스나
+  시나리오를 바꾸면 두 Test Plan과 전용 runner의 선택·성공 조건도 갱신합니다.
+- Debug Provider는 테스트 코드에서만 구성합니다. 운영 Firebase Bootstrap을
+  Debug Provider로 변경하지 않습니다.

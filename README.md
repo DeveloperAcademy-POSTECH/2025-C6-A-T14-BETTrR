@@ -208,6 +208,7 @@ cd 2025-C6-A-T14-BETTrR
 
 - [:globe_with_meridians: 프로젝트 웹사이트](https://developeracademy-postech.github.io/2025-C6-A-T14-BETTrR/)
 - [:iphone: App Store 페이지](https://apps.apple.com/kr/app/bettrr/id6754756492)
+- [실제 Gemini 계약 테스트 실행](docs/testing/gemini-contract.md)
 - [iPhone 지원 기반 리팩터링 계획](docs/plans/ios-readiness-refactoring-plan.md)
 - [진행 상태와 하위 이슈 (#292)](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/292)
 - [아키텍처 결정 기록](docs/decisions/README.md)
