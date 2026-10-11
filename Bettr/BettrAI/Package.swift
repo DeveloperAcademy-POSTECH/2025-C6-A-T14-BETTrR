@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "BettrAI",
     platforms: [.iOS("26.0"), .macOS(.v13)],
-    products: [.library(name: "BettrAI", targets: ["BettrAI"])],
+    products: [.library(name: "BettrAI", type: .static, targets: ["BettrAI"])],
     dependencies: [
         .package(url: "https://github.com/firebase/firebase-ios-sdk", exact: "12.6.0")
     ],

@@ -12,7 +12,6 @@
 		129A718A2EB0B038001CE8EB /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71892EB0B038001CE8EB /* FirebaseAppCheck */; };
 		129A718C2EB0B038001CE8EB /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 129A718B2EB0B038001CE8EB /* FirebaseCore */; };
 		129A71B32EB0EEA8001CE8EB /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71B22EB0EEA8001CE8EB /* GRDB */; };
-		B30100000000000000000003 /* BettrAI in Frameworks */ = {isa = PBXBuildFile; productRef = B30100000000000000000002 /* BettrAI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,7 +73,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B30100000000000000000003 /* BettrAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -157,7 +155,6 @@
 			);
 			name = BettrTests;
 			packageProductDependencies = (
-				B30100000000000000000002 /* BettrAI */,
 			);
 			productName = BettrTests;
 			productReference = A7CF26062EB2440300CEA916 /* BettrTests.xctest */;
@@ -723,11 +720,6 @@
 			productName = Lottie;
 		};
 		1243719B2ECC42150001FECB /* BettrAI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B30100000000000000000001 /* XCLocalSwiftPackageReference "BettrAI" */;
-			productName = BettrAI;
-		};
-		B30100000000000000000002 /* BettrAI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B30100000000000000000001 /* XCLocalSwiftPackageReference "BettrAI" */;
 			productName = BettrAI;

@@ -37,6 +37,9 @@ func makeAnalyzer() -> any ScriptAnalyzing {
   앱의 FirebaseCore/AppCheck도 동일한 SDK 버전으로 해석되어야 합니다.
 - Firebase/AppCheck 초기화와 설정 파일은 앱의 `FirebaseBootstrap` 책임입니다.
   생성자는 SDK 모델을 만들지 않으며 최초 유효한 요청에서 생성합니다.
+- BettrAI는 정적 라이브러리로 링크합니다. 앱이 FirebaseCore/AppCheck도 직접
+  사용하므로 동적 래퍼에 Firebase를 중복 포함하면 기본 FirebaseApp 상태가 분리됩니다.
+  호스트가 있는 BettrTests는 BettrAI를 별도로 링크하지 않고 앱의 연결을 사용합니다.
 - `gemini-2.5-flash-lite`, 기존 프롬프트, 오류 분류와 최대 두 번의 재시도 정책을
   유지합니다. DB 변환·저장·화면 상태·요청별 사용량 제한은 앱 책임입니다.
 - 패키지는 직접 로그를 출력하지 않습니다. 앱에서 정해진 오류 범주만 기록합니다.
