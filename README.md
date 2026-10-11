@@ -202,6 +202,34 @@ cd 2025-C6-A-T14-BETTrR
 - Xcode 26.0 이상 설치
 - iPadOS 26.0+ 시뮬레이터 또는 실제 기기 (AI 분석 요청, 음성 인식)
 
+### 3. 로컬·CI 공통 빌드 및 Default 테스트
+
+저장소 루트에서 CI와 같은 명령으로 패키지 해석, iPad Simulator 앱 빌드,
+Default 테스트를 실행합니다. Firebase 설정 파일과 실제 Gemini 호출은 필요하지 않습니다.
+
+```bash
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+scripts/ios-default.sh \
+  --destination 'platform=iOS Simulator,id=<사용 가능한 iPad Simulator UDID>' \
+  --source-packages /tmp/bettr-spm \
+  --derived-data /tmp/bettr-derived \
+  --results /tmp/bettr-default-run-1
+```
+
+- `xcrun simctl list devices available`로 Simulator UDID를 확인합니다. 필요한
+  iPadOS runtime은 Xcode에서 설치하며, CI의 Xcode/Simulator 선택은 workflow가 담당합니다.
+- `--source-packages`는 SPM 캐시, `--derived-data`는 빌드 캐시 경로입니다.
+  두 경로는 재사용할 수 있습니다. 추적된 `Package.resolved`가 필요합니다.
+- `--results`에는 `resolve.log`, `build.log`, `test.log`와
+  `BettrBuild.xcresult`, `BettrTest.xcresult`를 저장합니다. 재실행할 때는 새 결과
+  경로를 지정합니다. 상대 경로는 명령을 실행한 디렉터리를 기준으로 해석합니다.
+- Xcode 실행 실패나 로그 저장 실패는 non-zero로 종료합니다. 빌드·테스트는
+  종료 코드 `0`과 각각 `BUILD SUCCEEDED`·`TEST SUCCEEDED` 표시가 있어야 통과합니다.
+  성공 증거가 없으면 검증 미완료로 실패 처리합니다.
+
+실제 Xcode 호출 없이 실행 스크립트의 실패 전파를 검증하려면
+`bash scripts/tests/ios-default-test.sh`를 실행합니다.
+
 ---
 
 ## :paperclip: 프로젝트 문서
