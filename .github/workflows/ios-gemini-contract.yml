@@ -1,0 +1,139 @@
+name: iOS Gemini Contract
+
+on:
+  # Choose the intended ref in GitHub UI: dev for manual/nightly parity,
+  # or the release branch before a release promotion.
+  workflow_dispatch:
+    inputs:
+      purpose:
+        description: "Reason for this live Gemini contract run"
+        required: true
+        default: "manual"
+        type: choice
+        options:
+          - manual
+          - nightly
+          - release-before
+  schedule:
+    - cron: "17 18 * * *"
+  pull_request:
+    branches:
+      - dev
+      - main
+    paths:
+      - ".github/workflows/ios-gemini-contract.yml"
+      - "Bettr/Bettr/Application/FirebaseBootstrap.swift"
+      - "Bettr/Bettr/BettrApp.swift"
+      - "Bettr/Bettr/Domain/AI/**"
+      - "Bettr/Bettr/Domain/DTOs/**"
+      - "Bettr/Bettr/Domain/Services/AnalysisRateLimiting.swift"
+      - "Bettr/Bettr/Domain/Services/WordExtractionService.swift"
+      - "Bettr/Bettr/Presentation/Features/ScriptConfirm/ScriptGeminiCall.swift"
+      - "Bettr/Bettr/Presentation/Services/Gemini/**"
+      - "Bettr/BettrAI/**"
+      - "Bettr/Bettr.xcodeproj/project.pbxproj"
+      - "Bettr/Bettr.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+      - "Bettr/Bettr.xcodeproj/xcshareddata/xcschemes/Bettr.xcscheme"
+      - "Bettr/BettrTests/GeminiContract/**"
+      - "Bettr/BettrTests/Unit/FirebaseGeminiAdapterTests.swift"
+      - "Bettr/BettrTests/Unit/Gemini*Tests.swift"
+      - "Bettr/BettrTests/Unit/GeminiContractSupport.swift"
+      - "Bettr/BettrTests/Unit/ScriptGeminiCallTests.swift"
+      - "Bettr/TestPlans/Default.xctestplan"
+      - "Bettr/TestPlans/GeminiContract.xctestplan"
+      - "scripts/gemini-contract/**"
+      - "scripts/tests/gemini-contract-*.sh"
+  push:
+    branches:
+      - dev
+      - main
+      - "release/**"
+    paths:
+      - ".github/workflows/ios-gemini-contract.yml"
+      - "Bettr/Bettr/Application/FirebaseBootstrap.swift"
+      - "Bettr/Bettr/BettrApp.swift"
+      - "Bettr/Bettr/Domain/AI/**"
+      - "Bettr/Bettr/Domain/DTOs/**"
+      - "Bettr/Bettr/Domain/Services/AnalysisRateLimiting.swift"
+      - "Bettr/Bettr/Domain/Services/WordExtractionService.swift"
+      - "Bettr/Bettr/Presentation/Features/ScriptConfirm/ScriptGeminiCall.swift"
+      - "Bettr/Bettr/Presentation/Services/Gemini/**"
+      - "Bettr/BettrAI/**"
+      - "Bettr/Bettr.xcodeproj/project.pbxproj"
+      - "Bettr/Bettr.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+      - "Bettr/Bettr.xcodeproj/xcshareddata/xcschemes/Bettr.xcscheme"
+      - "Bettr/BettrTests/GeminiContract/**"
+      - "Bettr/BettrTests/Unit/FirebaseGeminiAdapterTests.swift"
+      - "Bettr/BettrTests/Unit/Gemini*Tests.swift"
+      - "Bettr/BettrTests/Unit/GeminiContractSupport.swift"
+      - "Bettr/BettrTests/Unit/ScriptGeminiCallTests.swift"
+      - "Bettr/TestPlans/Default.xctestplan"
+      - "Bettr/TestPlans/GeminiContract.xctestplan"
+      - "scripts/gemini-contract/**"
+      - "scripts/tests/gemini-contract-*.sh"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-gemini-contract-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  selector-tests:
+    name: Gemini Contract Selector Tests
+    runs-on: macos-26
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run credential-free Gemini contract CI tests
+        run: scripts/tests/gemini-contract-ci.sh
+
+  gemini-contract:
+    name: Gemini Contract
+    needs: selector-tests
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: macos-26
+    timeout-minutes: 15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      PROJECT: Bettr/Bettr.xcodeproj
+      SCHEME: Bettr
+      GEMINI_CONTRACT_ENABLED: "1"
+      GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+      FIREBASE_APP_CHECK_DEBUG_TOKEN: ${{ secrets.FIREBASE_APP_CHECK_DEBUG_TOKEN }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Restore SPM cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/SourcePackages
+          key: spm-${{ runner.os }}-${{ runner.arch }}-xcode-26.6-${{ hashFiles('Bettr/Bettr.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+
+      - name: Check Gemini contract configuration
+        run: scripts/gemini-contract/run.sh --check-config
+
+      - name: Run live Gemini contract tests
+        env:
+          SOURCE_PACKAGES: ${{ runner.temp }}/SourcePackages
+          DERIVED_DATA: ${{ runner.temp }}/BettrGeminiContractDerivedData
+          RESULT_BUNDLE: ${{ runner.temp }}/BettrGeminiContract.xcresult
+          SUMMARY_JSON: ${{ runner.temp }}/BettrGeminiContract-summary.json
+        run: scripts/gemini-contract/run.sh
+
+      - name: Upload sanitized Gemini contract summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-contract-summary
+          path: ${{ runner.temp }}/BettrGeminiContract-summary.json
+          if-no-files-found: ignore
+          retention-days: 7
