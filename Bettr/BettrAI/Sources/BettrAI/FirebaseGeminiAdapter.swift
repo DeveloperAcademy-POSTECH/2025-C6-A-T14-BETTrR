@@ -69,7 +69,7 @@ public final class FirebaseGeminiAdapter: ScriptAnalyzing, WordExtracting {
 private final class FirebaseGeminiTextGenerator {
     private lazy var model = FirebaseAI
         .firebaseAI(backend: .googleAI(), useLimitedUseAppCheckTokens: true)
-        .generativeModel(modelName: "gemini-2.5-flash-lite")
+        .generativeModel(modelName: "gemini-3.5-flash-lite")
 
     func generateText(for prompt: String) async throws -> String {
         let response = try await model.generateContent(prompt)
