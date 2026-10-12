@@ -3,8 +3,16 @@ import FirebaseCore
 
 final class FirebaseBootstrap {
     func configure() {
-        AppCheck.setAppCheckProviderFactory(BettrCheckProviderFactory())
+        AppCheck.setAppCheckProviderFactory(Self.makeAppCheckProviderFactory())
         FirebaseApp.configure()
+    }
+
+    private static func makeAppCheckProviderFactory() -> any AppCheckProviderFactory {
+#if DEBUG
+        AppCheckDebugProviderFactory()
+#else
+        BettrCheckProviderFactory()
+#endif
     }
 }
 

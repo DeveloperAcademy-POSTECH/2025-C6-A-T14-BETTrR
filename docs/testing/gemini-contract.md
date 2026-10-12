@@ -36,9 +36,12 @@
 3. 검증한 plist에서 `FirebaseOptions`를 읽어 default Firebase app을 구성한다.
 4. 운영 Adapter를 생성하고 두 시나리오를 순차 실행한다.
 
-Debug Provider는 테스트 코드에만 있으며 운영 `FirebaseBootstrap`의
-App Attest/DeviceCheck 설정을 변경하지 않는다. SDK 변경 시 설정 검증·오류
-분류와 Debug Provider 동작을 함께 확인한다.
+GeminiContract의 Debug Provider는 테스트 코드에만 있으며 운영
+`FirebaseBootstrap`을 실행하거나 재사용하지 않는다. 운영 Bootstrap은 대화형
+로컬 실행을 위해 Debug 구성에서 SDK Debug factory를, Release 구성에서 App Attest를
+선택한다. 계약 테스트는 token 로그를 남기지 않는 전용 factory와 별도의 CI/로컬
+token을 계속 사용한다. SDK 변경 시 설정 검증·오류 분류와 두 Debug Provider 경로를
+함께 확인한다.
 
 ## 로컬 실행
 
