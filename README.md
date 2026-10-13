@@ -202,7 +202,23 @@ cd 2025-C6-A-T14-BETTrR
 - Xcode 26.0 이상 설치
 - iPadOS 26.0+ 시뮬레이터 또는 실제 기기 (AI 분석 요청, 음성 인식)
 
-### 3. 로컬·CI 공통 빌드 및 Default 테스트
+### 3. Firebase AI Logic 로컬 실행
+
+앱의 Debug 구성은 `AppCheckDebugProviderFactory`, Release 구성은 App Attest를
+사용합니다. App Check 시행 상태를 유지한 채 Simulator에서 AI 기능을 실행하려면
+다음과 같이 로컬 Debug token을 등록합니다.
+
+1. Git에 포함되지 않는 `Bettr/Bettr/GoogleService-Info.plist`를 준비합니다.
+2. Debug 구성으로 앱을 Simulator에서 처음 실행합니다.
+3. Firebase SDK가 Xcode Console에 표시한 App Check Debug token을 Firebase Console의
+   Security > App Check > Apps > Manage debug tokens에 등록합니다.
+4. 앱을 다시 실행하여 AI 분석 요청이 성공하는지 확인합니다.
+
+Debug token은 코드, 공유 Scheme, 문서, 로그 산출물이나 Git에 저장하지 않습니다.
+Release 빌드에는 Debug Provider가 선택되지 않습니다. 실제 Gemini 계약 테스트는
+[별도 실행 문서](docs/testing/gemini-contract.md)의 전용 token 경로를 사용합니다.
+
+### 4. 로컬·CI 공통 빌드 및 Default 테스트
 
 저장소 루트에서 CI와 같은 명령으로 패키지 해석, iPad Simulator 앱 빌드,
 Default 테스트를 실행합니다. Firebase 설정 파일과 실제 Gemini 호출은 필요하지 않습니다.

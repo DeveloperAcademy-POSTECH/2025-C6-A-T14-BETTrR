@@ -54,8 +54,11 @@ xcodebuild test \
 
 - 앱이 테스트 호스트로 실행될 때 `AppDelegate`는 Firebase 초기화를 건너뜁니다.
 - 따라서 Default Plan은 `GoogleService-Info.plist` 없이 실행되어야 합니다.
+- 운영 앱의 `FirebaseBootstrap`은 Debug 구성에서 SDK Debug Provider를, Release
+  구성에서 App Attest를 선택합니다. Debug token은 로컬 비밀값으로 관리하며 공유
+  Scheme, 코드, 로그 산출물에 저장하지 않습니다.
 - GeminiContract 테스트는 테스트 코드에서 Firebase를 직접 초기화하며, 로컬에서는
-  커밋하지 않는 `GoogleService-Info.plist`를 사용합니다.
+  커밋하지 않는 `GoogleService-Info.plist`와 별도의 등록된 Debug token을 사용합니다.
 
 ## GeminiContract 실행과 CI
 
@@ -63,5 +66,6 @@ xcodebuild test \
   [GeminiContract 실행 문서](../../docs/testing/gemini-contract.md)를 따릅니다.
 - Default Plan은 `GeminiContractTests`를 제외합니다. 실제 호출 테스트 클래스나
   시나리오를 바꾸면 두 Test Plan과 전용 runner의 선택·성공 조건도 갱신합니다.
-- Debug Provider는 테스트 코드에서만 구성합니다. 운영 Firebase Bootstrap을
-  Debug Provider로 변경하지 않습니다.
+- GeminiContract는 운영 Bootstrap을 실행하지 않고 테스트 전용 Debug Provider와
+  CI/로컬 전용 token을 직접 구성합니다. 운영 앱의 Debug Provider token과 공유하지
+  않습니다.
