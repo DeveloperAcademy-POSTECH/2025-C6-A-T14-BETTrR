@@ -6,69 +6,39 @@
 //
 
 import SwiftUI
-import FirebaseCore
-import FirebaseAppCheck
 
 class AppDelegate: NSObject, UIApplicationDelegate {
+    private let firebaseBootstrap = FirebaseBootstrap()
+
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-
-        print("🔥 AppDelegate didFinishLaunching - Setting AppCheck Provider Factory")
-
-        let providerFactory = BettrCheckProviderFactory()
-        AppCheck.setAppCheckProviderFactory(providerFactory)
-
-        FirebaseApp.configure()
-
-        // 강제 토큰 fetch 테스트
-        Task {
-            do {
-                print("⏳ AppCheck: Fetching token manually...")
-                let token = try await AppCheck.appCheck().token(forcingRefresh: true)
-                print("✅ AppCheck Token Fetched: \(token.token)")
-            } catch {
-                print("❌ AppCheck Token Fetch FAILED: \(error.localizedDescription)")
-            }
+        // 테스트 호스트로 실행될 때는 Firebase를 초기화하지 않는다.
+        // GoogleService-Info.plist 없이도 Unit/DatabaseIntegration 테스트가 실행되어야 하며,
+        // 실제 Gemini 호출 테스트(GeminiContract)는 테스트 쪽에서 직접 초기화한다.
+        if !AppLaunchContext.usesIsolatedDependencies {
+            firebaseBootstrap.configure()
         }
-
         return true
     }
 }
-
-// MARK: - AppCheck Provider Factory 구현
-class BettrCheckProviderFactory: NSObject, AppCheckProviderFactory {
-    func createProvider(with app: FirebaseApp) -> AppCheckProvider? {
-        if #available(iOS 14.0, *) {
-            return AppAttestProvider(app: app)
-        } else {
-            return DeviceCheckProvider(app: app)
-        }
-    }
-}
-
 
 @main
 struct BettrApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
-    private let database = AppDatabase.shared
-    
-    @State private var router = NavigationRouter()
-    @State private var audioService = AudioPlaybackService()
-    
-    @State private var databaseContainer: DatabaseContainer
+    private let composition: AppComposition
     
     init() {
-        _databaseContainer = State(initialValue: DatabaseContainer(database: AppDatabase.shared))
+        do {
+            composition = try AppLaunchContext.makeComposition()
+        } catch {
+            fatalError("Failed to initialize isolated app dependencies")
+        }
     }
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(databaseContainer)
-            //    .environment(DatabaseContainer(database: database))
-                .environment(router)
-                .environment(audioService)
+            ContentView(composition: composition)
         }
     }
 }

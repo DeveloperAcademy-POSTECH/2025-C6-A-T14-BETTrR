@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "8C1E62E0-5DF1-4B3A-9C64-000000000002",
+      "name" : "GeminiContract",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "testTimeoutsEnabled" : true,
+    "defaultTestExecutionTimeAllowance" : 90,
+    "maximumTestExecutionTimeAllowance" : 90,
+    "environmentVariableEntries" : [
+      {
+        "key" : "GEMINI_CONTRACT_ENABLED",
+        "value" : "1",
+        "enabled" : true
+      }
+    ]
+  },
+  "testTargets" : [
+    {
+      "selectedTests" : [
+        "GeminiContractTests"
+      ],
+      "target" : {
+        "containerPath" : "container:Bettr.xcodeproj",
+        "identifier" : "A7CF26052EB2440300CEA916",
+        "name" : "BettrTests"
+      },
+      "parallelizable" : false
+    }
+  ],
+  "version" : 1
+}

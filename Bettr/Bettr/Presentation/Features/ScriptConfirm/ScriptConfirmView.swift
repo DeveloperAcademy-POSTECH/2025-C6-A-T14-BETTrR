@@ -1,74 +1,49 @@
 import SwiftUI
 
 // MARK: - 화면 UI
+@MainActor
 struct ScriptConfirmView: View {
-    @Environment(DatabaseContainer.self) var databaseContainer
     @Environment(NavigationRouter.self) var router
     @Environment(\.dismiss) private var dismiss
-    
+
+    private static let maxCharacterCount = 2000
+
+    @State private var viewModel: ScriptConfirmViewModel
     @State var scriptTitle: String
     @State var scriptContent: String
-    @State var isLoading: Bool = false
     @State private var isEditingContent = false
     @State private var isTitleEditing: Bool = false
-    
+
     // TextEditor 포커스 상태 감지용 (버튼 제어)
     @FocusState private var isFocusedContentEditor: Bool
-    
-    // Gemini 분석 결과 임시 저장
-    @State var parsedScript: ScriptData?
-    
-    @State var showErrorAlert: Bool = false
-    @State var errorMessage: String = ""
-    
+
+    @State private var showErrorAlert = false
+
     // 뒤로가기 확인 알림
     @State private var showBackAlert: Bool = false
-    @State private var isPendingDismiss: Bool = false
-    
-    // 🔹 추가됨: 30초 타임아웃 감지용 상태
-    @State private var didTimeout: Bool = false
-    
-    // 글자 수 제한
-    private static let maxCharacterCount = 2000
-    
-    //Gemini 호출 로직 전용 객체 (ScriptGeminiCall.swift에 정의됨)
-    private let geminiCaller = ScriptGeminiCall()
-    
-    //Local Rate Limiter(사용자의 호출 제한)
-    private let rateLimiter = LocalRateLimiter.shared
-    
-    init(initialText: String?, initialTitle: String?) {
+    @State private var isVisible = false
+
+    init(
+        initialText: String?,
+        initialTitle: String?,
+        viewModel: ScriptConfirmViewModel
+    ) {
+        _viewModel = State(initialValue: viewModel)
         let content = initialText ?? ""
-        
+
         // 처음부터 영어/숫자/기호만 남김 (OCR에서 한국어 들어와도 여기서 제거됨)
         let asciiFiltered = content.unicodeScalars.filter { $0.isASCII }
         let cleaned = String(String.UnicodeScalarView(asciiFiltered))
         _scriptContent = State(initialValue: String(cleaned.prefix(Self.maxCharacterCount)))
-        //        _scriptContent = State(initialValue: String(content.prefix(Self.maxCharacterCount)))
         _scriptTitle = State(initialValue: initialTitle ?? "")
     }
-    
+
     var body: some View {
         VStack {
             // 스크립트 내용
             VStack(alignment: .trailing, spacing: 8) {
                 if isEditingContent {
-                    ZStack(alignment: .topLeading) {
-                        TextEditor(text: $scriptContent)
-                            .padding(4)
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.primaryBlue200, lineWidth: 3)
-                            }
-                            .focused($isFocusedContentEditor)
-                        //placeholder
-                        if scriptContent.isEmpty {
-                            Text("스크립트를 입력하세요.")
-                                .foregroundStyle(.gray.opacity(0.5))
-                                .padding(.vertical, 12)
-                                .padding(.horizontal, 8)
-                        }
-                    }
+                    scriptContentEditor
                 } else {
                     ScrollView {
                         Text(scriptContent)
@@ -85,7 +60,7 @@ struct ScriptConfirmView: View {
                         isFocusedContentEditor = true
                     }
                 }
-                
+
                 // 글자 수 표시
                 Text("\(scriptContent.count) / \(Self.maxCharacterCount)")
                     .font(.caption)
@@ -99,39 +74,36 @@ struct ScriptConfirmView: View {
                 isEditingContent = false
                 isFocusedContentEditor = false
             }
+            .disabled(!viewModel.canEdit)
         }
-        .safeAreaInset(edge: .bottom){
-            // 분석 및 저장 버튼
-            Button(action: {
-                Task {
-                    isTitleEditing = false
-                    // 🔹 추가됨: 타임아웃 플래그 초기화
-                    didTimeout = false
-                    
-                    // 🔹 추가됨: 30초 뒤 타임아웃 트리거
-                    startTimeoutTimer()
-                    
-                    // LocalRateLimiter 검사 추가
-                    guard rateLimiter.canCall() else {
-                        await MainActor.run {
-                            showErrorAlert("시스템 처리량이 초과되어 요청을 잠시 제한합니다.\n1분 후 다시 시도해 주세요.")
-                        }
-                        return
-                    }
-                    await callGemini()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 8) {
+                Button(action: startAnalysis) {
+                    Text(viewModel.canRetrySaving ? "저장 다시 시도" : "분석 및 암기 시작")
+                        .bold()
                 }
-            }) {
-                Text("분석 및 암기 시작")
-                    .bold()
+                .buttonStyle(GeneralButtonStyle(width: 404))
+                .frame(width: 404, height: 48)
+                .disabled(!viewModel.canRetrySaving && (
+                    !viewModel.canStartAnalysis || scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ))
+
+                if viewModel.canRetrySaving {
+                    Button("내용 다시 편집", action: viewModel.resumeEditing)
+                }
             }
-            .buttonStyle(GeneralButtonStyle(width: 404))
-            .frame(width: 404, height: 48)
             .padding(.bottom, 10)
-            .disabled(scriptContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            
+        }
+        .allowsHitTesting(!viewModel.isLoading)
+        .accessibilityHidden(viewModel.isLoading)
+        .overlay {
+            if viewModel.isLoading {
+                ScriptConfirmLoadingView(isSaving: viewModel.isSaving)
+                    .ignoresSafeArea()
+            }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button(action: {
@@ -139,137 +111,98 @@ struct ScriptConfirmView: View {
                 }) {
                     Image(systemName: "chevron.left")
                 }
+                .accessibilityIdentifier("script-confirm.back")
             }
-            
+
             ToolbarItem(placement: .principal) {
                 EditableTitle(
                     title: $scriptTitle,
                     showEditIcon: true,
                     isEditing: $isTitleEditing
                 )
+                .disabled(!viewModel.canEdit)
             }
         }
+        .toolbar(viewModel.isLoading ? .hidden : .automatic, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
         .alert("저장하지 않고 나가시겠어요?", isPresented: $showBackAlert) {
             Button("취소", role: .cancel) {}
             Button("나가기", role: .destructive) {
+                viewModel.cancel()
                 dismiss()
             }
         } message: {
-            Text("편집 중인 스크립트는 저장되지 않고 삭제됩니다.")
+            Text("이 화면의 편집 내용은 유지되지 않습니다. 이미 시작된 저장은 완료될 수 있습니다.")
         }
         .alert("오류", isPresented: $showErrorAlert) {
             Button("확인", role: .cancel) {}
         } message: {
-            Text(errorMessage)
+            Text(viewModel.errorMessage ?? "")
         }
-        .onChange(of: scriptContent) { oldValue, newValue in
+        .onChange(of: scriptContent) { _, newValue in
             if newValue.count > Self.maxCharacterCount {
                 scriptContent = String(newValue.prefix(Self.maxCharacterCount))
             }
         }
-        .onChange(of: parsedScript) { oldValue, newValue in
-            guard let scriptData = newValue else { return }
-            saveAndNavigate(with: scriptData)
-        }
-        .fullScreenCover(isPresented: $isLoading) {
-            ScriptConfirmLoadingView()
+        .onChange(of: viewModel.errorMessage) { _, message in showErrorAlert = message != nil }
+        .onChange(of: viewModel.completion) { _, _ in showSavedScript() }
+        .onChange(of: router.path) { _, _ in viewModel.cancel() }
+        .onAppear { isVisible = true }
+        .onDisappear {
+            isVisible = false
+            viewModel.cancel()
         }
     }
-    
-    // MARK: - 🔹 추가됨: 30초 동안 로딩 시 자동 타임아웃
-    private func startTimeoutTimer() {
-        Task {
-            try? await Task.sleep(nanoseconds: 30 * 1_000_000_000)
-            
-            // 이미 종료되었으면 아무 동작 X
-            if !isLoading { return }
-            
-            await MainActor.run {
-                didTimeout = true
-                isLoading = false
-                showErrorAlert("네트워크 연결 상태를 확인해 주세요.\n연결에 문제가 없다면 잠시 후 다시 시도해 주세요.")
+
+    private var scriptContentEditor: some View {
+        ZStack(alignment: .topLeading) {
+            TextEditor(text: $scriptContent)
+                .accessibilityIdentifier("script-confirm.editor")
+                .padding(4)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.primaryBlue200, lineWidth: 3)
+                }
+                .focused($isFocusedContentEditor)
+
+            if scriptContent.isEmpty {
+                Text("스크립트를 입력하세요.")
+                    .foregroundStyle(.gray.opacity(0.5))
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 8)
             }
         }
     }
-    
-    // MARK: -Gemini 두 번 호출: 스크립트 분석 → 단어 추출
-    private func callGemini() async {
-        isLoading = true
-        
-        // 🔹 추가됨: 이미 타임아웃되었으면 호출 중단
-        if didTimeout { return }
-        
-        do {
-            print("🚀 [1/2] Gemini 스크립트 분석 시작")
-            //ScriptGeminiCall.swift의 함수 호출 (JSON 반환)
-            if let result = try await geminiCaller.analyzeScript(scriptContent) {
-                
-                // 🔹 추가됨: 타임아웃 상황에서 결과 반영 금지
-                if didTimeout { return }
-                
-                await MainActor.run {
-                    self.parsedScript = result
-                }
-                print("✅ [1/2] Gemini 스크립트 분석 완료 → ScriptData 생성됨")
+
+    private func startAnalysis() {
+        isTitleEditing = false
+        isFocusedContentEditor = false
+        let content = scriptContent
+        let title = scriptTitle
+        Task {
+            guard isVisible else { return }
+            if viewModel.canRetrySaving {
+                await viewModel.retrySaving()
             } else {
-                throw URLError(.cannotParseResponse)
-            }
-        } catch {
-            // 🔹 추가됨: 타임아웃일 경우 에러 메시지 중복 출력 방지
-            if didTimeout { return }
-            
-            await MainActor.run {
-                self.showErrorAlert("스크립트 분석 실패: \(error.localizedDescription)")
-            }
-            isLoading = false // Ensure isLoading is reset on error
-            return
-        }
-    }
-    
-    // MARK: - 저장 및 화면 이동
-    private func saveAndNavigate(with scriptData: ScriptData) {
-        Task {
-            // 🔹 추가됨: 타임아웃이라면 저장/네비게이션 수행 금지
-            if didTimeout { return }
-            
-            defer { isLoading = false }
-            do {
-                // 사용자가 입력한 제목이 비어있으면, Gemini가 생성한 제목 사용
-                let finalTitle = scriptTitle.isEmpty ? scriptData.title : scriptTitle
-                let scriptToSave = ScriptData(title: finalTitle, sentences: scriptData.sentences)
-                
-                let script = try await databaseContainer.scriptManagementService.createScript(scriptData: scriptToSave)
-                print("✅ 스크립트가 성공적으로 저장되었습니다.")
-                
-                if let scriptId = script.id {
-                    // MainActor를 사용하여 UI 업데이트 (화면 이동)
-                    await MainActor.run {
-                        router.reset() // Go back to HomeView
-                        router.push(Route.memorization(scriptId: scriptId, scriptTitle: scriptTitle))
-                    }
-                }
-            } catch {
-                print("🔥 스크립트 저장 오류:", error.localizedDescription)
-                await MainActor.run {
-                    showErrorAlert("스크립트를 저장하는 데 실패했습니다.")
-                }
+                await viewModel.start(content: content, title: title)
             }
         }
     }
-    // MARK: - 사용자 알림 (UI Thread 전환)
-    @MainActor
-    func showErrorAlert(_ message: String) {
-        self.errorMessage = message
-        self.showErrorAlert = true
+
+    private func showSavedScript() {
+        guard let result = viewModel.consumeCompletion() else { return }
+        router.reset()
+        router.push(Route.memorization(scriptId: result.savedID, scriptTitle: result.title))
     }
+
 }
 
 #Preview {
     AsyncPreview(operation: {
-        try await DatabaseContainer.getForPreview(withMockData: true)
-    }) { container in
+        try await PreviewComposition.withDemoData()
+    }) { composition in
         NavigationStack {
-            ScriptConfirmView(initialText: """
+            composition.makeScriptConfirmView(initialText: """
                 Hello everyone, my name is Dewy.
                 Today, I want to talk about the power of challenge.
                 I used to be afraid of speaking English in front of others.
@@ -281,7 +214,6 @@ struct ScriptConfirmView: View {
                 Now I know every challenge helps me grow.
                 Thank you for listening.
                 """, initialTitle: "Dewy's Speech")
-            .environment(container)
             .environment(NavigationRouter())
         }
     }

@@ -9,7 +9,6 @@ import SwiftUI
 import Lottie
 
 struct RecordingView: View {
-    @Environment(DatabaseContainer.self) private var container
     @Environment(NavigationRouter.self) private var modalRouter
     
     @State private var viewModel: RecordingViewModel

@@ -1,0 +1,155 @@
+name: iOS Default
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-default-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bettr-ai:
+    name: BettrAI Independent Tests
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify independent test runner failure handling
+        run: bash scripts/tests/bettr-ai-test.sh
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Restore BettrAI package cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/BettrAIBuild
+          key: bettr-ai-${{ runner.os }}-${{ runner.arch }}-xcode-26.6-${{ hashFiles('Bettr/BettrAI/Package.swift', 'Bettr/BettrAI/Package.resolved', 'Bettr/Bettr.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+
+      - name: Run credential-free BettrAI tests without the app host
+        run: |
+          scripts/bettr-ai-test.sh \
+            --scratch-path "$RUNNER_TEMP/BettrAIBuild" \
+            --results "$RUNNER_TEMP/BettrAIResults"
+
+      - name: Upload independent test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bettr-ai-results
+          path: ${{ runner.temp }}/BettrAIResults
+          if-no-files-found: ignore
+          retention-days: 7
+
+  ios-default:
+    name: iOS Default
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify shared runner failure handling
+        run: bash scripts/tests/ios-default-test.sh
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Verify logging policy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if rg -n --pcre2 --glob '*.swift' '^\s*(?!//).*\b(print|debugPrint|NSLog|dump|os_log)\s*\(' Bettr/Bettr Bettr/BettrAI/Sources; then
+            echo "Use AppLog instead of raw output APIs."
+            exit 1
+          fi
+
+          if rg -n --pcre2 --glob '*.swift' --glob '!**/Utils/AppLog.swift' '^\s*(import OSLog\b|.*\b(Logger|OSLog)\s*\()' Bettr/Bettr Bettr/BettrAI/Sources; then
+            echo "Use AppLog instead of creating a direct OSLog logger."
+            exit 1
+          fi
+
+      - name: Restore SPM cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/SourcePackages
+          key: spm-${{ runner.os }}-${{ runner.arch }}-xcode-26.6-${{ hashFiles('Bettr/Bettr.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'Bettr/BettrAI/Package.resolved') }}
+
+      - name: Create iPad Simulator
+        id: simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          runtime_id="$(xcrun simctl list runtimes --json | jq -r '
+            .runtimes[]
+            | select(.identifier == "com.apple.CoreSimulator.SimRuntime.iOS-26-2" and .isAvailable)
+            | .identifier
+          ')"
+          device_type_id="$(xcrun simctl list devicetypes --json | jq -r '
+            .devicetypes[]
+            | select(.name == "iPad Pro 11-inch (M4)")
+            | .identifier
+          ')"
+
+          if [[ -z "$runtime_id" ]]; then
+            echo "iOS 26.2 Simulator runtime is unavailable."
+            exit 1
+          fi
+
+          if [[ -z "$device_type_id" ]]; then
+            echo "iPad Pro 11-inch (M4) device type is unavailable."
+            exit 1
+          fi
+
+          simulator_id="$(xcrun simctl create "BETTrR CI iPad" "$device_type_id" "$runtime_id")"
+          echo "destination=platform=iOS Simulator,id=$simulator_id" >> "$GITHUB_OUTPUT"
+
+      - name: Build app and run Default Test Plan
+        shell: bash
+        run: |
+          scripts/ios-default.sh \
+            --destination "${{ steps.simulator.outputs.destination }}" \
+            --source-packages "$RUNNER_TEMP/SourcePackages" \
+            --derived-data "$RUNNER_TEMP/BettrDerivedData" \
+            --results "$RUNNER_TEMP/BettrDefaultResults"
+
+      - name: Run ScriptConfirm UI regression
+        run: |
+          xcodebuild test \
+            -project Bettr/Bettr.xcodeproj \
+            -scheme BettrUI \
+            -testPlan ScriptConfirmUI \
+            -destination "${{ steps.simulator.outputs.destination }}" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/SourcePackages" \
+            -derivedDataPath "$RUNNER_TEMP/BettrDerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/BettrUI.xcresult" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload Xcode results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-default-xcresult
+          path: |
+            ${{ runner.temp }}/BettrDefaultResults
+            ${{ runner.temp }}/BettrUI.xcresult
+          if-no-files-found: ignore
+          retention-days: 7

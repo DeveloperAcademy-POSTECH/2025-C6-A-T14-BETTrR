@@ -2,11 +2,13 @@ import SwiftUI
 import Lottie
 
 struct ScriptConfirmLoadingView: View {
+    var isSaving = false
+
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
             VStack(spacing: 8) {
-                Text("스크립트를 확인하고 있어요")
+                Text(isSaving ? "스크립트를 저장하고 있어요" : "스크립트를 확인하고 있어요")
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundStyle(.primary)
                 

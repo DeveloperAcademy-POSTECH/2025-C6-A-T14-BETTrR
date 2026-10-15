@@ -1,7 +1,7 @@
 import Vision
 import UIKit
 
-struct TextRecognitionService {
+struct TextRecognitionService: TextRecognizing {
     func recognizeText(from image: UIImage, completion: @escaping (String) -> Void) {
         guard let cgImage = image.cgImage else {
             completion("")
@@ -27,7 +27,7 @@ struct TextRecognitionService {
         do {
             try requestHandler.perform([request])
         } catch {
-            print("Failed to perform text recognition: \(error)")
+            AppLog.document.error("텍스트 인식 실패")
             DispatchQueue.main.async {
                 completion("")
             }

@@ -8,11 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		10F1140A2ECFB8FA006DBF4B /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 10F114092ECFB8FA006DBF4B /* Lottie */; };
-		1243719C2ECC42150001FECB /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 1243719B2ECC42150001FECB /* FirebaseAILogic */; };
-		1243719E2ECC498A0001FECB /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 1243719D2ECC498A0001FECB /* FirebaseAILogic */; };
-		124371A02ECC4AD40001FECB /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 1243719F2ECC4AD40001FECB /* FirebaseAILogic */; };
-		124371A82ECD50010001FECB /* FirebaseAILogic in Frameworks */ = {isa = PBXBuildFile; productRef = 124371A72ECD50010001FECB /* FirebaseAILogic */; };
-		129A71882EB0B038001CE8EB /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71872EB0B038001CE8EB /* FirebaseAI */; };
+		1243719C2ECC42150001FECB /* BettrAI in Frameworks */ = {isa = PBXBuildFile; productRef = 1243719B2ECC42150001FECB /* BettrAI */; };
 		129A718A2EB0B038001CE8EB /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71892EB0B038001CE8EB /* FirebaseAppCheck */; };
 		129A718C2EB0B038001CE8EB /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 129A718B2EB0B038001CE8EB /* FirebaseCore */; };
 		129A71B32EB0EEA8001CE8EB /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 129A71B22EB0EEA8001CE8EB /* GRDB */; };
@@ -26,11 +22,20 @@
 			remoteGlobalIDString = 129A71752EB0AD3D001CE8EB;
 			remoteInfo = Bettr;
 		};
+		B73060082F0A306000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 129A716E2EB0AD3D001CE8EB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 129A71752EB0AD3D001CE8EB;
+			remoteInfo = Bettr;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		129A71762EB0AD3D001CE8EB /* Bettr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bettr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A7CF26062EB2440300CEA916 /* BettrTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B30100000000000000000004 /* BettrAI */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BettrAI; sourceTree = "<group>"; };
+		B73060012F0A306000000001 /* BettrUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -44,6 +49,11 @@
 			path = BettrTests;
 			sourceTree = "<group>";
 		};
+		B73060022F0A306000000001 /* BettrUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BettrUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,19 +61,22 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				124371A82ECD50010001FECB /* FirebaseAILogic in Frameworks */,
-				1243719E2ECC498A0001FECB /* FirebaseAILogic in Frameworks */,
 				10F1140A2ECFB8FA006DBF4B /* Lottie in Frameworks */,
 				129A718A2EB0B038001CE8EB /* FirebaseAppCheck in Frameworks */,
 				129A718C2EB0B038001CE8EB /* FirebaseCore in Frameworks */,
-				124371A02ECC4AD40001FECB /* FirebaseAILogic in Frameworks */,
-				129A71882EB0B038001CE8EB /* FirebaseAI in Frameworks */,
 				129A71B32EB0EEA8001CE8EB /* GRDB in Frameworks */,
-				1243719C2ECC42150001FECB /* FirebaseAILogic in Frameworks */,
+				1243719C2ECC42150001FECB /* BettrAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A7CF26032EB2440300CEA916 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B73060032F0A306000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -77,7 +90,9 @@
 			isa = PBXGroup;
 			children = (
 				129A71782EB0AD3D001CE8EB /* Bettr */,
+				B30100000000000000000004 /* BettrAI */,
 				A7CF26072EB2440300CEA916 /* BettrTests */,
+				B73060022F0A306000000001 /* BettrUITests */,
 				129A71772EB0AD3D001CE8EB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -87,6 +102,7 @@
 			children = (
 				129A71762EB0AD3D001CE8EB /* Bettr.app */,
 				A7CF26062EB2440300CEA916 /* BettrTests.xctest */,
+				B73060012F0A306000000001 /* BettrUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -111,14 +127,10 @@
 			);
 			name = Bettr;
 			packageProductDependencies = (
-				129A71872EB0B038001CE8EB /* FirebaseAI */,
 				129A71892EB0B038001CE8EB /* FirebaseAppCheck */,
 				129A718B2EB0B038001CE8EB /* FirebaseCore */,
 				129A71B22EB0EEA8001CE8EB /* GRDB */,
-				1243719B2ECC42150001FECB /* FirebaseAILogic */,
-				1243719D2ECC498A0001FECB /* FirebaseAILogic */,
-				1243719F2ECC4AD40001FECB /* FirebaseAILogic */,
-				124371A72ECD50010001FECB /* FirebaseAILogic */,
+				1243719B2ECC42150001FECB /* BettrAI */,
 				10F114092ECFB8FA006DBF4B /* Lottie */,
 			);
 			productName = Bettr;
@@ -148,6 +160,29 @@
 			productReference = A7CF26062EB2440300CEA916 /* BettrTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		B73060062F0A306000000001 /* BettrUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B730600B2F0A306000000001 /* Build configuration list for PBXNativeTarget "BettrUITests" */;
+			buildPhases = (
+				B73060042F0A306000000001 /* Sources */,
+				B73060032F0A306000000001 /* Frameworks */,
+				B73060052F0A306000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B73060092F0A306000000001 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				B73060022F0A306000000001 /* BettrUITests */,
+			);
+			name = BettrUITests;
+			packageProductDependencies = (
+			);
+			productName = BettrUITests;
+			productReference = B73060012F0A306000000001 /* BettrUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -156,13 +191,17 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2650;
 				TargetAttributes = {
 					129A71752EB0AD3D001CE8EB = {
 						CreatedOnToolsVersion = 26.0.1;
 					};
 					A7CF26052EB2440300CEA916 = {
 						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 129A71752EB0AD3D001CE8EB;
+					};
+					B73060062F0A306000000001 = {
+						CreatedOnToolsVersion = 27.0;
 						TestTargetID = 129A71752EB0AD3D001CE8EB;
 					};
 				};
@@ -177,6 +216,7 @@
 			mainGroup = 129A716D2EB0AD3D001CE8EB;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				B30100000000000000000001 /* XCLocalSwiftPackageReference "BettrAI" */,
 				129A71862EB0B038001CE8EB /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				129A71B12EB0EEA8001CE8EB /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 				10F114082ECFB8FA006DBF4B /* XCRemoteSwiftPackageReference "lottie-ios" */,
@@ -188,6 +228,7 @@
 			targets = (
 				129A71752EB0AD3D001CE8EB /* Bettr */,
 				A7CF26052EB2440300CEA916 /* BettrTests */,
+				B73060062F0A306000000001 /* BettrUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -201,6 +242,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		A7CF26042EB2440300CEA916 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B73060052F0A306000000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -224,6 +272,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B73060042F0A306000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -231,6 +286,11 @@
 			isa = PBXTargetDependency;
 			target = 129A71752EB0AD3D001CE8EB /* Bettr */;
 			targetProxy = A7CF260A2EB2440300CEA916 /* PBXContainerItemProxy */;
+		};
+		B73060092F0A306000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 129A71752EB0AD3D001CE8EB /* Bettr */;
+			targetProxy = B73060082F0A306000000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -294,6 +354,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -351,6 +412,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -385,11 +447,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.Bettr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = developmentBettrrfinal;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = betterProvision2026_1;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -433,11 +495,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.Bettr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = developmentBettrrfinal;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = betterProvision2026_1;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -460,29 +522,29 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JMAUFK6U82;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 6CU55U45VF;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = RAXCR9X83K;
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RAXCR9X83K;
-				"DEVELOPMENT_TEAM[sdk=xros*]" = RAXCR9X83K;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = BETTrR;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.Bettr;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.BettrTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = developmentBettrrfinal;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = 2;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bettr.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Bettr";
-				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
 		};
@@ -494,29 +556,85 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JMAUFK6U82;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = 6CU55U45VF;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = RAXCR9X83K;
-				"DEVELOPMENT_TEAM[sdk=macosx*]" = RAXCR9X83K;
-				"DEVELOPMENT_TEAM[sdk=xros*]" = RAXCR9X83K;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = BETTrR;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.Bettr;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.BettrTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = developmentBettrrfinal;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = 2;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Bettr.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Bettr";
-				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		B730600C2F0A306000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = BETTrR;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.BettrUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 2;
+				TEST_TARGET_NAME = Bettr;
+			};
+			name = Debug;
+		};
+		B730600D2F0A306000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = BETTrR;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.BettrUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 2;
+				TEST_TARGET_NAME = Bettr;
 			};
 			name = Release;
 		};
@@ -550,7 +668,23 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		B730600B2F0A306000000001 /* Build configuration list for PBXNativeTarget "BettrUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B730600C2F0A306000000001 /* Debug */,
+				B730600D2F0A306000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		B30100000000000000000001 /* XCLocalSwiftPackageReference "BettrAI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = BettrAI;
+		};
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
 		10F114082ECFB8FA006DBF4B /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
@@ -573,8 +707,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/groue/GRDB.swift.git";
 			requirement = {
-				branch = master;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.11.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -585,26 +719,10 @@
 			package = 10F114082ECFB8FA006DBF4B /* XCRemoteSwiftPackageReference "lottie-ios" */;
 			productName = Lottie;
 		};
-		1243719B2ECC42150001FECB /* FirebaseAILogic */ = {
+		1243719B2ECC42150001FECB /* BettrAI */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = FirebaseAILogic;
-		};
-		1243719D2ECC498A0001FECB /* FirebaseAILogic */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FirebaseAILogic;
-		};
-		1243719F2ECC4AD40001FECB /* FirebaseAILogic */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FirebaseAILogic;
-		};
-		124371A72ECD50010001FECB /* FirebaseAILogic */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FirebaseAILogic;
-		};
-		129A71872EB0B038001CE8EB /* FirebaseAI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 129A71862EB0B038001CE8EB /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAI;
+			package = B30100000000000000000001 /* XCLocalSwiftPackageReference "BettrAI" */;
+			productName = BettrAI;
 		};
 		129A71892EB0B038001CE8EB /* FirebaseAppCheck */ = {
 			isa = XCSwiftPackageProductDependency;

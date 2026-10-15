@@ -1,7 +1,6 @@
 name: 🎨 디자인 반영
 description: 디자인 시안을 반영하여 UI/UX를 구현할 때 사용합니다.
 title: "🎨 Design: "
-labels: ["Design"]
 body:
   - type: textarea
     id: design-goal

@@ -1,4 +1,5 @@
 
+import BettrAI
 import Foundation
 import GRDB
 
@@ -15,5 +16,17 @@ struct Chunk: Identifiable, Codable, FetchableRecord, MutablePersistableRecord {
 
     mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
+    }
+}
+
+extension Chunk {
+    static func from(_ data: ChunkData, sentenceId: Int64) -> Chunk {
+        Chunk(
+            id: nil,
+            sentenceId: sentenceId,
+            orderIndex: data.orderIndex,
+            englishText: data.englishText,
+            koreanText: data.koreanText
+        )
     }
 }

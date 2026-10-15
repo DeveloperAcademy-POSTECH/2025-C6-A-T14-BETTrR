@@ -1,4 +1,5 @@
 
+import BettrAI
 import Foundation
 import GRDB
 
@@ -15,6 +16,22 @@ struct Script: Identifiable, Codable, FetchableRecord, MutablePersistableRecord 
 
     mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
+    }
+}
+
+// MARK: - Creation and State Changes
+extension Script {
+    static func from(_ data: ScriptData, createdAt: Date) -> Script {
+        Script(
+            id: nil,
+            title: data.title,
+            createdAt: createdAt,
+            lastViewedAt: createdAt
+        )
+    }
+
+    mutating func markViewed(at date: Date) {
+        lastViewedAt = date
     }
 }
 

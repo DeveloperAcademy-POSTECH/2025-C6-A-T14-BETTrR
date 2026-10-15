@@ -156,7 +156,7 @@ class RecordingViewModel {
             return nil
             
         } catch {
-            print("❌ 피드백 저장 실패 (Unknown): \(error)")
+            AppLog.database.error("예상하지 못한 오류로 피드백 저장 실패")
             self.appError = .unknown(error.localizedDescription)
             return nil
         }
@@ -233,7 +233,7 @@ class RecordingViewModel {
             try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
             try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
-            print("오디오 세션 설정 실패: \(error)")
+            AppLog.audio.error("녹음 오디오 세션 설정 실패")
             return
         }
         
@@ -282,7 +282,7 @@ class RecordingViewModel {
             isRecording = true
             
         } catch {
-            print("오디오 엔진 시작 실패: \(error)")
+            AppLog.audio.error("녹음 오디오 엔진 시작 실패")
         }
     }
     

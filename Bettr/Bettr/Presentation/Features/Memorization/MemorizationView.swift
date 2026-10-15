@@ -11,13 +11,22 @@ struct MemorizationView: View {
     @State var viewModel: MemorizationViewModel
     @State var wordListViewModel: WordListViewModel
     @State private var modalRouter = NavigationRouter()
+    @State private var wordLoadRequest = 0
     
-    @Environment(AudioPlaybackService.self) private var audioService
-    @Environment(DatabaseContainer.self) private var container
+    private let makeFeedbackHistory: @MainActor () -> FeedbackHistoryView
+
+    private var audioService: any AudioPlaybackServiceProtocol {
+        viewModel.audioService
+    }
     
-    init(viewModel: MemorizationViewModel, wordListViewModel: WordListViewModel) {
+    init(
+        viewModel: MemorizationViewModel,
+        wordListViewModel: WordListViewModel,
+        makeFeedbackHistory: @escaping @MainActor () -> FeedbackHistoryView
+    ) {
         _viewModel = State(initialValue: viewModel)
         _wordListViewModel = State(initialValue: wordListViewModel)
+        self.makeFeedbackHistory = makeFeedbackHistory
     }
     
     var body: some View {
@@ -28,7 +37,8 @@ struct MemorizationView: View {
             if viewModel.uiState.showWordList {
                 WordListOverlay(
                     showWordList: $viewModel.uiState.showWordList,
-                    viewModel: wordListViewModel
+                    viewModel: wordListViewModel,
+                    onRetry: { wordLoadRequest += 1 }
                 )
             }
             
@@ -43,22 +53,18 @@ struct MemorizationView: View {
             MemorizationToolbar(viewModel: viewModel, showEditIcon: true)
         }
         .fullScreenCover(isPresented: $viewModel.uiState.showFeedbackModal) {
-            FeedbackHistoryView(
-                viewModel: FeedbackHistoryViewModel(
-                    scriptId: viewModel.scriptId,
-                    scriptService: container.scriptManagementService
-                )
-            )
-            .environment(modalRouter)
+            makeFeedbackHistory()
+                .environment(modalRouter)
         }
         .onAppear {
             viewModel.onAppear()
-            
-            Task {
-                await wordListViewModel.loadWords()
-            }
+
+        }
+        .task(id: wordLoadRequest) {
+            await wordListViewModel.loadWords()
         }
         .onDisappear {
+            wordListViewModel.cancelLoading()
             viewModel.onDisappear()
         }
         .onChange(of: audioService.isPlaybackActive) { _, serviceIsActive in
@@ -104,9 +110,9 @@ struct MemorizationView: View {
             ScrollView {
                 VStack(spacing: 24) {
                     if viewModel.uiState.isChunkMode {
-                        ChunkModeView(viewModel: viewModel)
+                        ChunkModeView(viewModel: viewModel, audioService: audioService)
                     } else {
-                        SentenceModeView(viewModel: viewModel)
+                        SentenceModeView(viewModel: viewModel, audioService: audioService)
                     }
                 }
                 .padding(.horizontal, 80)

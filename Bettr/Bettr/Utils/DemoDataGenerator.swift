@@ -1,4 +1,5 @@
 
+import BettrAI
 import Foundation
 import GRDB
 
@@ -10,7 +11,7 @@ struct DemoDataGenerator {
         // Check if demo data already exists to prevent duplicates
         let existingScripts = try await scriptManagementService.fetchAllScripts()
         if !existingScripts.isEmpty {
-            print("ℹ️ Demo data already exists. Skipping creation.")
+            AppLog.database.debug("기존 데모 데이터가 있어 생성 생략")
             return
         }
         

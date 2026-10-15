@@ -1,52 +1,22 @@
+import BettrAI
 import Foundation
 import GRDB
 
-class ScriptManagementService {
+@MainActor
+class ScriptManagementService: ScriptManagementServiceProtocol {
     private let scriptRepository: ScriptRepository
 
     init(scriptRepository: ScriptRepository) {
         self.scriptRepository = scriptRepository
     }
 
+    // iOS 26.2의 MainActor deinit 런타임 오류를 우회한다. (swiftlang/swift@29245e4)
+    nonisolated deinit {}
+
     // MARK: - Script Create
     func createScript(scriptData: ScriptData) async throws -> Script {
         try validateScriptData(scriptData)
-
-        var script = Script(
-            title: scriptData.title,
-            createdAt: Date(),
-            lastViewedAt: Date()
-        )
-        script = try await scriptRepository.save(script: script)
-        
-        guard let scriptId = script.id else {
-            throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Script")
-        }
-
-        for (sentenceOrderIndex, sentenceData) in scriptData.sentences.enumerated() {
-            var sentence = Sentence(
-                scriptId: scriptId,
-                orderIndex: sentenceOrderIndex,
-                englishText: sentenceData.englishText,
-                koreanText: sentenceData.koreanText
-            )
-            sentence = try await scriptRepository.save(sentence: sentence)
-            
-            guard let sentenceId = sentence.id else {
-                throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created Sentence")
-            }
-
-            for (chunkOrderIndex, chunkData) in sentenceData.chunks.enumerated() {
-                let chunk = Chunk(
-                    sentenceId: sentenceId,
-                    orderIndex: chunkOrderIndex,
-                    englishText: chunkData.englishText,
-                    koreanText: chunkData.koreanText
-                )
-                _ = try await scriptRepository.save(chunk: chunk)
-            }
-        }
-        return script
+        return try await scriptRepository.createScript(with: scriptData)
     }
     
     // MARK: - Script Read
@@ -88,7 +58,7 @@ class ScriptManagementService {
         guard var script = try await scriptRepository.fetchScript(id: scriptId) else {
             throw ScriptRepositoryError.notFound(message: "Script with ID \(scriptId) not found.")
         }
-        script.lastViewedAt = Date()
+        script.markViewed(at: Date())
         _ = try await scriptRepository.save(script: script)
     }
     

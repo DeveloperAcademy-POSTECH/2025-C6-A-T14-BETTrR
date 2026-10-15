@@ -1,4 +1,5 @@
 
+import BettrAI
 import Foundation
 import AVFoundation
 

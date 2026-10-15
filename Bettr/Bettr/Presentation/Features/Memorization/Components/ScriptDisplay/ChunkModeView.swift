@@ -5,10 +5,12 @@
 //  Created by 길정수 on 11/3/25.
 //
 
+import BettrAI
 import SwiftUI
 
 struct ChunkModeView: View {
     @Bindable var viewModel: MemorizationViewModel
+    let audioService: any AudioPlaybackServiceProtocol
     
     var body: some View {
         ForEach(viewModel.scriptData?.sentences ?? [], id: \.orderIndex) { sentence in
@@ -54,6 +56,7 @@ struct ChunkModeView: View {
                     onTap: { viewModel.handleChunkTap(chunk: chunk, identifier: chunkID) },
                     sentenceIndex: sentence.orderIndex,
                     viewID: PlaybackTargetID.chunk(chunkID),
+                    audioService: audioService,
                     chunkOffset: offset
                 )
                 

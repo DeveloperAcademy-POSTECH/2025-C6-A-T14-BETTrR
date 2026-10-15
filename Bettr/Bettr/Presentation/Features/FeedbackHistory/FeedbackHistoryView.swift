@@ -10,11 +10,23 @@ import Charts
 
 struct FeedbackHistoryView: View {
     
-    @Environment(DatabaseContainer.self) private var container
     @Environment(NavigationRouter.self) private var modalRouter
     @Environment(\.dismiss) var modalDismiss
     
     @State var viewModel: FeedbackHistoryViewModel
+
+    private let makeRecording: @MainActor (Int64, String, [String]) -> RecordingView
+    private let makeFeedbackResult: @MainActor (Int64, Bool) -> FeedbackResultView
+
+    init(
+        viewModel: FeedbackHistoryViewModel,
+        makeRecording: @escaping @MainActor (Int64, String, [String]) -> RecordingView,
+        makeFeedbackResult: @escaping @MainActor (Int64, Bool) -> FeedbackResultView
+    ) {
+        _viewModel = State(initialValue: viewModel)
+        self.makeRecording = makeRecording
+        self.makeFeedbackResult = makeFeedbackResult
+    }
     
     var body: some View {
         
@@ -71,25 +83,10 @@ struct FeedbackHistoryView: View {
     private func navigationDestinationView(_ route: ModalRoute) -> some View {
         switch route {
         case .recording(let scriptId, let scriptTitle, let sentences):
-            let recordingViewModel = RecordingViewModel(
-                sentences: sentences,
-                scriptManagementService: container.scriptManagementService
-            )
-            
-            RecordingView(
-                scriptId: scriptId,
-                scriptTitle: scriptTitle,
-                viewModel: recordingViewModel
-            )
+            makeRecording(scriptId, scriptTitle, sentences)
             
         case .feedbackResult(let summaryId, let fromRecording):
-            let feedbackResultViewModel = FeedbackResultViewModel(
-                scriptId: viewModel.scriptId,
-                summaryId: summaryId,
-                scriptManagementService: container.scriptManagementService
-            )
-            
-            FeedbackResultView(viewModel: feedbackResultViewModel)
+            makeFeedbackResult(summaryId, fromRecording)
                 .environment(\.modalDismiss, fromRecording ? modalDismiss : nil)
         }
     }

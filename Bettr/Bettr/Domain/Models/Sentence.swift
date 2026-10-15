@@ -1,4 +1,5 @@
 
+import BettrAI
 import Foundation
 import GRDB
 
@@ -16,5 +17,17 @@ struct Sentence: Identifiable, Codable, FetchableRecord, MutablePersistableRecor
 
     mutating func didInsert(_ inserted: InsertionSuccess) {
         id = inserted.rowID
+    }
+}
+
+extension Sentence {
+    static func from(_ data: SentenceData, scriptId: Int64) -> Sentence {
+        Sentence(
+            id: nil,
+            scriptId: scriptId,
+            orderIndex: data.orderIndex,
+            englishText: data.englishText,
+            koreanText: data.koreanText
+        )
     }
 }

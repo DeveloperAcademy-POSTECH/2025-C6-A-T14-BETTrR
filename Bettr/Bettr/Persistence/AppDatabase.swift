@@ -10,6 +10,9 @@ import GRDB
 
 class AppDatabase {
     let dbQueue: DatabaseQueue
+
+    // iOS 26.2의 MainActor deinit 런타임 오류를 우회한다. (swiftlang/swift@29245e4)
+    nonisolated deinit {}
     
     // 싱글톤 인스턴스
     static let shared: AppDatabase = {
@@ -17,22 +20,13 @@ class AppDatabase {
             let databasePath = defaultDatabasePath()
             let dbQueue = try DatabaseQueue(path: databasePath)
             let appDB = AppDatabase(dbQueue: dbQueue)
-            try DatabaseMigrator.setupDatabase(dbQueue)
-            print("✅ Database initialized at: \(databasePath)")
-
-//            #if DEBUG
-//            // 개발 모드에서만 데모 데이터 생성
-//            do {
-//                try DemoDataGenerator.generate(into: appDB)
-//                print("✅ Demo data creation attempted.")
-//            } catch {
-//                print("🔥 Failed to create demo data: \(error.localizedDescription)")
-//            }
-//            #endif
+            try AppDatabaseMigrator.migrate(dbQueue)
+            AppLog.database.debug("데이터베이스 초기화 완료")
 
             return appDB
         } catch {
-            fatalError("Failed to initialize database: \(error)")
+            AppLog.database.fault("데이터베이스 초기화 실패")
+            fatalError("Failed to initialize database")
         }
     }()
     
@@ -45,7 +39,7 @@ class AppDatabase {
     // 테스트용 인메모리 데이터베이스
     static func makeInMemory() throws -> AppDatabase {
         let dbQueue = try DatabaseQueue()
-        try DatabaseMigrator.setupDatabase(dbQueue)
+        try AppDatabaseMigrator.migrate(dbQueue)
         return AppDatabase(dbQueue: dbQueue)
     }
     

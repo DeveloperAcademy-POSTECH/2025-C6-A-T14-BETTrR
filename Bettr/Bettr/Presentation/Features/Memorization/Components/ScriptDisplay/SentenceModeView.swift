@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import BettrAI
 
 struct SentenceModeView: View {
     @Bindable var viewModel: MemorizationViewModel
+    let audioService: any AudioPlaybackServiceProtocol
     
     var body: some View {
         ForEach(viewModel.scriptData?.sentences ?? [], id: \.orderIndex) { sentence in
@@ -19,6 +21,7 @@ struct SentenceModeView: View {
                     onTap: { viewModel.handleSentenceTap(sentence: sentence) },
                     sentenceIndex: sentence.orderIndex,
                     viewID: PlaybackTargetID.sentence(sentence.orderIndex),
+                    audioService: audioService,
                 )
                 
                 KoreanScriptTextView(

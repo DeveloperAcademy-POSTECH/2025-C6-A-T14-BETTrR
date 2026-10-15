@@ -1,7 +1,7 @@
 <!--
-🙏 PR 제목 컨벤션 (Gitmoji + 타입 + 이슈 번호 + 작업 요약)
+🙏 PR 제목 컨벤션 (Gitmoji + 타입 + 작업 요약)
 예시: ✨ Feature: 예약 취소 구현
-※ PR 생성 시 Assignees 및 Labels 설정도 잊지 마세요!
+※ 관련 이슈는 본문의 Closes #번호로 연결하고, Assignees 및 Labels는 수동으로 설정하세요.
 -->
 
 ## ✨ What’s this PR?

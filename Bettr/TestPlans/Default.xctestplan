@@ -1,0 +1,34 @@
+{
+  "configurations" : [
+    {
+      "id" : "8C1E62E0-5DF1-4B3A-9C64-000000000001",
+      "name" : "Default",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : true
+  },
+  "testTargets" : [
+    {
+      "skippedTests" : [
+        "GeminiContractTests"
+      ],
+      "target" : {
+        "containerPath" : "container:Bettr.xcodeproj",
+        "identifier" : "A7CF26052EB2440300CEA916",
+        "name" : "BettrTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:BettrAI",
+        "identifier" : "BettrAITests",
+        "name" : "BettrAITests"
+      }
+    }
+  ],
+  "version" : 1
+}

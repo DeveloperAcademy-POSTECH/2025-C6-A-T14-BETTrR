@@ -54,7 +54,7 @@
 ### Development
 - **Language**: Swift 5.0
 - **Framework**: SwiftUI
-- **Architecture**: MVVM
+- **Architecture**: 기능별 MVVM (복잡한 상태 전이는 상태 머신/리듀서 적용 가능)
 - **Minimum iOS**: 26.0+
 
 ### AI & Speech
@@ -111,7 +111,6 @@
 ┣ 📂 Bettr/                          # 주 애플리케이션 및 테스트 코드
 ┃ ┣ 📂 Bettr/                        # Bettr 애플리케이션 소스 코드
 ┃ ┃ ┣ 📂 Domain/                     # 도메인 계층 (비즈니스 로직 및 데이터 모델)
-┃ ┃ ┃ ┣ 📂 DTOs/                     # 데이터 전송 객체
 ┃ ┃ ┃ ┣ 📂 Models/                   # 핵심 데이터 모델
 ┃ ┃ ┃ ┣ 📂 Repositories/             # 데이터 저장소 인터페이스
 ┃ ┃ ┃ └ 📂 Services/                 # 도메인 서비스 (비즈니스 로직)
@@ -130,6 +129,7 @@
 ┃ ┃ ┃ └ 📂 Services/                 # UI 계층 서비스 (오디오 재생, 텍스트 분석)
 ┃ ┃ ┣ 📂 Resources/                  # 앱 리소스 (폰트, 이미지, Lottie 애니메이션)
 ┃ ┃ └ 📂 Utils/                      # 유틸리티 함수 및 헬퍼 클래스
+┃ ┣ 📂 BettrAI/                      # AI 계약·Firebase 구현·독립 테스트 (로컬 Swift Package)
 ┃ ┣ 📂 Bettr.xcodeproj/              # Xcode 프로젝트 설정 파일
 ┃ └ 📂 BettrTests/                   # 유닛 및 통합 테스트 코드
 ...
@@ -139,12 +139,12 @@
 
 **Domain Layer (도메인 계층)**
 - 비즈니스 로직과 데이터 모델의 핵심
-- UI나 데이터베이스에 독립적인 순수한 로직
+- 일부 앱 모델은 GRDB Record를 준수하며, AI 계약과 결과 DTO는 BettrAI가 소유
 
 **Presentation Layer (프레젠테이션 계층)**
 - SwiftUI 기반의 사용자 인터페이스
 - MVVM 패턴으로 뷰와 비즈니스 로직 분리
-- 기능별로 독립적인 모듈 구성
+- 기능별 폴더 구성. AI 구현은 [BettrAI 로컬 패키지](Bettr/BettrAI/README.md)로 분리
 
 **Persistence Layer (영속성 계층)**
 - GRDB를 활용한 로컬 데이터 저장
@@ -202,28 +202,69 @@ cd 2025-C6-A-T14-BETTrR
 - Xcode 26.0 이상 설치
 - iPadOS 26.0+ 시뮬레이터 또는 실제 기기 (AI 분석 요청, 음성 인식)
 
+### 3. Firebase AI Logic 로컬 실행
+
+앱의 Debug 구성은 `AppCheckDebugProviderFactory`, Release 구성은 App Attest를
+사용합니다. App Check 시행 상태를 유지한 채 Simulator에서 AI 기능을 실행하려면
+다음과 같이 로컬 Debug token을 등록합니다.
+
+1. Git에 포함되지 않는 `Bettr/Bettr/GoogleService-Info.plist`를 준비합니다.
+2. Debug 구성으로 앱을 Simulator에서 처음 실행합니다.
+3. Firebase SDK가 Xcode Console에 표시한 App Check Debug token을 Firebase Console의
+   Security > App Check > Apps > Manage debug tokens에 등록합니다.
+4. 앱을 다시 실행하여 AI 분석 요청이 성공하는지 확인합니다.
+
+Debug token은 코드, 공유 Scheme, 문서, 로그 산출물이나 Git에 저장하지 않습니다.
+Release 빌드에는 Debug Provider가 선택되지 않습니다. 실제 Gemini 계약 테스트는
+[별도 실행 문서](docs/testing/gemini-contract.md)의 전용 token 경로를 사용합니다.
+
+### 4. 로컬·CI 공통 빌드 및 Default 테스트
+
+저장소 루트에서 CI와 같은 명령으로 패키지 해석, iPad Simulator 앱 빌드,
+Default 테스트를 실행합니다. Firebase 설정 파일과 실제 Gemini 호출은 필요하지 않습니다.
+
+```bash
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+scripts/ios-default.sh \
+  --destination 'platform=iOS Simulator,id=<사용 가능한 iPad Simulator UDID>' \
+  --source-packages /tmp/bettr-spm \
+  --derived-data /tmp/bettr-derived \
+  --results /tmp/bettr-default-run-1
+```
+
+- `xcrun simctl list devices available`로 Simulator UDID를 확인합니다. 필요한
+  iPadOS runtime은 Xcode에서 설치하며, CI의 Xcode/Simulator 선택은 workflow가 담당합니다.
+- `--source-packages`는 SPM 캐시, `--derived-data`는 빌드 캐시 경로입니다.
+  두 경로는 재사용할 수 있습니다. 추적된 `Package.resolved`가 필요합니다.
+- `--results`에는 `resolve.log`, `build.log`, `test.log`와
+  `BettrBuild.xcresult`, `BettrTest.xcresult`를 저장합니다. 재실행할 때는 새 결과
+  경로를 지정합니다. 상대 경로는 명령을 실행한 디렉터리를 기준으로 해석합니다.
+- Xcode 실행 실패나 로그 저장 실패는 non-zero로 종료합니다. 빌드·테스트는
+  종료 코드 `0`과 각각 `BUILD SUCCEEDED`·`TEST SUCCEEDED` 표시가 있어야 통과합니다.
+  성공 증거가 없으면 검증 미완료로 실패 처리합니다.
+
+앱 호스트 없이 실행하는 AI 순수 테스트와 공개 API는
+[BettrAI 실행 문서](Bettr/BettrAI/README.md)를 따릅니다. Default Plan에도 패키지 테스트가 포함됩니다.
+
+실제 Xcode 호출 없이 실행 스크립트의 실패 전파를 검증하려면
+`bash scripts/tests/ios-default-test.sh`를 실행합니다.
+
 ---
 
 ## :paperclip: 프로젝트 문서
 
 - [:globe_with_meridians: 프로젝트 웹사이트](https://developeracademy-postech.github.io/2025-C6-A-T14-BETTrR/)
 - [:iphone: App Store 페이지](https://apps.apple.com/kr/app/bettrr/id6754756492)
+- [실제 Gemini 계약 테스트 실행](docs/testing/gemini-contract.md)
+- [iPhone 지원 기반 리팩터링 계획](docs/plans/ios-readiness-refactoring-plan.md)
+- [진행 상태와 하위 이슈 (#292)](https://github.com/DeveloperAcademy-POSTECH/2025-C6-A-T14-BETTrR/issues/292)
+- [아키텍처 결정 기록](docs/decisions/README.md)
 
 ---
 
 ## :scroll: License
 
-This project is licensed under the MIT License.
-
-```
-MIT License
-
-Copyright (c) 2025 Team D.U.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction...
-```
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
