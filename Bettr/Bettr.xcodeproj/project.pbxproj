@@ -34,8 +34,8 @@
 /* Begin PBXFileReference section */
 		129A71762EB0AD3D001CE8EB /* Bettr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bettr.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A7CF26062EB2440300CEA916 /* BettrTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		B73060012F0A306000000001 /* BettrUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B30100000000000000000004 /* BettrAI */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BettrAI; sourceTree = "<group>"; };
+		B73060012F0A306000000001 /* BettrUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BettrUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -447,7 +447,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.Bettr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -495,7 +495,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.duracell.Bettr;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
