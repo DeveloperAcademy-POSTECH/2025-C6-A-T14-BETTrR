@@ -134,8 +134,13 @@ class SpeechAnalyzer {
     
     // MARK: - 최종 분석 (Local-to-Global 하이브리드)
     func analyze(reference: String, transcription: SFTranscription) -> [WordDiff] {
+        analyze(reference: reference, recognizedText: transcription.formattedString)
+    }
+    
+    /// Speech 프레임워크 타입 없이 인식된 문자열만으로 분석한다. 기기 없이 검증하기 위한 진입점이다.
+    func analyze(reference: String, recognizedText: String) -> [WordDiff] {
         let referenceWords = normalize(reference)
-        let recognizedWords = normalize(transcription.formattedString)
+        let recognizedWords = normalize(recognizedText)
         guard !referenceWords.isEmpty && !recognizedWords.isEmpty else { return [] }
         
         let (start, end) = smithWatermanRegion(reference: referenceWords, recognized: recognizedWords)
