@@ -108,9 +108,23 @@ final class AppComposition {
 
     func makeRecordingView(scriptId: Int64, scriptTitle: String, sentences: [String]) -> RecordingView {
         RecordingView(
-            scriptId: scriptId,
             scriptTitle: scriptTitle,
-            viewModel: RecordingViewModel(sentences: sentences, scriptManagementService: scriptService)
+            viewModel: makeRecordingViewModel(scriptId: scriptId, sentences: sentences)
+        )
+    }
+
+    func makeRecordingViewModel(
+        scriptId: Int64,
+        sentences: [String],
+        clock: any RecordingClock = ContinuousRecordingClock()
+    ) -> RecordingViewModel {
+        RecordingViewModel(
+            scriptId: scriptId,
+            sentences: sentences,
+            scriptManagementService: scriptService,
+            permissions: SystemRecordingPermissions(),
+            capture: SpeechRecordingCapture(),
+            clock: clock
         )
     }
 

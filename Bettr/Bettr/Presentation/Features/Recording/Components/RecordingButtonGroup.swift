@@ -19,7 +19,7 @@ struct RecordingButtonGroup: View {
                 Image(systemName: "arrow.clockwise")
             }
             .buttonStyle(ResetButtonStyle())
-            .disabled(!viewModel.didFinishRecording)
+            .disabled(!viewModel.canReset)
             
             Spacer()
             
@@ -28,7 +28,7 @@ struct RecordingButtonGroup: View {
                 Image(systemName: viewModel.isReadyToRecord ? "microphone" : "stop.fill")
             }
             .buttonStyle(RecordToggleButtonStyle(isRecording: viewModel.isRecording))
-            .disabled(viewModel.didFinishRecording)
+            .disabled(!viewModel.canToggleRecording)
             
             Spacer()
             
@@ -37,7 +37,7 @@ struct RecordingButtonGroup: View {
                 Image(systemName: "arrow.right")
             }
             .buttonStyle(NextStepButtonStyle())
-            .disabled(!viewModel.didFinishRecording)
+            .disabled(!viewModel.canSave)
         }
         .padding(.horizontal, 48)
     }
