@@ -11,6 +11,7 @@ ADR은 구조와 동작 규칙을 선택한 이유, 비용, 재검토 조건을 
 | [0002](0002-feature-state-contract.md) | 기능 상태 관리와 모듈 간 계약 |
 | [0003](0003-ai-module-boundary.md) | BettrAI의 공개 계약과 의존성 경계 |
 | [0004](0004-script-confirm-workflow.md) | ScriptConfirm 요청·타임아웃·저장 정책 |
+| [0005](0005-recording-session-workflow.md) | 녹음 세션 상태·기기 경계·저장 정책 |
 
 각 결정의 상태와 대체 관계는 해당 ADR에서 확인한다.
 
