@@ -2,6 +2,17 @@ import AVFoundation
 import Foundation
 import Speech
 
+/// 실제 시계를 사용하는 녹음 타이머의 시간 원천입니다.
+struct ContinuousRecordingClock: RecordingClock {
+    nonisolated init() {}
+
+    var now: ContinuousClock.Instant { ContinuousClock.now }
+
+    func sleep(until deadline: ContinuousClock.Instant) async throws {
+        try await ContinuousClock().sleep(until: deadline)
+    }
+}
+
 /// 실제 기기의 마이크·음성 인식 권한입니다.
 @MainActor
 final class SystemRecordingPermissions: RecordingPermissionProviding {
