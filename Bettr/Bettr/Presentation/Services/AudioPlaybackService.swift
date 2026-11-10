@@ -117,8 +117,6 @@ final class AudioPlaybackService: AudioPlaybackServiceProtocol {
             .sorted { $0.orderIndex < $1.orderIndex }
             .map { (index: $0.orderIndex, utterance: createUtterance(text: $0.englishText, language: language)) }
 
-        AppLog.audio.debug("대기열 재생 시작")
-
         playNextInQueue()
     }
 
@@ -176,7 +174,6 @@ final class AudioPlaybackService: AudioPlaybackServiceProtocol {
             currentSpokenRange = NSRange(location: 0, length: range.location + range.length)
 
         case .didFinish:
-            AppLog.audio.debug("대기열 음성 재생 완료")
             if currentPlaybackMode == .multi && !utteranceQueue.isEmpty {
                 scheduleNextInQueue(after: currentUtterance)
             } else {
@@ -241,13 +238,11 @@ final class AudioPlaybackService: AudioPlaybackServiceProtocol {
     // utteranceQueue를 순서대로 처리
     private func playNextInQueue() {
         guard !utteranceQueue.isEmpty else {
-            AppLog.audio.debug("대기열이 비어 재생 중지")
             resetState()
             return
         }
 
         let (index, utterance) = utteranceQueue.removeFirst()
-        AppLog.audio.debug("대기열 음성 재생 시작")
 
         currentMultiSentenceIndex = index
         currentSpokenRange = nil
