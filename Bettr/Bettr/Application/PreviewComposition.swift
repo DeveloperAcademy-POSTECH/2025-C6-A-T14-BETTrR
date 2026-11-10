@@ -62,7 +62,6 @@ private final class PreviewAudioPlayback: AudioPlaybackServiceProtocol {
     var isPlaybackActive = false
     var isPaused = false
     var currentPlaybackMode = PlaybackMode.stopped
-    var currentSpokenTextID: String?
     var currentPlaybackID: PlaybackTargetID?
     var currentMultiSentenceIndex: Int?
     var currentSpokenRange: NSRange?
