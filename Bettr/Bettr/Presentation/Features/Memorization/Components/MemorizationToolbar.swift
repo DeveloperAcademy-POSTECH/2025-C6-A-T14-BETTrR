@@ -40,11 +40,7 @@ struct MemorizationToolbar: ToolbarContent {
         // 스크립트 모드 (문장/분할)
         ToolbarItem {
             Button(action: {
-                if viewModel.isSinglePlaybackActive {
-                    viewModel.showToaster(message: "부분 재생 중에는 모드를 변경할 수 없습니다")
-                } else {
-                    viewModel.toggleChunkMode()
-                }
+                viewModel.toggleChunkMode()
             }) {
                 Image(systemName: viewModel.uiState.isChunkMode ? "text.word.spacing": "text.justify")
                     .toolbarButtonStyle(
@@ -67,11 +63,7 @@ struct MemorizationToolbar: ToolbarContent {
             }
             
             Button(action: {
-                if viewModel.isFullPlaybackActive {
-                    viewModel.showToaster(message: "전체 재생 중에는 부분 재생을 사용할 수 없습니다")
-                } else {
-                    viewModel.setFunctionMode(.read)
-                }
+                viewModel.setFunctionMode(.read)
             }) {
                 Image(systemName: "speaker.wave.2")
                     .toolbarButtonStyle(viewModel.uiState.funcMode == .read ? .normal : .disabled)
@@ -118,12 +110,12 @@ struct MemorizationToolbar: ToolbarContent {
     
     @ViewBuilder
     private var playbackControls: some View {
-        if viewModel.uiState.isPlaybackActive {
+        if viewModel.isFullPlaybackActive {
             ControlGroup {
                 Button(action: {
                     viewModel.togglePauseResume()
                 }) {
-                    Image(systemName: viewModel.uiState.isPause ? "play.fill" : "pause.fill")
+                    Image(systemName: viewModel.isPlaybackPaused ? "play.fill" : "pause.fill")
                         .foregroundStyle(.secondaryBlue700)
                 }
                 
@@ -136,11 +128,7 @@ struct MemorizationToolbar: ToolbarContent {
             }
         } else {
             Button(action: {
-                if viewModel.isSinglePlaybackActive {
-                    viewModel.showToaster(message: "부분 재생 중에는 전체 재생을 사용할 수 없습니다")
-                } else {
-                    viewModel.togglePlayStop()
-                }
+                viewModel.togglePlayStop()
             }) {
                 Image(systemName: "play.fill")
                     .toolbarButtonStyle(viewModel.isSinglePlaybackActive ? .disabled : .normal)
@@ -150,7 +138,7 @@ struct MemorizationToolbar: ToolbarContent {
     
     private var feedbackButton: some View {
         Button(action: {
-            viewModel.uiState.showFeedbackModal.toggle()
+            viewModel.presentFeedbackModal()
         }) {
             Image(systemName: "chart.line.text.clipboard")
         }

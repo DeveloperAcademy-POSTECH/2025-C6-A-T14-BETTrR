@@ -67,17 +67,6 @@ struct MemorizationView: View {
             wordListViewModel.cancelLoading()
             viewModel.onDisappear()
         }
-        .onChange(of: audioService.isPlaybackActive) { _, serviceIsActive in
-            viewModel.handleAudioServiceStateChange(
-                isPlaybackActive: serviceIsActive,
-                isPaused: audioService.isPaused
-            )
-        }
-        .onChange(of: viewModel.uiState.showFeedbackModal) { _, isShowing in
-            if isShowing {
-                viewModel.stopPlayback()
-            }
-        }
         .animation(.easeInOut, value: viewModel.uiState.showWordList)
         .animation(.easeOut(duration: 0.2), value: viewModel.uiState.toasterMessage)
     }

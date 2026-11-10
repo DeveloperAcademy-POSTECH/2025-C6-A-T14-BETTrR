@@ -22,13 +22,17 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     var uiState = MemorizationUIState()
     var interactionState = MemorizationInteractionState()
     
-    // MARK: Mutex Playback Control
+    // MARK: Playback (서비스 상태에서 파생, 복사본을 두지 않는다)
     var isFullPlaybackActive: Bool {
         return audioService.currentPlaybackMode == .multi
     }
     
     var isSinglePlaybackActive: Bool {
         return audioService.currentPlaybackMode == .single
+    }
+    
+    var isPlaybackPaused: Bool {
+        return audioService.isPaused
     }
     
     // MARK: Toaster Task
@@ -80,6 +84,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     }
     
     func toggleChunkMode() {
+        guard !isSinglePlaybackActive else {
+            showToaster(message: "부분 재생 중에는 모드를 변경할 수 없습니다")
+            return
+        }
+        
         uiState.isChunkMode.toggle()
         
         interactionState.clearAllHiddenStates()
@@ -89,6 +98,11 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     }
     
     func setFunctionMode(_ newMode: FunctionMode) {
+        guard newMode != .read || !isFullPlaybackActive else {
+            showToaster(message: "전체 재생 중에는 부분 재생을 사용할 수 없습니다")
+            return
+        }
+        
         uiState.funcMode = newMode
         
         if uiState.funcMode == .read {
@@ -113,43 +127,42 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     // MARK: Playback Controls
     
     func stopPlayback() {
-        if uiState.isPlaybackActive {
-            uiState.isPlaybackActive = false
-            uiState.isPause = false
-        }
         audioService.stop()
     }
     
+    /// 전체 재생을 시작하거나 정지합니다. 부분 재생 중에는 시작하지 않습니다.
     func togglePlayStop() {
-        uiState.isPlaybackActive.toggle()
-        
-        if uiState.isPlaybackActive {
-            guard let scriptData = scriptData else {
-                uiState.isPlaybackActive = false
-                return
-            }
-            uiState.funcMode = .hide
-            audioService.playAll(sentences: scriptData.sentences)
-            uiState.isPause = false
-        } else {
+        if isFullPlaybackActive {
             audioService.stop()
-            
-            if audioService.isPlaybackActive {
-                self.uiState.isPlaybackActive = false
-            }
+            return
         }
+        
+        guard !isSinglePlaybackActive else {
+            showToaster(message: "부분 재생 중에는 전체 재생을 사용할 수 없습니다")
+            return
+        }
+        guard let scriptData else { return }
+        
+        uiState.funcMode = .hide
+        audioService.playAll(sentences: scriptData.sentences)
     }
     
     func togglePauseResume() {
-        guard uiState.isPlaybackActive else { return }
+        guard isFullPlaybackActive else { return }
         
-        uiState.isPause.toggle()
-        
-        if uiState.isPause {
-            audioService.pause()
-        } else {
+        if audioService.isPaused {
             audioService.resume()
+        } else {
+            audioService.pause()
         }
+    }
+    
+    // MARK: Modal
+    
+    /// 피드백 화면은 재생을 정지한 뒤 표시합니다. 단어장 오버레이는 재생에 영향을 주지 않습니다.
+    func presentFeedbackModal() {
+        audioService.stop()
+        uiState.showFeedbackModal = true
     }
     
     // MARK: Script Interaction
@@ -177,15 +190,6 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
             }
         }
     }
-    
-    // MARK: Service Callbacks
-    
-    func handleAudioServiceStateChange(isPlaybackActive serviceIsActive: Bool, isPaused serviceIsPaused: Bool) {
-            if !serviceIsActive && !serviceIsPaused {
-                self.uiState.isPlaybackActive = false
-                self.uiState.isPause = false
-            }
-        }
     
     // MARK: - View State Logic
     

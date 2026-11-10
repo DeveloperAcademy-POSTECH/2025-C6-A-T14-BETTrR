@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// 툴바, 모달, 재생 상태 등 UI와 직접 연결된 상태
+/// 툴바, 모달 등 UI와 직접 연결된 상태. 재생 상태는 `AudioPlaybackServiceProtocol`이 소유하므로 두지 않는다.
 @Observable
 class MemorizationUIState {
     // 툴바 상태
@@ -19,10 +19,6 @@ class MemorizationUIState {
     // 모달/시트 상태
     var showWordList: Bool = false
     var showFeedbackModal: Bool = false
-    
-    // 재생 및 하이라이트 상태
-    var isPlaybackActive: Bool = false
-    var isPause: Bool = false
     
     // 토스터 상태
     var toasterMessage: String? = nil
