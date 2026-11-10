@@ -59,16 +59,38 @@ final class FakeAudioPlayback: AudioPlaybackServiceProtocol {
     }
 }
 
+typealias FetchedMemorizationScript = (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])])
+
+/// 스크립트 조회를 호출마다 보류했다가 테스트가 원하는 시점에 완료(또는 실패)시킵니다.
+/// 호출 Task가 취소되어도 결과를 보낼 수 있어, 늦게 도착한 결과를 ViewModel이 거르는지 검증합니다.
 @MainActor
 final class FakeMemorizationStorage: ScriptManagementServiceProtocol {
+    private(set) var fetchCount = 0
+    private var pending: [Int: CheckedContinuation<FetchedMemorizationScript, Error>] = [:]
+
+    func fetchScriptWithSentencesAndChunks(id: Int64) async throws -> FetchedMemorizationScript {
+        let index = fetchCount
+        fetchCount += 1
+        return try await withCheckedThrowingContinuation { pending[index] = $0 }
+    }
+
+    func complete(_ index: Int, title: String, sentenceTexts: [String]) {
+        let script = Script(id: 1, title: title, createdAt: Date(timeIntervalSince1970: 0), lastViewedAt: Date(timeIntervalSince1970: 0))
+        let sentences = sentenceTexts.enumerated().map { offset, text in
+            (sentence: Sentence(id: Int64(offset + 1), scriptId: 1, orderIndex: offset, englishText: text, koreanText: ""), chunks: [Chunk]())
+        }
+        pending.removeValue(forKey: index)?.resume(returning: (script: script, sentences: sentences))
+    }
+
+    func fail(_ index: Int, error: Error) {
+        pending.removeValue(forKey: index)?.resume(throwing: error)
+    }
+
     func createScript(scriptData: ScriptData) async throws -> Script { fatalError("Unexpected write") }
     func fetchAllScripts() async throws -> [Script] { fatalError("Unexpected read") }
     func deleteScript(id: Int64) async throws { fatalError("Unexpected delete") }
     func fetchScript(id: Int64) async throws -> Script? { fatalError("Unexpected read") }
     func fetchScriptWithSentences(id: Int64) async throws -> (script: Script, sentences: [Sentence]) {
-        fatalError("Unexpected read")
-    }
-    func fetchScriptWithSentencesAndChunks(id: Int64) async throws -> (script: Script, sentences: [(sentence: Sentence, chunks: [Chunk])]) {
         fatalError("Unexpected read")
     }
     func updateLastViewedAt(forScriptId scriptId: Int64) async throws { fatalError("Unexpected update") }

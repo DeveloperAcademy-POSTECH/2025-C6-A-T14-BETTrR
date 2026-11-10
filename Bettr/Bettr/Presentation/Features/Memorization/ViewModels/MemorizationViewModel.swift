@@ -35,8 +35,13 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
         return audioService.isPaused
     }
     
-    // MARK: Toaster Task
+    // MARK: Tasks
     private var toasterTask: Task<Void, Never>?
+    
+    /// 스크립트 로딩 Task의 소유자는 이 ViewModel입니다. 화면 이탈·재시도·재요청 시 이전 로딩은 취소되고,
+    /// `activeLoadID`가 일치하는 마지막 요청의 결과만 상태에 반영됩니다.
+    private var loadTask: Task<Void, Never>?
+    private var activeLoadID: UUID?
     
     // MARK: - Initialization
     
@@ -56,12 +61,12 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     @MainActor
     func onAppear() {
-        Task {
-            await loadScriptById()
-        }
+        startLoading()
     }
     
+    @MainActor
     func onDisappear() {
+        cancelLoading()
         audioService.stop()
     }
     
@@ -224,19 +229,46 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
     
     // MARK: - Data Fetching
     
+    /// 이전 로딩을 취소하고 새 로딩을 시작합니다. (진입·다시 시도)
+    @MainActor
+    func startLoading() {
+        loadTask?.cancel()
+        loadTask = Task { await loadScriptById() }
+    }
+    
+    /// 진행 중인 로딩의 소유권을 종료합니다. 이후 도착하는 결과는 상태에 반영되지 않습니다.
+    @MainActor
+    func cancelLoading() {
+        loadTask?.cancel()
+        loadTask = nil
+        activeLoadID = nil
+        isLoadingScript = false
+    }
+    
     @MainActor
     func loadScriptById() async {
-        
+        let loadID = UUID()
+        activeLoadID = loadID
         isLoadingScript = true
         currentError = nil
         
         let maxRetries = 2
         
-        defer { isLoadingScript = false }
+        defer {
+            if activeLoadID == loadID {
+                activeLoadID = nil
+                isLoadingScript = false
+            }
+        }
+        
+        func isActive() -> Bool {
+            activeLoadID == loadID && !Task.isCancelled
+        }
         
         for attempt in 0...maxRetries {
             do {
                 let fetchedData = try await scriptService.fetchScriptWithSentencesAndChunks(id: scriptId)
+                guard isActive() else { return }
                 
                 let sentenceDataList: [SentenceData] = fetchedData.sentences.map { (sentence, chunks) in
                     let chunkDataList = chunks.map { ChunkData(chunk: $0) }
@@ -250,29 +282,33 @@ final class MemorizationViewModel: TitleEditableViewModelProtocol {
                 )
                 
                 self.currentTitle = fetchedData.script.title
-                isLoadingScript = false
                 currentError = nil
                 return
                 
             } catch let error as ScriptRepositoryError where error.isNotFoundError {
+                guard isActive() else { return }
                 let message = "스크립트를 불러오는데 실패했습니다: \(scriptId)번 스크립트를 찾을 수 없습니다."
                 currentError = .dataNotFound(message)
                 self.currentTitle = "스크립트 없음"
-                isLoadingScript = false
                 return
                 
             } catch {
+                guard isActive() else { return }
                 let appError = error.toAppError()
                 
                 if !appError.isRetryable || attempt == maxRetries {
                     currentError = appError
                     self.currentTitle = "스크립트 오류"
-                    isLoadingScript = false
                     return
                 }
                 
                 let delaySeconds = UInt64(pow(2, Double(attempt)))
-                try? await Task.sleep(nanoseconds: delaySeconds * 1_000_000_000)
+                do {
+                    try await Task.sleep(nanoseconds: delaySeconds * 1_000_000_000)
+                } catch {
+                    return
+                }
+                guard isActive() else { return }
             }
         }
     }
