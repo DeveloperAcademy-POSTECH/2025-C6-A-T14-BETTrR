@@ -202,7 +202,7 @@ class ScriptRepository {
     }
 
     // MARK: - Private Methods
-    private static func insertSentences(
+    private nonisolated static func insertSentences(
         _ sentenceData: [SentenceData],
         scriptId: Int64,
         in db: Database
@@ -216,7 +216,7 @@ class ScriptRepository {
         }
     }
 
-    private static func insertChunks(
+    private nonisolated static func insertChunks(
         _ chunkData: [ChunkData],
         sentenceId: Int64,
         in db: Database
@@ -227,7 +227,7 @@ class ScriptRepository {
         }
     }
 
-    private static func insertedId(from id: Int64?, entity: String) throws -> Int64 {
+    private nonisolated static func insertedId(from id: Int64?, entity: String) throws -> Int64 {
         guard let id else {
             throw ScriptRepositoryError.databaseError(message: "Failed to get ID for created \(entity)")
         }

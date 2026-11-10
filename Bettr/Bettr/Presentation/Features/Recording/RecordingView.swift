@@ -14,15 +14,12 @@ struct RecordingView: View {
     @State private var viewModel: RecordingViewModel
     @State private var showUnsavedDataAlert = false
     
-    private let scriptId: Int64
     private let scriptTitle: String
     
     init(
-        scriptId: Int64,
         scriptTitle: String,
         viewModel: RecordingViewModel
     ) {
-        self.scriptId = scriptId
         self.scriptTitle = scriptTitle
         _viewModel = State(initialValue: viewModel)
     }
@@ -52,13 +49,7 @@ struct RecordingView: View {
                     // 버튼
                     RecordingButtonGroup(
                         viewModel: viewModel,
-                        onSaveAction: {
-                            Task {
-                                if let summaryId = await viewModel.processAndSaveFeedback(scriptId: scriptId) {
-                                    modalRouter.push(ModalRoute.feedbackResult(summaryId: summaryId, fromRecording: true))
-                                }
-                            }
-                        }
+                        onSaveAction: { viewModel.saveFeedback() }
                     )
                 }
                 
@@ -90,8 +81,10 @@ struct RecordingView: View {
                 }
             }
         }
-        .alert("인식된 영문 텍스트가 없습니다.", isPresented: $viewModel.showEmptyTranscriptAlert) {
-            Button("확인") { viewModel.cancelRecording() }
+        .onChange(of: viewModel.completion) { _, _ in showFeedbackResult() }
+        .onDisappear { viewModel.leave() }
+        .alert("인식된 영문 텍스트가 없습니다.", isPresented: failureBinding(.emptyTranscript)) {
+            Button("확인") { }
         } message: {
             Text("피드백 생성을 위해 인식된 영문 텍스트가 있어야 합니다. 다시 녹음 해주세요.")
         }
@@ -103,14 +96,12 @@ struct RecordingView: View {
         } message: {
             Text("현재 녹음에서 인식된 영문 텍스트가 있습니다. 저장되지 않은 데이터는 사라집니다.")
         }
-        .alert(item: $viewModel.appError) { error in
-            Alert(
-                title: Text("오류"),
-                message: Text(error.userFriendlyMessage),
-                dismissButton: .default(Text("확인"))
-            )
+        .alert("오류", isPresented: errorBinding) {
+            Button("확인") { }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
         }
-        .alert("마이크 및 음성 인식 권한 필요", isPresented: $viewModel.showPermissionAlert) {
+        .alert("마이크 및 음성 인식 권한 필요", isPresented: failureBinding(.permissionDenied)) {
             Button("설정으로 이동") {
                 if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(settingsUrl)
@@ -120,5 +111,24 @@ struct RecordingView: View {
         } message: {
             Text("피드백을 제공하기 위해 마이크와 음성 인식 권한이 필요합니다. 설정에서 권한을 허용해주세요.")
         }
+    }
+    
+    private func failureBinding(_ failure: RecordingFailure) -> Binding<Bool> {
+        Binding(
+            get: { viewModel.failure == failure },
+            set: { if !$0 { viewModel.dismissFailure() } }
+        )
+    }
+    
+    private var errorBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.dismissFailure() } }
+        )
+    }
+    
+    private func showFeedbackResult() {
+        guard let result = viewModel.consumeCompletion() else { return }
+        modalRouter.push(ModalRoute.feedbackResult(summaryId: result.summaryID, fromRecording: true))
     }
 }
