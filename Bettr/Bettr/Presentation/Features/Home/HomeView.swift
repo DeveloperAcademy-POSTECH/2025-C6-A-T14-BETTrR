@@ -30,6 +30,21 @@ struct HomeView: View {
                 requestDelete: requestDelete
             )
         }
+        // 입력 처리 중에는 조작을 막아 진행 중인 선택이 조용히 대체되지 않게 합니다.
+        .allowsHitTesting(!importModel.isProcessing)
+        .overlay {
+            if importModel.isProcessing {
+                ZStack {
+                    Color.normalBlack900.opacity(0.1)
+                        .ignoresSafeArea()
+                    VStack(spacing: 16) {
+                        ProgressView()
+                        // 로딩이 길어져도 사용자가 빠져나올 수 있어야 합니다.
+                        Button("취소") { importModel.cancel() }
+                    }
+                }
+            }
+        }
         .task {
             await model.refresh()
         }
