@@ -13,6 +13,7 @@ ADR은 구조와 동작 규칙을 선택한 이유, 비용, 재검토 조건을 
 | [0004](0004-script-confirm-workflow.md) | ScriptConfirm 요청·타임아웃·저장 정책 |
 | [0005](0005-recording-session-workflow.md) | 녹음 세션 상태·기기 경계·저장 정책 |
 | [0006](0006-memorization-playback-state.md) | 암기 화면 재생 상태의 단일 소유권 |
+| [0007](0007-home-import-workflow.md) | 홈 사진·OCR·PDF 입력 작업의 소유권 |
 
 각 결정의 상태와 대체 관계는 해당 ADR에서 확인한다.
 
