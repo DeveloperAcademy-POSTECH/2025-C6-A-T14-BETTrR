@@ -35,13 +35,11 @@ struct HomeView: View {
         .overlay {
             if importModel.isProcessing {
                 ZStack {
-                    Color.normalBlack900.opacity(0.1)
+                    Color.normalBlack900.opacity(0.4)
                         .ignoresSafeArea()
-                    VStack(spacing: 16) {
-                        ProgressView()
-                        // 로딩이 길어져도 사용자가 빠져나올 수 있어야 합니다.
-                        Button("취소") { importModel.cancel() }
-                    }
+                    ProgressView()
+                        .controlSize(.extraLarge)
+                        .tint(.white)
                 }
             }
         }
