@@ -58,7 +58,6 @@ struct MemorizationView: View {
         }
         .onAppear {
             viewModel.onAppear()
-
         }
         .task(id: wordLoadRequest) {
             await wordListViewModel.loadWords()
@@ -66,17 +65,6 @@ struct MemorizationView: View {
         .onDisappear {
             wordListViewModel.cancelLoading()
             viewModel.onDisappear()
-        }
-        .onChange(of: audioService.isPlaybackActive) { _, serviceIsActive in
-            viewModel.handleAudioServiceStateChange(
-                isPlaybackActive: serviceIsActive,
-                isPaused: audioService.isPaused
-            )
-        }
-        .onChange(of: viewModel.uiState.showFeedbackModal) { _, isShowing in
-            if isShowing {
-                viewModel.stopPlayback()
-            }
         }
         .animation(.easeInOut, value: viewModel.uiState.showWordList)
         .animation(.easeOut(duration: 0.2), value: viewModel.uiState.toasterMessage)
@@ -89,17 +77,13 @@ struct MemorizationView: View {
             ProgressView()
         } else if let error = viewModel.currentError { // 에러
             ErrorView(error: error) {
-                Task { // 다시 시도
-                    await viewModel.loadScriptById()
-                }
+                viewModel.startLoading() // 다시 시도
             }
         } else if viewModel.scriptData != nil { // 성공
             successView
         } else { // 예외 케이스: 로딩도 아니고, 에러도 아닌데, 데이터도 없는 경우
             ErrorView(error: .unknown("데이터를 불러오지 못했습니다.")) {
-                Task {
-                    await viewModel.loadScriptById()
-                }
+                viewModel.startLoading()
             }
         }
     }
