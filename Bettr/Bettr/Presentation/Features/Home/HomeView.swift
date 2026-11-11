@@ -48,10 +48,13 @@ struct HomeView: View {
             switch result {
             case .success(let url):
                 let title = url.deletingPathExtension().lastPathComponent
-                if let text = pdfTextExtractor.extractText(from: url) {
-                    router.push(Route.scriptConfirm(initialText: text, initialTitle: title))
-                } else {
-                    showFileError(message: "PDF 파일에서 텍스트를 추출할 수 없습니다.")
+                Task {
+                    do {
+                        let text = try await pdfTextExtractor.extractText(from: url)
+                        router.push(Route.scriptConfirm(initialText: text, initialTitle: title))
+                    } catch {
+                        showFileError(message: "PDF 파일에서 텍스트를 추출할 수 없습니다.")
+                    }
                 }
             case .failure(let error):
                 showFileError(message: "파일을 불러오는 데 실패했습니다: \(error.localizedDescription)")
@@ -102,7 +105,9 @@ struct HomeView: View {
     }
     
     private func process(image: UIImage, title: String) {
-        textRecognitionService.recognizeText(from: image) { text in
+        Task {
+            // 이전 동작 유지: 인식 실패도 빈 텍스트로 ScriptConfirm에 진입합니다.
+            let text = (try? await textRecognitionService.recognizeText(from: image)) ?? ""
             router.push(Route.scriptConfirm(initialText: text, initialTitle: title))
         }
     }
