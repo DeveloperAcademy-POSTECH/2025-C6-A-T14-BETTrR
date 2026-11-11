@@ -35,7 +35,9 @@
 - **파일 접근 수명은 `PDFTextExtractor`가 소유한다.** security-scoped 접근은 단일
   동기 구간에서 얻고 `defer`로 해제하며, 시작 전에 취소되었다면 얻지 않는다. 모델은
   접근을 보유하지 않으므로 취소·대체·오류 어느 경로에서도 해제가 호출 하나에 갇힌다.
-- Vision 요청과 PDF 추출은 백그라운드에서 실행한다.
+- Vision 요청과 PDF 추출은 백그라운드에서 실행한다. detached 작업은 취소를 상속하지
+  않으므로 `withTaskCancellationHandler`로 전달한다. PDF는 쪽마다 취소를 확인해 중단하고,
+  Vision은 호출 한 번이라 시작 전에만 확인한다. 취소는 실패가 아니므로 `CancellationError`를 그대로 던진다.
 
 ## 대안과 보류 이유
 

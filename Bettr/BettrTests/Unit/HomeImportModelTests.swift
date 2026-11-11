@@ -346,6 +346,21 @@ final class PDFTextExtractorCancellationTests: XCTestCase {
     }
 }
 
+@MainActor
+final class TextRecognitionServiceCancellationTests: XCTestCase {
+    func test_recognizeText_whenCancelledBeforeStart_thenThrowsCancellationNotRecognitionFailure() async {
+        let service = TextRecognitionService()
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 8, height: 8)).image { _ in }
+
+        let task = Task { try await service.recognizeText(from: image) }
+        task.cancel()
+        let result = await task.result
+
+        guard case .failure(let error) = result else { return XCTFail("취소된 인식은 실패해야 합니다") }
+        XCTAssertTrue(error is CancellationError, "취소가 인식 실패로 바뀌면 안 됩니다: \(error)")
+    }
+}
+
 // MARK: - Fakes
 
 /// 호출마다 완료 시점을 테스트가 정하는 보류형 호출 목록입니다.
