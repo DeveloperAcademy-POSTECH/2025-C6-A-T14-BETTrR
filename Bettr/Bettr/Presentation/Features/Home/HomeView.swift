@@ -4,6 +4,7 @@ import PhotosUI
 struct HomeView: View {
     @Environment(NavigationRouter.self) var router
     let model: HomeListModel
+    let importModel: HomeImportModel
     
     @State private var selectedPhoto: PhotosPickerItem? = nil
     @State private var showingPhotoPicker = false
@@ -11,11 +12,6 @@ struct HomeView: View {
     @State private var isShowingDocumentPicker = false
     @State private var scriptToDelete: Script? = nil
     @State private var showingDeleteConfirm = false
-    @State private var showingFileErrorAlert = false
-    @State private var fileErrorMessage = ""
-    
-    let textRecognitionService: any TextRecognizing
-    let pdfTextExtractor: any PDFTextExtracting
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -40,37 +36,23 @@ struct HomeView: View {
         .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhoto, matching: .images)
         .fullScreenCover(isPresented: $isShowingCamera) {
             ImagePicker(sourceType: .camera) { image in
-                process(image: image, title: "새로운 사진")
+                importModel.importCameraImage(image)
             }
             .ignoresSafeArea()
         }
         .fileImporter(isPresented: $isShowingDocumentPicker, allowedContentTypes: [.pdf]) { result in
-            switch result {
-            case .success(let url):
-                let title = url.deletingPathExtension().lastPathComponent
-                Task {
-                    do {
-                        let text = try await pdfTextExtractor.extractText(from: url)
-                        router.push(Route.scriptConfirm(initialText: text, initialTitle: title))
-                    } catch {
-                        showFileError(message: "PDF 파일에서 텍스트를 추출할 수 없습니다.")
-                    }
-                }
-            case .failure(let error):
-                showFileError(message: "파일을 불러오는 데 실패했습니다: \(error.localizedDescription)")
-            }
+            importModel.importPDF(result)
         }
-        .onChange(of: selectedPhoto) { oldValue, newValue in
+        .onChange(of: selectedPhoto) { _, newValue in
             guard let item = newValue else { return }
-            Task {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let uiImage = UIImage(data: data) {
-                    process(image: uiImage, title: "사진 보관함에서 가져온 스크립트")
-                }
-                
-                selectedPhoto = nil
+            selectedPhoto = nil
+            importModel.importPhoto {
+                guard let data = try await item.loadTransferable(type: Data.self) else { return nil }
+                return UIImage(data: data)
             }
         }
+        .onChange(of: importModel.completion) { _, _ in showImportedScript() }
+        .onDisappear { importModel.cancel() }
         .alert("스크립트를 삭제하시겠어요?", isPresented: $showingDeleteConfirm, presenting: scriptToDelete) { script in
             Button("삭제", role: .destructive) {
                 deleteScript(script: script)
@@ -80,16 +62,18 @@ struct HomeView: View {
         } message: { script in
             Text("선택하신 스크립트 '\(script.title)'과 학습 기록은 복구할 수 없습니다.")
         }
-        .alert("오류", isPresented: $showingFileErrorAlert) {
+        .alert("오류", isPresented: importErrorBinding) {
             Button("확인", role: .cancel) {}
         } message: {
-            Text(fileErrorMessage)
+            Text(importModel.errorMessage ?? "")
         }
     }
     
-    private func showFileError(message: String) {
-        fileErrorMessage = message
-        showingFileErrorAlert = true
+    private var importErrorBinding: Binding<Bool> {
+        Binding(
+            get: { importModel.errorMessage != nil },
+            set: { if !$0 { importModel.dismissError() } }
+        )
     }
     
     private func requestDelete(script: Script) {
@@ -104,25 +88,22 @@ struct HomeView: View {
         }
     }
     
-    private func process(image: UIImage, title: String) {
-        Task {
-            // 이전 동작 유지: 인식 실패도 빈 텍스트로 ScriptConfirm에 진입합니다.
-            let text = (try? await textRecognitionService.recognizeText(from: image)) ?? ""
-            router.push(Route.scriptConfirm(initialText: text, initialTitle: title))
-        }
+    private func showImportedScript() {
+        guard let result = importModel.consumeCompletion() else { return }
+        router.push(Route.scriptConfirm(initialText: result.text, initialTitle: result.title))
     }
 }
 
 #Preview("Empty Scripts") {
     AsyncPreview(operation: { try PreviewComposition.make() }) { composition in
-        composition.makeHomeView(model: composition.makeHomeListModel())
+        composition.makeHomeView(model: composition.makeHomeListModel(), importModel: composition.makeHomeImportModel())
             .environment(NavigationRouter())
     }
 }
 
 #Preview("With Scripts") {
     AsyncPreview(operation: { try await PreviewComposition.withDemoData() }) { composition in
-        composition.makeHomeView(model: composition.makeHomeListModel())
+        composition.makeHomeView(model: composition.makeHomeListModel(), importModel: composition.makeHomeImportModel())
             .environment(NavigationRouter())
     }
 }

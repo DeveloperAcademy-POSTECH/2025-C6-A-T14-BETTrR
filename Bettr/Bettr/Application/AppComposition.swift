@@ -58,8 +58,12 @@ final class AppComposition {
         HomeListModel(scriptService: scriptService)
     }
 
-    func makeHomeView(model: HomeListModel) -> HomeView {
-        HomeView(model: model, textRecognitionService: textRecognizer, pdfTextExtractor: pdfExtractor)
+    func makeHomeImportModel() -> HomeImportModel {
+        HomeImportModel(textRecognizer: textRecognizer, pdfExtractor: pdfExtractor)
+    }
+
+    func makeHomeView(model: HomeListModel, importModel: HomeImportModel) -> HomeView {
+        HomeView(model: model, importModel: importModel)
     }
 
     func makeScriptConfirmView(initialText: String?, initialTitle: String?) -> ScriptConfirmView {
