@@ -90,8 +90,6 @@ private final class PreviewAudioPlayback: AudioPlaybackServiceProtocol {
 
 @MainActor
 private struct PreviewDocumentImporter: TextRecognizing, PDFTextExtracting {
-    func recognizeText(from image: UIImage, completion: @escaping (String) -> Void) {
-        completion("Preview script.")
-    }
-    func extractText(from url: URL) -> String? { "Preview script." }
+    func recognizeText(from image: UIImage) async throws -> String { "Preview script." }
+    func extractText(from url: URL) async throws -> String { "Preview script." }
 }
